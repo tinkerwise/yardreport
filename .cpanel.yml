@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/briancsm/public_html/yardreport
+    - /bin/cp -R * $DEPLOYPATH
