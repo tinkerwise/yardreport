@@ -89,7 +89,7 @@ function rssProxyDevPlugin() {
 
 export default defineConfig({
   site: 'https://www.briancsmith.org',
-  base: '/yardreport/',
+  base: '/yardreport',
   output: 'static',
   build: {
     assets: 'assets',
