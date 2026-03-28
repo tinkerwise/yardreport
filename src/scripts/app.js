@@ -366,10 +366,10 @@ function renderArticles() {
     </div>`;
   }).join('');
 
-  list.querySelectorAll('[data-idx]').forEach(el => {
+  list.querySelectorAll('.article-card').forEach(el => {
     el.addEventListener('click', e => {
       if (e.target.tagName === 'A') return;
-      const idx = Number(el.dataset.idx ?? el.closest('[data-idx]')?.dataset.idx);
+      const idx = Number(el.dataset.idx);
       openReader(arts[idx]);
     });
     el.addEventListener('keydown', e => {
@@ -486,4 +486,8 @@ async function init() {
   $('cacheLabel').textContent = `Updated ${now}`;
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
