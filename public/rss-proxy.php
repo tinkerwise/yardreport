@@ -26,6 +26,7 @@ $allowed_domains = [
     'fangraphs.com',
     'thebanner.com',
     'mlbtraderumors.com',
+    'baseballprospectus.com',
 ];
 
 $host = strtolower(parse_url($url, PHP_URL_HOST) ?? '');

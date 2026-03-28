@@ -5,5 +5,6 @@
   { "id": "mlb",       "name": "MLB.com",              "url": "https://www.mlb.com/feeds/news/rss.xml",                  "color": "#002d72", "category": "mlb"     },
   { "id": "mlbtr",     "name": "MLB Trade Rumors",     "url": "https://www.mlbtraderumors.com/baltimore-orioles/feed",   "color": "#eab308", "category": "mlb"     },
   { "id": "espn",      "name": "ESPN MLB",             "url": "https://www.espn.com/espn/rss/mlb/news",                  "color": "#cc0000", "category": "mlb"     },
-  { "id": "fangraphs", "name": "FanGraphs",            "url": "https://blogs.fangraphs.com/tag/baltimore-orioles/feed/", "color": "#22c55e", "category": "mlb"     }
+  { "id": "fangraphs", "name": "FanGraphs",            "url": "https://blogs.fangraphs.com/tag/baltimore-orioles/feed/", "color": "#22c55e", "category": "mlb"     },
+  { "id": "bp",        "name": "Baseball Prospectus", "url": "https://www.baseballprospectus.com/tag/baltimore-orioles/feed/", "color": "#1e40af", "category": "mlb" }
 ]
