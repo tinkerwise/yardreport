@@ -127,6 +127,17 @@ img { display: block; }
 }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 .scores-msg { font-size: 0.8rem; color: var(--text-3); padding: 0 4px; }
+.scores-day-label {
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  padding: 0 6px 0 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.scores-day-label:first-child { padding-left: 2px; }
 
 /* ── Page Layout ───────────────────────────────────────────────── */
 .page-layout {

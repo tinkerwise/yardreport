@@ -1,5 +1,19 @@
 // ── Config ────────────────────────────────────────────────────────
-const PROXY = '/rss-proxy.php';
+const PROXY = `${import.meta.env.BASE_URL}rss-proxy.php`;
+
+const DIVISION_NAMES = {
+  200: 'AL West', 201: 'AL East', 202: 'AL Central',
+  203: 'NL West', 204: 'NL East', 205: 'NL Central',
+};
+
+const TEAM_ABBREV = {
+  108: 'LAA', 109: 'ARI', 110: 'BAL', 111: 'BOS', 112: 'CHC',
+  113: 'CIN', 114: 'CLE', 115: 'COL', 116: 'DET', 117: 'HOU',
+  118: 'KC',  119: 'LAD', 120: 'WSH', 121: 'NYM', 133: 'OAK',
+  134: 'PIT', 135: 'SD',  136: 'SEA', 137: 'SF',  138: 'STL',
+  139: 'TB',  140: 'TEX', 141: 'TOR', 142: 'MIN', 143: 'PHI',
+  144: 'ATL', 145: 'CWS', 146: 'MIA', 147: 'NYY', 158: 'MIL',
+};
 const MLB = 'https://statsapi.mlb.com/api/v1';
 const ORIOLES_ID = 110;
 const SEASON = new Date().getFullYear();
@@ -75,62 +89,79 @@ function buildReaderDoc(article, htmlContent) {
 }
 
 // ── Scores ────────────────────────────────────────────────────────
+function teamAbbr(team) {
+  return TEAM_ABBREV[team.id] ?? team.abbreviation ?? team.name.slice(0, 3).toUpperCase();
+}
+
+function sortGamesOrioles(games) {
+  return [...games].sort((a, b) => {
+    const aO = a.teams.away.team.id === ORIOLES_ID || a.teams.home.team.id === ORIOLES_ID;
+    const bO = b.teams.away.team.id === ORIOLES_ID || b.teams.home.team.id === ORIOLES_ID;
+    if (aO && !bO) return -1;
+    if (!aO && bO) return 1;
+    return new Date(a.gameDate) - new Date(b.gameDate);
+  });
+}
+
+function renderGameChip(g) {
+  const away = g.teams.away;
+  const home = g.teams.home;
+  const hasOrioles = away.team.id === ORIOLES_ID || home.team.id === ORIOLES_ID;
+  const gameState = g.status.abstractGameState; // Preview | Live | Final
+  const isLive = gameState === 'Live';
+  const isDone = gameState === 'Final';
+  const isPre  = gameState === 'Preview';
+
+  let statusHtml = '';
+  if (isLive) {
+    const half = g.linescore?.inningHalf === 'Top' ? '▲' : '▼';
+    const inn = g.linescore?.currentInning ?? '';
+    statusHtml = `<span class="live-dot"></span><span class="score-status">${half}${inn}</span>`;
+  } else if (isDone) {
+    statusHtml = `<span class="score-status">F</span>`;
+  } else {
+    statusHtml = `<span class="score-status">${formatGameTime(g.gameDate)}</span>`;
+  }
+
+  const awayScore = (!isPre && away.score != null) ? `<span class="score-val">${away.score}</span>` : '';
+  const homeScore = (!isPre && home.score != null) ? `<span class="score-val">${home.score}</span>` : '';
+
+  return `<a class="score-chip${hasOrioles ? ' orioles' : ''}"
+      href="https://www.mlb.com/gameday/${g.gamePk}/final/box-score"
+      target="_blank" rel="noopener" title="${esc(away.team.name)} @ ${esc(home.team.name)}">
+    <span class="score-team">${esc(teamAbbr(away.team))}</span>
+    ${awayScore}
+    <span class="score-sep">@</span>
+    <span class="score-team">${esc(teamAbbr(home.team))}</span>
+    ${homeScore}
+    ${statusHtml}
+  </a>`;
+}
+
 async function loadScores() {
   const track = $('scoresTrack');
   try {
     const today = new Date().toISOString().slice(0, 10);
-    const data = await fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team`)
-      .then(r => r.json());
+    const yd = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
 
-    const games = (data.dates?.[0]?.games ?? []);
-    if (!games.length) {
-      track.innerHTML = '<span class="scores-msg">No games scheduled today</span>';
-      return;
+    const [todayData, ydData] = await Promise.all([
+      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${yd}&hydrate=linescore,team`).then(r => r.json()),
+    ]);
+
+    const todayGames = sortGamesOrioles(todayData.dates?.[0]?.games ?? []);
+    const ydGames    = sortGamesOrioles(ydData.dates?.[0]?.games ?? []);
+
+    let html = '';
+    if (ydGames.length) {
+      html += '<span class="scores-day-label">Yesterday</span>';
+      html += ydGames.map(renderGameChip).join('');
     }
-
-    // Sort: Orioles game first
-    games.sort((a, b) => {
-      const aO = a.teams.away.team.id === ORIOLES_ID || a.teams.home.team.id === ORIOLES_ID;
-      const bO = b.teams.away.team.id === ORIOLES_ID || b.teams.home.team.id === ORIOLES_ID;
-      if (aO && !bO) return -1;
-      if (!aO && bO) return 1;
-      return new Date(a.gameDate) - new Date(b.gameDate);
-    });
-
-    track.innerHTML = games.map(g => {
-      const away = g.teams.away;
-      const home = g.teams.home;
-      const hasOrioles = away.team.id === ORIOLES_ID || home.team.id === ORIOLES_ID;
-      const state = g.status.abstractGameState; // Preview | Live | Final
-      const isLive = state === 'Live';
-      const isDone = state === 'Final';
-      const isPre  = state === 'Preview';
-
-      let statusHtml = '';
-      if (isLive) {
-        const half = g.linescore?.inningHalf === 'Top' ? '▲' : '▼';
-        const inn = g.linescore?.currentInning ?? '';
-        statusHtml = `<span class="live-dot"></span><span class="score-status">${half}${inn}</span>`;
-      } else if (isDone) {
-        statusHtml = `<span class="score-status">F</span>`;
-      } else {
-        statusHtml = `<span class="score-status">${formatGameTime(g.gameDate)}</span>`;
-      }
-
-      const awayScore = (!isPre && away.score != null) ? `<span class="score-val">${away.score}</span>` : '';
-      const homeScore = (!isPre && home.score != null) ? `<span class="score-val">${home.score}</span>` : '';
-
-      return `<a class="score-chip${hasOrioles ? ' orioles' : ''}"
-          href="https://www.mlb.com/gameday/${g.gamePk}/final/box-score"
-          target="_blank" rel="noopener" title="${esc(away.team.name)} @ ${esc(home.team.name)}">
-        <span class="score-team">${esc(away.team.abbreviation)}</span>
-        ${awayScore}
-        <span class="score-sep">@</span>
-        <span class="score-team">${esc(home.team.abbreviation)}</span>
-        ${homeScore}
-        ${statusHtml}
-      </a>`;
-    }).join('');
+    if (todayGames.length) {
+      html += '<span class="scores-day-label">Today</span>';
+      html += todayGames.map(renderGameChip).join('');
+    }
+    track.innerHTML = html || '<span class="scores-msg">No games scheduled</span>';
 
   } catch {
     track.innerHTML = '<span class="scores-msg">Scores unavailable</span>';
@@ -146,9 +177,9 @@ async function loadStandings() {
 
     state.standings = data.records.map(div => ({
       divisionId: div.division.id,
-      division: div.division.name,
+      division: DIVISION_NAMES[div.division.id] ?? div.division.name ?? String(div.division.id),
       teams: div.teamRecords.map(t => ({
-        abbrev: t.team.abbreviation ?? t.team.name.slice(0, 3).toUpperCase(),
+        abbrev: TEAM_ABBREV[t.team.id] ?? t.team.abbreviation ?? t.team.name.slice(0, 3).toUpperCase(),
         wins: t.wins,
         losses: t.losses,
         gb: t.gamesBack === '0' ? '-' : t.gamesBack,
@@ -228,7 +259,7 @@ async function loadFeeds() {
   $('articleList').innerHTML = '<div class="feed-msg">Loading news…</div>';
   let FEEDS;
   try {
-    FEEDS = await fetch('/feeds.json').then(r => r.json());
+    FEEDS = await fetch(`${import.meta.env.BASE_URL}feeds.json`).then(r => r.json());
   } catch {
     $('articleList').innerHTML = '<div class="feed-msg">Could not load feeds.json</div>';
     return [];
