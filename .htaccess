@@ -1,0 +1,13 @@
+Options -Indexes
+DirectoryIndex index.html
+
+RewriteEngine On
+RewriteBase /yardreport/
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# If the request matches a real file/directory in dist/, serve it
+RewriteCond %{REQUEST_URI} !^/yardreport/dist/
+RewriteRule ^(.*)$ dist/$1 [L]
