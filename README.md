@@ -1,2 +1,2 @@
-# orioles-magic
-Orioles and MLB news site
+# Yard Report
+Orioles and MLB news aggregation site.
