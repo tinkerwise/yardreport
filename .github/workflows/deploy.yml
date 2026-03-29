@@ -26,6 +26,6 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/
-          server-dir: /public_html/yardreport/
+          server-dir: /home/briancsm/public_html/yardreport/
           exclude: |
             .DS_Store
