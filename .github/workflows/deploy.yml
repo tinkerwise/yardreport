@@ -27,3 +27,5 @@ jobs:
           protocol: ftps
           local-dir: ./dist/
           server-dir: /public_html/yardreport/
+          exclude: |
+            .DS_Store
