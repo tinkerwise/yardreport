@@ -1,5 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/briancsm/public_html/yardreport
-    - /bin/cp -R dist/ $DEPLOYPATH
+    - export DEPLOYPATH=/home/briancsm/public_html/yardreport/
+    - /bin/cp -R dist/* $DEPLOYPATH
+    - /bin/cp dist/.htaccess $DEPLOYPATH
