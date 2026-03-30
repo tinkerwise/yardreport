@@ -556,4 +556,6 @@ img { display: block; }
   .placeholder-logo { width: 36px; height: 36px; }
   .cache-label { display: none; }
   .header-inner { padding: 0 14px; }
+  .logo-img { height: 36px; }
+  .logo { font-size: 1.1rem; gap: 8px; }
 }
