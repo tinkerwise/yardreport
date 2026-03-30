@@ -14,6 +14,16 @@ const TEAM_ABBREV = {
   139: 'TB',  140: 'TEX', 141: 'TOR', 142: 'MIN', 143: 'PHI',
   144: 'ATL', 145: 'CWS', 146: 'MIA', 147: 'NYY', 158: 'MIL',
 };
+const TEAM_SLUG = {
+  108: 'angels',    109: 'd-backs',      110: 'orioles',   111: 'red-sox',
+  112: 'cubs',      113: 'reds',         114: 'guardians', 115: 'rockies',
+  116: 'tigers',    117: 'astros',       118: 'royals',    119: 'dodgers',
+  120: 'nationals', 121: 'mets',         133: 'athletics', 134: 'pirates',
+  135: 'padres',    136: 'mariners',     137: 'giants',    138: 'cardinals',
+  139: 'rays',      140: 'rangers',      141: 'blue-jays', 142: 'twins',
+  143: 'phillies',  144: 'braves',       145: 'white-sox', 146: 'marlins',
+  147: 'yankees',   158: 'brewers',
+};
 const MLB = 'https://statsapi.mlb.com/api/v1';
 const ORIOLES_ID = 110;
 const SEASON = new Date().getFullYear();
@@ -126,8 +136,8 @@ function renderGameChip(g) {
   const awayScore = (!isPre && away.score != null) ? `<span class="score-val">${away.score}</span>` : '';
   const homeScore = (!isPre && home.score != null) ? `<span class="score-val">${home.score}</span>` : '';
 
-  const awaySlug = away.team.name.split(' ').pop().toLowerCase();
-  const homeSlug = home.team.name.split(' ').pop().toLowerCase();
+  const awaySlug = TEAM_SLUG[away.team.id] ?? away.team.name.split(' ').pop().toLowerCase();
+  const homeSlug = TEAM_SLUG[home.team.id] ?? home.team.name.split(' ').pop().toLowerCase();
   const gameDate = g.gameDate.slice(0, 10).replace(/-/g, '/');
   const gamedayUrl = `https://www.mlb.com/gameday/${awaySlug}-vs-${homeSlug}/${gameDate}/${g.gamePk}/final`;
 
