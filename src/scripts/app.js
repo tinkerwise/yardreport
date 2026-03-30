@@ -24,6 +24,16 @@ const TEAM_SLUG = {
   143: 'phillies',  144: 'braves',       145: 'white-sox', 146: 'marlins',
   147: 'yankees',   158: 'brewers',
 };
+const TEAM_PAGE = {
+  108: 'angels',     109: 'dbacks',      110: 'orioles',    111: 'redsox',
+  112: 'cubs',       113: 'reds',        114: 'guardians',  115: 'rockies',
+  116: 'tigers',     117: 'astros',      118: 'royals',     119: 'dodgers',
+  120: 'nationals',  121: 'mets',        133: 'athletics',  134: 'pirates',
+  135: 'padres',     136: 'mariners',    137: 'giants',     138: 'cardinals',
+  139: 'rays',       140: 'rangers',     141: 'bluejays',   142: 'twins',
+  143: 'phillies',   144: 'braves',      145: 'whitesox',   146: 'marlins',
+  147: 'yankees',    158: 'brewers',
+};
 const MLB = 'https://statsapi.mlb.com/api/v1';
 const ORIOLES_ID = 110;
 const SEASON = new Date().getFullYear();
@@ -232,6 +242,7 @@ async function loadStandings() {
       divisionId: div.division.id,
       division: DIVISION_NAMES[div.division.id] ?? div.division.name ?? String(div.division.id),
       teams: div.teamRecords.map(t => ({
+        id: t.team.id,
         abbrev: TEAM_ABBREV[t.team.id] ?? t.team.abbreviation ?? t.team.name.slice(0, 3).toUpperCase(),
         wins: t.wins,
         losses: t.losses,
@@ -277,12 +288,14 @@ function renderStandings() {
       <thead><tr>
         <th>Team</th><th>W</th><th>L</th><th>GB</th><th>Str</th>
       </tr></thead>
-      <tbody>${div.teams.map(t => `
-        <tr class="${t.isOrioles ? 'orioles-row' : ''}">
-          <td class="team-abbrev">${esc(t.abbrev)}</td>
+      <tbody>${div.teams.map(t => {
+        const teamUrl = TEAM_PAGE[t.id] ? `https://www.mlb.com/${TEAM_PAGE[t.id]}` : '#';
+        return `<tr class="${t.isOrioles ? 'orioles-row' : ''}">
+          <td class="team-abbrev"><a href="${teamUrl}" target="_blank" rel="noopener">${esc(t.abbrev)}</a></td>
           <td>${t.wins}</td><td>${t.losses}</td>
           <td>${esc(t.gb)}</td><td>${esc(t.streak)}</td>
-        </tr>`).join('')}
+        </tr>`;
+      }).join('')}
       </tbody>
     </table>`;
 }

@@ -268,6 +268,8 @@ img { display: block; }
 .standings-table tr.orioles-row td { color: var(--orange); font-weight: 700; }
 .standings-table tbody tr:hover td { background: rgba(255,255,255,0.025); }
 .team-abbrev { font-weight: 600; }
+.team-abbrev a { color: var(--text); transition: color 0.15s; }
+.team-abbrev a:hover { color: var(--orange); }
 
 .sidebar-msg { font-size: 0.8rem; color: var(--text-3); }
 
