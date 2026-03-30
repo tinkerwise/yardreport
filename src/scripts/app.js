@@ -53,23 +53,32 @@ const state = {
 // ── Utilities ─────────────────────────────────────────────────────
 function $(id) { return document.getElementById(id); }
 
-function faviconUrl(link) {
+const ORIOLES_LOGO = 'https://www.mlbstatic.com/team-logos/110.svg';
+const MLB_LOGO = 'https://www.mlbstatic.com/team-logos/league-on-dark.svg';
+
+function faviconUrl(link, size = 64) {
   try {
     const { hostname } = new URL(link);
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=${size}`;
   } catch { return ''; }
 }
 
 function extractThumbnail(article) {
   if (article.thumbnail) return article.thumbnail;
-  // Try to find an image in the content
   const content = article.content || '';
   const match = content.match(/<img[^>]+src=["']([^"']+)["']/i);
   if (match) return match[1];
-  // Try description
   const descMatch = (article.description || '').match(/<img[^>]+src=["']([^"']+)["']/i);
   if (descMatch) return descMatch[1];
   return null;
+}
+
+function placeholderThumb(article) {
+  const isOrioles = article.source.category === 'orioles';
+  const logo = isOrioles ? ORIOLES_LOGO : MLB_LOGO;
+  return `<div class="article-thumb-placeholder" style="background:${esc(article.source.color)}22">
+    <img class="placeholder-logo" src="${esc(logo)}" alt="" loading="lazy">
+  </div>`;
 }
 
 function esc(str) {
@@ -434,19 +443,18 @@ function articleDateGroup(dateStr) {
 
 function renderCard(a, i) {
   const imgSrc = extractThumbnail(a);
-  const favicon = faviconUrl(a.link);
   const hasFullContent = (a.content || '').length > 400;
   const mode = state.viewMode;
 
   const thumb = imgSrc
     ? `<img class="article-thumb" src="${esc(imgSrc)}" alt="" loading="lazy"
-         onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'article-thumb-placeholder',textContent:'⚾'}))">`
-    : `<div class="article-thumb-placeholder">⚾</div>`;
+         onerror="this.parentNode.querySelector('.article-thumb')?.remove();this.outerHTML='${placeholderThumb(a).replace(/'/g, "\\'").replace(/\n/g, '')}';">`
+    : placeholderThumb(a);
 
-  const faviconImg = favicon
-    ? `<img class="source-favicon" src="${esc(favicon)}" alt="" width="16" height="16"
-         onerror="this.style.display='none'">`
-    : '';
+  const sourceBadge = `<span class="source-badge" style="background:${esc(a.source.color)}">
+    <img class="badge-favicon" src="${esc(faviconUrl(a.link, 32))}" alt="" onerror="this.style.display='none'">
+    ${esc(a.source.name)}
+  </span>`;
 
   const readLabel = hasFullContent ? 'Read' : 'Preview';
   const contentBadge = hasFullContent ? '<span class="full-article-badge">Full article</span>' : '';
@@ -455,8 +463,7 @@ function renderCard(a, i) {
     return `<div class="article-card compact" data-idx="${i}" role="button" tabindex="0">
       <div class="article-body">
         <div class="article-meta">
-          ${faviconImg}
-          <span class="source-badge" style="background:${esc(a.source.color)}">${esc(a.source.name)}</span>
+          ${sourceBadge}
           <span class="article-date">${relativeDate(a.pubDate)}</span>
           ${contentBadge}
         </div>
@@ -470,8 +477,7 @@ function renderCard(a, i) {
       ${thumb}
       <div class="article-body">
         <div class="article-meta">
-          ${faviconImg}
-          <span class="source-badge" style="background:${esc(a.source.color)}">${esc(a.source.name)}</span>
+          ${sourceBadge}
           <span class="article-date">${relativeDate(a.pubDate)}</span>
           ${contentBadge}
         </div>
@@ -480,7 +486,7 @@ function renderCard(a, i) {
         <div class="article-actions">
           <button class="btn-read" data-idx="${i}">${readLabel}</button>
           <a class="btn-original" href="${esc(a.link)}" target="_blank" rel="noopener"
-             onclick="event.stopPropagation()">${faviconImg} Open original ↗</a>
+             onclick="event.stopPropagation()">Open original ↗</a>
         </div>
       </div>
     </div>`;
@@ -491,8 +497,7 @@ function renderCard(a, i) {
     ${thumb}
     <div class="article-body">
       <div class="article-meta">
-        ${faviconImg}
-        <span class="source-badge" style="background:${esc(a.source.color)}">${esc(a.source.name)}</span>
+        ${sourceBadge}
         <span class="article-date">${relativeDate(a.pubDate)}</span>
         ${contentBadge}
       </div>
@@ -501,7 +506,7 @@ function renderCard(a, i) {
       <div class="article-actions">
         <button class="btn-read" data-idx="${i}">${readLabel}</button>
         <a class="btn-original" href="${esc(a.link)}" target="_blank" rel="noopener"
-           onclick="event.stopPropagation()">${faviconImg} Open original ↗</a>
+           onclick="event.stopPropagation()">Open original ↗</a>
       </div>
     </div>
   </div>`;
