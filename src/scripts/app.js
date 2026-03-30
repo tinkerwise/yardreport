@@ -62,13 +62,31 @@ function faviconUrl(link) {
   } catch { return ''; }
 }
 
+// Filler / default images from sources that should be replaced with our placeholder
+const FILLER_PATTERNS = [
+  /s\.yimg\.com/,
+  /spacer/i,
+  /blank\.(gif|png|jpg)/i,
+  /pixel\.(gif|png|jpg)/i,
+  /1x1/,
+  /transparent\.(gif|png)/i,
+  /default[-_]?(thumb|image|logo)/i,
+  /placeholder/i,
+  /no[-_]?image/i,
+];
+
+function isFillerImage(url) {
+  if (!url) return true;
+  return FILLER_PATTERNS.some(p => p.test(url));
+}
+
 function extractThumbnail(article) {
-  if (article.thumbnail) return article.thumbnail;
+  if (article.thumbnail && !isFillerImage(article.thumbnail)) return article.thumbnail;
   const content = article.content || '';
   const match = content.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (match) return match[1];
+  if (match && !isFillerImage(match[1])) return match[1];
   const descMatch = (article.description || '').match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (descMatch) return descMatch[1];
+  if (descMatch && !isFillerImage(descMatch[1])) return descMatch[1];
   return null;
 }
 
@@ -447,9 +465,11 @@ function renderCard(a, i) {
   const mode = state.viewMode;
   const favicon = faviconUrl(a.link);
 
+  const fallback = `<div class=\\'article-thumb-placeholder\\'><img class=\\'placeholder-logo\\' src=\\'${PLACEHOLDER_IMG}\\' alt=\\'\\'></div>`;
   const thumbImg = imgSrc
     ? `<img class="article-thumb" src="${esc(imgSrc)}" alt="" loading="lazy"
-         onerror="this.outerHTML='<div class=\\'article-thumb-placeholder\\'><img class=\\'placeholder-logo\\' src=\\'${PLACEHOLDER_IMG}\\' alt=\\'\\'></div>'">`
+         onerror="this.outerHTML='${fallback}'"
+         onload="if(this.naturalWidth<20||this.naturalHeight<20)this.outerHTML='${fallback}'">`
     : `<div class="article-thumb-placeholder"><img class="placeholder-logo" src="${PLACEHOLDER_IMG}" alt=""></div>`;
 
   const source = `<span class="source-line">
