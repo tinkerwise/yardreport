@@ -122,19 +122,23 @@ function renderGameChip(g) {
   const isDone = gameState === 'Final';
   const isPre  = gameState === 'Preview';
 
+  let stateClass = isDone ? 'final' : isLive ? 'live' : 'preview';
+
   let statusHtml = '';
   if (isLive) {
     const half = g.linescore?.inningHalf === 'Top' ? '▲' : '▼';
     const inn = g.linescore?.currentInning ?? '';
-    statusHtml = `<span class="live-dot"></span><span class="score-status">${half}${inn}</span>`;
+    statusHtml = `<span class="chip-status live"><span class="live-dot"></span> ${half}${inn}</span>`;
   } else if (isDone) {
-    statusHtml = `<span class="score-status">F</span>`;
+    statusHtml = `<span class="chip-status final">Final</span>`;
   } else {
-    statusHtml = `<span class="score-status">${formatGameTime(g.gameDate)}</span>`;
+    statusHtml = `<span class="chip-status preview">${formatGameTime(g.gameDate)}</span>`;
   }
 
-  const awayScore = (!isPre && away.score != null) ? `<span class="score-val">${away.score}</span>` : '';
-  const homeScore = (!isPre && home.score != null) ? `<span class="score-val">${home.score}</span>` : '';
+  const awayScore = (!isPre && away.score != null) ? away.score : '';
+  const homeScore = (!isPre && home.score != null) ? home.score : '';
+  const awayWin = isDone && Number(awayScore) > Number(homeScore);
+  const homeWin = isDone && Number(homeScore) > Number(awayScore);
 
   const awaySlug = TEAM_SLUG[away.team.id] ?? away.team.name.split(' ').pop().toLowerCase();
   const homeSlug = TEAM_SLUG[home.team.id] ?? home.team.name.split(' ').pop().toLowerCase();
@@ -142,40 +146,65 @@ function renderGameChip(g) {
   const gamedaySuffix = isPre ? 'preview' : 'final';
   const gamedayUrl = `https://www.mlb.com/gameday/${awaySlug}-vs-${homeSlug}/${gameDate}/${g.gamePk}/${gamedaySuffix}`;
 
-  return `<a class="score-chip${hasOrioles ? ' orioles' : ''}"
+  return `<a class="score-chip ${stateClass}${hasOrioles ? ' orioles' : ''}"
       href="${gamedayUrl}"
       target="_blank" rel="noopener" title="${esc(away.team.name)} @ ${esc(home.team.name)}">
-    <span class="score-team">${esc(teamAbbr(away.team))}</span>
-    ${awayScore}
-    <span class="score-sep">@</span>
-    <span class="score-team">${esc(teamAbbr(home.team))}</span>
-    ${homeScore}
+    <div class="chip-row${awayWin ? ' winner' : ''}">
+      <span class="chip-team">${esc(teamAbbr(away.team))}</span>
+      <span class="chip-score">${awayScore}</span>
+    </div>
+    <div class="chip-row${homeWin ? ' winner' : ''}">
+      <span class="chip-team">${esc(teamAbbr(home.team))}</span>
+      <span class="chip-score">${homeScore}</span>
+    </div>
     ${statusHtml}
   </a>`;
+}
+
+function localDateStr(offset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function dayLabel(dateStr) {
+  const today = localDateStr(0);
+  const yesterday = localDateStr(-1);
+  const tomorrow = localDateStr(1);
+  if (dateStr === today) return 'Today';
+  if (dateStr === yesterday) return 'Yesterday';
+  if (dateStr === tomorrow) return 'Tomorrow';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 async function loadScores() {
   const track = $('scoresTrack');
   try {
-    const today = new Date().toISOString().slice(0, 10);
-    const yd = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    const yesterday = localDateStr(-1);
+    const today = localDateStr(0);
+    const tomorrow = localDateStr(1);
 
-    const [todayData, ydData] = await Promise.all([
+    const [ydData, todayData, tmData] = await Promise.all([
+      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team`).then(r => r.json()),
       fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${yd}&hydrate=linescore,team`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team`).then(r => r.json()),
     ]);
 
-    const todayGames = sortGamesOrioles(todayData.dates?.[0]?.games ?? []);
-    const ydGames    = sortGamesOrioles(ydData.dates?.[0]?.games ?? []);
+    const days = [
+      { label: dayLabel(yesterday), games: sortGamesOrioles(ydData.dates?.[0]?.games ?? []) },
+      { label: dayLabel(today),     games: sortGamesOrioles(todayData.dates?.[0]?.games ?? []) },
+      { label: dayLabel(tomorrow),  games: sortGamesOrioles(tmData.dates?.[0]?.games ?? []) },
+    ];
 
     let html = '';
-    if (ydGames.length) {
-      html += '<span class="scores-day-label">Yesterday</span>';
-      html += ydGames.map(renderGameChip).join('');
-    }
-    if (todayGames.length) {
-      html += '<span class="scores-day-label">Today</span>';
-      html += todayGames.map(renderGameChip).join('');
+    for (const day of days) {
+      if (day.games.length) {
+        html += `<span class="scores-day-label">${day.label}</span>`;
+        html += day.games.map(renderGameChip).join('');
+      }
     }
     track.innerHTML = html || '<span class="scores-msg">No games scheduled</span>';
 

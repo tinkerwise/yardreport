@@ -11,7 +11,7 @@
   --text-2: #a3a3a3;
   --text-3: #6b7280;
   --header-h: 52px;
-  --scores-h: 44px;
+  --scores-h: 80px;
   --sidebar-w: 272px;
   --radius: 8px;
 }
@@ -85,41 +85,66 @@ img { display: block; }
 
 /* ── Scores Bar ────────────────────────────────────────────────── */
 .scores-bar {
-  height: var(--scores-h);
-  background: #111;
-  border-bottom: 2px solid var(--orange);
+  background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
+  padding: 10px 0;
 }
 .scores-bar::-webkit-scrollbar { display: none; }
 .scores-track {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: stretch;
+  gap: 8px;
   padding: 0 16px;
-  height: 100%;
   min-width: max-content;
 }
 .score-chip {
   display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 14px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 8px;
   background: var(--card);
-  font-size: 0.77rem;
+  font-size: 0.78rem;
   white-space: nowrap;
   color: var(--text);
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  min-width: 100px;
 }
-.score-chip:hover { border-color: var(--orange); }
-.score-chip.orioles { border-color: var(--orange); background: var(--orange-dim); }
-.score-team { font-weight: 600; }
-.score-val { font-weight: 700; font-size: 0.88rem; }
-.score-sep { color: var(--text-3); font-size: 0.7rem; }
-.score-status { color: var(--text-3); font-size: 0.7rem; }
+.score-chip:hover { border-color: var(--orange); transform: translateY(-1px); }
+.score-chip.orioles { border-left: 3px solid var(--orange); background: var(--orange-dim); }
+.score-chip.live { border-left: 3px solid #22c55e; }
+.chip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.chip-row.winner { color: #fff; }
+.chip-row:not(.winner) .chip-score { color: var(--text-3); }
+.chip-team { font-weight: 600; font-size: 0.8rem; }
+.chip-score { font-weight: 700; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.chip-status {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding-top: 3px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+}
+.chip-status.final { color: var(--text-3); }
+.chip-status.preview { color: var(--text-2); }
+.chip-status.live {
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 .live-dot {
   width: 6px; height: 6px;
   background: #22c55e;
@@ -129,16 +154,21 @@ img { display: block; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 .scores-msg { font-size: 0.8rem; color: var(--text-3); padding: 0 4px; }
 .scores-day-label {
-  font-size: 0.63rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-3);
-  padding: 0 6px 0 10px;
+  padding: 0 4px;
   white-space: nowrap;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  transform: rotate(180deg);
 }
-.scores-day-label:first-child { padding-left: 2px; }
+.scores-day-label:first-child { padding-left: 0; }
 
 /* ── Page Layout ───────────────────────────────────────────────── */
 .page-layout {
