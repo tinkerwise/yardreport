@@ -3,14 +3,9 @@ name: Build and Deploy
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'dist/**'
-
-permissions:
-  contents: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,19 +18,13 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      - name: Commit and push dist
+      - name: Deploy via lftp
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add -A .
-          if git diff --staged --quiet; then
-            echo "No changes"
-          else
-            git commit -m "Build dist [skip ci]"
-            git push
-          fi
-
-      - name: Trigger cPanel deploy
-        run: |
-          curl -s -u "${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}" \
-            "https://briancsmith.org:2083/execute/VersionControl/update?repository_root=/home/briancsm/repositories/yardreport&branch=main"
+          sudo apt-get install -y lftp > /dev/null 2>&1
+          lftp -e "
+            set ssl:verify-certificate false;
+            set ftp:ssl-force true;
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
+            mirror --reverse --delete --verbose ./dist/ ./;
+            quit;
+          "
