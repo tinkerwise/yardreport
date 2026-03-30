@@ -54,13 +54,13 @@ img { display: block; }
 .logo {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 1.35rem;
+  gap: 12px;
+  font-size: 1.75rem;
   font-weight: 500;
   color: var(--text);
 }
 .logo-bird { font-size: 1.4rem; line-height: 1; }
-.logo-img { height: 48px; width: auto; vertical-align: middle; }
+.logo-img { height: 64px; width: auto; vertical-align: middle; }
 .logo strong { color: var(--orange); font-weight: 700; }
 .header-right { display: flex; align-items: center; gap: 12px; }
 .cache-label { font-size: 0.7rem; color: var(--text-3); }
