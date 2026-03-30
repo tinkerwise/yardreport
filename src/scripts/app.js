@@ -45,7 +45,7 @@ const state = {
   activeSource: 'all',
   searchQuery: '',
   sortBy: 'date',
-  viewMode: 'grid',  // grid | list | compact
+  viewMode: window.innerWidth <= 600 ? 'list' : 'grid',  // grid | list | compact
   standings: [],
   activeDiv: null,
 };
@@ -627,6 +627,10 @@ function setupEvents() {
     state.sortBy = e.target.value;
     renderArticles();
   });
+
+  // Set initial active view button
+  $('viewToggle').querySelectorAll('.view-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.view === state.viewMode));
 
   // View toggle
   $('viewToggle').addEventListener('click', e => {
