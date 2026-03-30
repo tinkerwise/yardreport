@@ -45,12 +45,32 @@ const state = {
   activeSource: 'all',
   searchQuery: '',
   sortBy: 'date',
+  viewMode: 'grid',  // grid | list | compact
   standings: [],
   activeDiv: null,
 };
 
 // ── Utilities ─────────────────────────────────────────────────────
 function $(id) { return document.getElementById(id); }
+
+function faviconUrl(link) {
+  try {
+    const { hostname } = new URL(link);
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+  } catch { return ''; }
+}
+
+function extractThumbnail(article) {
+  if (article.thumbnail) return article.thumbnail;
+  // Try to find an image in the content
+  const content = article.content || '';
+  const match = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (match) return match[1];
+  // Try description
+  const descMatch = (article.description || '').match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (descMatch) return descMatch[1];
+  return null;
+}
 
 function esc(str) {
   return String(str ?? '')
@@ -413,24 +433,75 @@ function articleDateGroup(dateStr) {
 }
 
 function renderCard(a, i) {
-  const thumb = a.thumbnail
-    ? `<img class="article-thumb" src="${esc(a.thumbnail)}" alt="" loading="lazy"
+  const imgSrc = extractThumbnail(a);
+  const favicon = faviconUrl(a.link);
+  const hasFullContent = (a.content || '').length > 400;
+  const mode = state.viewMode;
+
+  const thumb = imgSrc
+    ? `<img class="article-thumb" src="${esc(imgSrc)}" alt="" loading="lazy"
          onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'article-thumb-placeholder',textContent:'⚾'}))">`
     : `<div class="article-thumb-placeholder">⚾</div>`;
 
+  const faviconImg = favicon
+    ? `<img class="source-favicon" src="${esc(favicon)}" alt="" width="16" height="16"
+         onerror="this.style.display='none'">`
+    : '';
+
+  const readLabel = hasFullContent ? 'Read' : 'Preview';
+  const contentBadge = hasFullContent ? '<span class="full-article-badge">Full article</span>' : '';
+
+  if (mode === 'compact') {
+    return `<div class="article-card compact" data-idx="${i}" role="button" tabindex="0">
+      <div class="article-body">
+        <div class="article-meta">
+          ${faviconImg}
+          <span class="source-badge" style="background:${esc(a.source.color)}">${esc(a.source.name)}</span>
+          <span class="article-date">${relativeDate(a.pubDate)}</span>
+          ${contentBadge}
+        </div>
+        <div class="article-title">${esc(a.title)}</div>
+      </div>
+    </div>`;
+  }
+
+  if (mode === 'list') {
+    return `<div class="article-card list-view" data-idx="${i}" role="button" tabindex="0">
+      ${thumb}
+      <div class="article-body">
+        <div class="article-meta">
+          ${faviconImg}
+          <span class="source-badge" style="background:${esc(a.source.color)}">${esc(a.source.name)}</span>
+          <span class="article-date">${relativeDate(a.pubDate)}</span>
+          ${contentBadge}
+        </div>
+        <div class="article-title">${esc(a.title)}</div>
+        ${a.description ? `<div class="article-desc">${esc(a.description)}</div>` : ''}
+        <div class="article-actions">
+          <button class="btn-read" data-idx="${i}">${readLabel}</button>
+          <a class="btn-original" href="${esc(a.link)}" target="_blank" rel="noopener"
+             onclick="event.stopPropagation()">${faviconImg} Open original ↗</a>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Grid mode (default)
   return `<div class="article-card" data-idx="${i}" role="button" tabindex="0">
     ${thumb}
     <div class="article-body">
       <div class="article-meta">
+        ${faviconImg}
         <span class="source-badge" style="background:${esc(a.source.color)}">${esc(a.source.name)}</span>
         <span class="article-date">${relativeDate(a.pubDate)}</span>
+        ${contentBadge}
       </div>
       <div class="article-title">${esc(a.title)}</div>
       ${a.description ? `<div class="article-desc">${esc(a.description)}</div>` : ''}
       <div class="article-actions">
-        <button class="btn-read" data-idx="${i}">Read</button>
+        <button class="btn-read" data-idx="${i}">${readLabel}</button>
         <a class="btn-original" href="${esc(a.link)}" target="_blank" rel="noopener"
-           onclick="event.stopPropagation()">↗ Original</a>
+           onclick="event.stopPropagation()">${faviconImg} Open original ↗</a>
       </div>
     </div>
   </div>`;
@@ -457,6 +528,9 @@ function renderArticles() {
     return;
   }
 
+  const gridClass = state.viewMode === 'list' || state.viewMode === 'compact'
+    ? 'article-grid list-layout' : 'article-grid';
+
   let html = '';
   const useGroups = state.sortBy === 'dateGroup' || state.sortBy === 'source';
 
@@ -469,12 +543,12 @@ function renderArticles() {
 
     for (const [label, items] of groups) {
       html += `<div class="article-group-header">${esc(label)}<span class="group-count">${items.length}</span></div>`;
-      html += `<div class="article-grid">`;
+      html += `<div class="${gridClass}">`;
       html += items.map(({ article, idx }) => renderCard(article, idx)).join('');
       html += `</div>`;
     }
   } else {
-    html += `<div class="article-grid">`;
+    html += `<div class="${gridClass}">`;
     html += arts.map((a, i) => renderCard(a, i)).join('');
     html += `</div>`;
   }
@@ -497,7 +571,13 @@ function renderArticles() {
 function openReader(article) {
   $('readerTitle').textContent = article.title;
   $('readerDate').textContent = relativeDate(article.pubDate);
-  $('readerLink').href = article.link;
+
+  const readerLink = $('readerLink');
+  readerLink.href = article.link;
+  const favicon = faviconUrl(article.link);
+  readerLink.innerHTML = favicon
+    ? `<img class="source-favicon" src="${esc(favicon)}" alt="" width="16" height="16" onerror="this.style.display='none'"> Open original ↗`
+    : 'Open original ↗';
 
   const badge = $('readerBadge');
   badge.textContent = article.source.name;
@@ -561,6 +641,16 @@ function setupEvents() {
   // Sort
   $('sortSelect').addEventListener('change', e => {
     state.sortBy = e.target.value;
+    renderArticles();
+  });
+
+  // View toggle
+  $('viewToggle').addEventListener('click', e => {
+    const btn = e.target.closest('[data-view]');
+    if (!btn) return;
+    state.viewMode = btn.dataset.view;
+    $('viewToggle').querySelectorAll('.view-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.view === state.viewMode));
     renderArticles();
   });
 
