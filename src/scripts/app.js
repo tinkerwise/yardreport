@@ -202,11 +202,19 @@ async function loadScores() {
     let html = '';
     for (const day of days) {
       if (day.games.length) {
-        html += `<span class="scores-day-label">${day.label}</span>`;
+        const id = day.label === 'Today' ? ' id="todayLabel"' : '';
+        html += `<span class="scores-day-label"${id}>${day.label}</span>`;
         html += day.games.map(renderGameChip).join('');
       }
     }
     track.innerHTML = html || '<span class="scores-msg">No games scheduled</span>';
+
+    // Scroll today's games into view
+    const todayEl = document.getElementById('todayLabel');
+    if (todayEl) {
+      const bar = track.parentElement;
+      bar.scrollLeft = todayEl.offsetLeft - 12;
+    }
 
   } catch {
     track.innerHTML = '<span class="scores-msg">Scores unavailable</span>';
