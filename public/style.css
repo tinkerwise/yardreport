@@ -10,7 +10,7 @@
   --text: #f0f0f0;
   --text-2: #a3a3a3;
   --text-3: #6b7280;
-  --header-h: 52px;
+  --header-h: 64px;
   --scores-h: 80px;
   --sidebar-w: 272px;
   --radius: 8px;
@@ -60,7 +60,7 @@ img { display: block; }
   color: var(--text);
 }
 .logo-bird { font-size: 1.4rem; line-height: 1; }
-.logo-img { height: 64px; width: auto; vertical-align: middle; }
+.logo-img { height: 48px; width: auto; vertical-align: middle; padding: 4px; }
 .logo strong { color: var(--orange); font-weight: 700; }
 .header-right { display: flex; align-items: center; gap: 12px; }
 .cache-label { font-size: 0.7rem; color: var(--text-3); }
@@ -609,6 +609,6 @@ img { display: block; }
   .view-btn[data-view="grid"] { display: none; }
   .cache-label { display: none; }
   .header-inner { padding: 0 14px; }
-  .logo-img { height: 36px; }
-  .logo { font-size: 1.1rem; gap: 8px; }
+  .logo-img { height: 32px; padding: 2px; }
+  .logo { font-size: 1.1rem; gap: 6px; }
 }
