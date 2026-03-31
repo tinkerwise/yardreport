@@ -5,13 +5,15 @@
 ----------------
 
 News Feed
-  - RSS aggregation from 17 baseball sources (Orioles + MLB)
+  - RSS aggregation from 14 baseball sources (Orioles + MLB)
   - 30-day article filter (search bypasses for older articles)
   - Full article reader (iframe for full RSS content, excerpt + link for others)
   - Off-topic article filter (rejects non-baseball content from general feeds)
   - Filler image detection (replaces generic thumbnails with YR favicon)
-  - Around the Horn story bundling (clusters same story across sources)
+  - Around the Horn story bundling (max 3, gradient glow design)
   - Source favicon + text on each card
+  - Share button on articles (native share on mobile, clipboard on desktop)
+  - Thumbnails standardized to 16:9 aspect ratio
 
 Views & Filters
   - Grid, list, and compact view modes
@@ -26,22 +28,29 @@ Score Bugs
   - Auto-scrolls to today's games
   - Orioles games highlighted with orange accent
   - Live game indicator with pulsing dot + inning
-  - Weather emoji + temperature inline with game time
+  - Weather emoji + temperature inline with game time (Open-Meteo forecasts)
   - Links to MLB Gameday (preview or final)
   - Auto-refresh every 5 minutes
 
-Sidebar Widgets
+Left Sidebar
+  - Search
+  - Category filter (All / Orioles / MLB)
   - On Deck: next Orioles game with opponent, date/time, venue, probable pitchers, weather forecast
   - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
-  - Yard Leaders: top Orioles in AVG, HR, RBI, ERA, K
-  - Transactions: last 30 days of Orioles moves
-  - Injury Report: current IL players with position and IL type (10/15/60-day)
+  - Yard Leaders: batting/pitching toggle, expanded stats, player names link to Baseball Savant
+
+Right Sidebar
+  - Roster: active Orioles roster with links to Baseball Savant player pages
+  - Transactions: last 7 days of Orioles moves, player names link to MLB.com, link to full transactions page
+  - Injury Report: current IL players with position and IL type (10/15/60-day), player names link to MLB.com
 
 Design
   - Dark theme
+  - 3-column layout (left sidebar / feed / right sidebar)
+  - All sidebar sections have inline icons and are collapsible
   - Sticky header with Yard Report logo
-  - Responsive mobile layout (horizontal cards, compact header)
-  - Scrollable sidebar
+  - Responsive: 3-col > 2-col at 1100px > 1-col at 600px (mobile)
+  - Scrollable sidebars
 
 Infrastructure
   - Astro static site deployed to cPanel via Git Version Control
@@ -57,32 +66,9 @@ IDEAS & WISHLIST
 (Add new ideas below — edit this file from GitHub.com on mobile or desktop)
 
 ** Articles **
-- improve "Around the Horn" highlights
-  - limit number of "Around the Horn" stories
-  - differentiate the card from single articles
-- add share button to articles
-- standardize thumbnails to 16:9, including Yard Report logo
 - add a read/unread feature, somehow sort articles (shuffle below?)
 
-** Sidebars **
-- add inline icons leading title of sections
-- make sections collapsible
-
-Stats
-- update STATS sidebar (pull from baseballsavant.mlb.com)
-  - link player name to baseballsavant.mlb.com player page
-  - toggle batting/pitching
-  - Batting: AVG, OBP, H, BB, SLG, HR, OPS
-  - Pitching: GS, QS, W, ERA, SO, K%, BB, BB% 
-
-Transactions
-- move transactions to right sidebar
-- link player names to MLB.com player bio news tab
-
-IL
-- move IL to right sidebar
-- link player names to MLB.com player bio news tab
-
-
-
+** Stats **
+- Batting: add OBP
+- Pitching: add QS, K%, BB%
 

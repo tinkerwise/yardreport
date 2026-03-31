@@ -951,36 +951,81 @@ async function loadOnDeck() {
   }
 }
 
+// ── Roster ───────────────────────────────────────────────────────
+async function loadRoster() {
+  const wrap = $('rosterWrap');
+  try {
+    const data = await fetch(
+      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=active`
+    ).then(r => r.json());
+
+    const players = (data.roster ?? []).sort((a, b) => {
+      const posOrder = { P: 3, C: 0, '1B': 0, '2B': 0, '3B': 0, SS: 0, LF: 1, CF: 1, RF: 1, OF: 1, DH: 1 };
+      const aGroup = posOrder[a.position?.abbreviation] ?? 2;
+      const bGroup = posOrder[b.position?.abbreviation] ?? 2;
+      return aGroup - bGroup || a.person.fullName.localeCompare(b.person.fullName);
+    });
+
+    if (!players.length) {
+      wrap.innerHTML = '<span class="sidebar-msg">Roster unavailable</span>';
+      return;
+    }
+
+    const groups = { 'Position Players': [], 'Outfielders': [], 'Pitchers': [] };
+    for (const p of players) {
+      const pos = p.position?.abbreviation ?? '';
+      if (['SP', 'RP', 'P'].includes(pos)) groups['Pitchers'].push(p);
+      else if (['LF', 'CF', 'RF', 'OF', 'DH'].includes(pos)) groups['Outfielders'].push(p);
+      else groups['Position Players'].push(p);
+    }
+
+    let html = '';
+    for (const [label, list] of Object.entries(groups)) {
+      if (!list.length) continue;
+      html += `<div class="roster-group-label">${esc(label)}</div>`;
+      html += list.map(p => {
+        const url = savantUrl(p.person.id);
+        return `<div class="roster-item">
+          <span class="roster-num">${esc(p.jerseyNumber ?? '')}</span>
+          <a class="roster-name" href="${url}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+          <span class="roster-pos">${esc(p.position?.abbreviation ?? '')}</span>
+        </div>`;
+      }).join('');
+    }
+
+    wrap.innerHTML = `<div class="roster-list">${html}</div>
+      <a class="widget-link" href="https://www.mlb.com/orioles/roster" target="_blank" rel="noopener">Full roster ↗</a>`;
+  } catch {
+    wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
+  }
+}
+
 // ── Transactions ─────────────────────────────────────────────────
 async function loadTransactions() {
   const wrap = $('transactionsWrap');
   try {
     const end = localDateStr(0);
     const startD = new Date();
-    startD.setDate(startD.getDate() - 30);
+    startD.setDate(startD.getDate() - 7);
     const start = startD.toISOString().slice(0, 10);
 
     const data = await fetch(
       `${MLB}/transactions?teamId=${ORIOLES_ID}&startDate=${start}&endDate=${end}`
     ).then(r => r.json());
 
-    const txns = (data.transactions ?? []).slice(0, 8);
+    const txns = (data.transactions ?? []).slice(0, 10);
     if (!txns.length) {
-      wrap.innerHTML = '<span class="sidebar-msg">No recent transactions</span>';
+      wrap.innerHTML = '<span class="sidebar-msg">No transactions this week</span>';
       return;
     }
 
-    wrap.innerHTML = `<div class="txn-list">${txns.map(t => {
+    const txnHtml = txns.map(t => {
       const date = new Date(t.date || t.effectiveDate);
       const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       const pid = t.person?.id;
       const playerLink = pid ? `https://www.mlb.com/player/${pid}` : '';
       const playerName = t.person?.fullName ?? 'Unknown';
-      const nameHtml = playerLink
-        ? `<a class="txn-player" href="${playerLink}" target="_blank" rel="noopener">${esc(playerName)}</a>`
-        : esc(playerName);
       const desc = t.description || `${playerName} - ${t.typeDesc ?? t.typeCode}`;
-      // Replace player name in description with link
       const descHtml = playerLink
         ? desc.replace(playerName, `<a class="txn-player" href="${playerLink}" target="_blank" rel="noopener">${esc(playerName)}</a>`)
         : esc(desc);
@@ -988,7 +1033,10 @@ async function loadTransactions() {
         <span class="txn-date">${esc(dateStr)}</span>
         <span class="txn-desc">${descHtml}</span>
       </div>`;
-    }).join('')}</div>`;
+    }).join('');
+
+    wrap.innerHTML = `<div class="txn-list">${txnHtml}</div>
+      <a class="widget-link" href="https://www.mlb.com/orioles/roster/transactions" target="_blank" rel="noopener">View all transactions ↗</a>`;
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
   }
@@ -1097,7 +1145,7 @@ async function refresh() {
   const btn = $('refreshBtn');
   btn.disabled = true;
   btn.classList.add('spinning');
-  await Promise.allSettled([loadFeeds(), loadScores(), loadStandings(), loadOnDeck(), loadTransactions(), loadInjuryReport(), loadLeaders()]);
+  await Promise.allSettled([loadFeeds(), loadScores(), loadStandings(), loadOnDeck(), loadRoster(), loadTransactions(), loadInjuryReport(), loadLeaders()]);
   btn.disabled = false;
   btn.classList.remove('spinning');
   const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });

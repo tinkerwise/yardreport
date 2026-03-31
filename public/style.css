@@ -330,6 +330,22 @@ img { display: block; }
 a.leader-name:hover { color: var(--orange); }
 .leader-val { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-2); }
 
+/* ── Roster ───────────────────────────────────────────────────── */
+.roster-list { display: flex; flex-direction: column; gap: 1px; max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.roster-group-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); padding: 6px 0 2px; }
+.roster-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; padding: 3px 0; border-bottom: 1px solid #1e1e1e; }
+.roster-num { width: 20px; text-align: right; color: var(--text-3); font-size: 0.68rem; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.roster-name { flex: 1; color: var(--text); font-weight: 500; transition: color 0.15s; }
+a.roster-name:hover { color: var(--orange); }
+.roster-pos { color: var(--text-3); font-size: 0.68rem; flex-shrink: 0; }
+
+/* ── Widget Link ──────────────────────────────────────────────── */
+.widget-link {
+  display: block; text-align: center; font-size: 0.7rem; color: var(--text-3);
+  padding: 6px 0 2px; margin-top: 4px; transition: color 0.15s;
+}
+.widget-link:hover { color: var(--orange); }
+
 /* ── Transactions ─────────────────────────────────────────────── */
 .txn-list { display: flex; flex-direction: column; gap: 2px; max-height: 220px; overflow-y: auto; }
 .txn-item { display: flex; gap: 8px; font-size: 0.73rem; padding: 5px 0; border-bottom: 1px solid #1e1e1e; }
