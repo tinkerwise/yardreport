@@ -38,6 +38,40 @@ const MLB = 'https://statsapi.mlb.com/api/v1';
 const ORIOLES_ID = 110;
 const SEASON = new Date().getFullYear();
 
+// MLB venue coordinates for Open-Meteo weather lookups
+const VENUE_COORDS = {
+  1:    { lat: 33.800, lon: -117.882 },  // Angel Stadium (LAA)
+  2:    { lat: 39.284, lon: -76.622 },   // Camden Yards (BAL)
+  3:    { lat: 42.346, lon: -71.097 },   // Fenway Park (BOS)
+  4:    { lat: 41.830, lon: -87.634 },   // Rate Field (CWS)
+  5:    { lat: 41.496, lon: -81.685 },   // Progressive Field (CLE)
+  7:    { lat: 39.052, lon: -94.480 },   // Kauffman Stadium (KC)
+  12:   { lat: 27.768, lon: -82.653 },   // Tropicana Field (TB)
+  14:   { lat: 43.642, lon: -79.389 },   // Rogers Centre (TOR)
+  15:   { lat: 33.445, lon: -112.067 },  // Chase Field (ARI)
+  17:   { lat: 41.948, lon: -87.656 },   // Wrigley Field (CHC)
+  19:   { lat: 39.756, lon: -104.994 },  // Coors Field (COL)
+  22:   { lat: 34.074, lon: -118.241 },  // Dodger Stadium (LAD)
+  31:   { lat: 40.447, lon: -80.006 },   // PNC Park (PIT)
+  32:   { lat: 43.028, lon: -87.971 },   // American Family Field (MIL)
+  680:  { lat: 47.591, lon: -122.333 },  // T-Mobile Park (SEA)
+  2392: { lat: 29.757, lon: -95.356 },   // Daikin Park (HOU)
+  2394: { lat: 42.339, lon: -83.049 },   // Comerica Park (DET)
+  2395: { lat: 37.778, lon: -122.389 },  // Oracle Park (SF)
+  2529: { lat: 38.580, lon: -121.512 },  // Sutter Health Park (OAK)
+  2602: { lat: 39.097, lon: -84.507 },   // Great American (CIN)
+  2680: { lat: 32.708, lon: -117.157 },  // Petco Park (SD)
+  2681: { lat: 39.905, lon: -75.167 },   // Citizens Bank Park (PHI)
+  2889: { lat: 38.623, lon: -90.193 },   // Busch Stadium (STL)
+  3289: { lat: 40.758, lon: -73.846 },   // Citi Field (NYM)
+  3309: { lat: 38.873, lon: -77.008 },   // Nationals Park (WSH)
+  3312: { lat: 44.982, lon: -93.278 },   // Target Field (MIN)
+  3313: { lat: 40.829, lon: -73.927 },   // Yankee Stadium (NYY)
+  4169: { lat: 25.778, lon: -80.220 },   // loanDepot park (MIA)
+  4705: { lat: 33.891, lon: -84.468 },   // Truist Park (ATL)
+  5325: { lat: 32.747, lon: -97.082 },   // Globe Life Field (TEX)
+};
+
 // ── State ─────────────────────────────────────────────────────────
 const state = {
   articles: [],
@@ -169,6 +203,72 @@ function weatherEmoji(condition) {
   return '🌤️';
 }
 
+// Open-Meteo WMO weather code → condition + emoji
+const WMO_WEATHER = {
+  0: 'Clear', 1: 'Mostly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
+  45: 'Fog', 48: 'Fog', 51: 'Drizzle', 53: 'Drizzle', 55: 'Drizzle',
+  61: 'Rain', 63: 'Rain', 65: 'Heavy Rain',
+  71: 'Snow', 73: 'Snow', 75: 'Heavy Snow',
+  80: 'Showers', 81: 'Showers', 82: 'Heavy Showers',
+  95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm',
+};
+
+// Fetch weather for a set of venue IDs + dates, returns Map of "venueId-date" → { condition, temp, emoji }
+const weatherCache = new Map();
+async function fetchWeatherForGames(games) {
+  // Collect unique venue+date combos
+  const requests = new Map();
+  for (const g of games) {
+    const venueId = g.venue?.id;
+    const coords = VENUE_COORDS[venueId];
+    if (!coords) continue;
+    const date = g.officialDate || g.gameDate?.slice(0, 10);
+    const hour = new Date(g.gameDate).getHours();
+    const key = `${venueId}-${date}`;
+    if (!weatherCache.has(key) && !requests.has(key)) {
+      requests.set(key, { coords, date, hour, venueId });
+    }
+  }
+
+  // Fetch from Open-Meteo (batch by unique lat/lon to minimize calls)
+  const coordGroups = new Map();
+  for (const [key, req] of requests) {
+    const coordKey = `${req.coords.lat},${req.coords.lon}`;
+    if (!coordGroups.has(coordKey)) coordGroups.set(coordKey, { coords: req.coords, items: [] });
+    coordGroups.get(coordKey).items.push({ key, date: req.date, hour: req.hour, venueId: req.venueId });
+  }
+
+  const fetches = [...coordGroups.values()].map(async ({ coords, items }) => {
+    try {
+      const dates = [...new Set(items.map(i => i.date))].sort();
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&start_date=${dates[0]}&end_date=${dates[dates.length - 1]}&timezone=America%2FNew_York`;
+      const data = await fetch(url).then(r => r.json());
+      if (!data.hourly) return;
+
+      for (const item of items) {
+        // Find the closest hour in the forecast
+        const targetHour = item.hour || 19; // default to 7 PM for games
+        const targetIdx = data.hourly.time.findIndex(t => t.startsWith(item.date) && parseInt(t.slice(11, 13)) >= targetHour);
+        const idx = targetIdx >= 0 ? targetIdx : data.hourly.time.findIndex(t => t.startsWith(item.date));
+        if (idx >= 0) {
+          const code = data.hourly.weather_code[idx];
+          const temp = Math.round(data.hourly.temperature_2m[idx]);
+          const condition = WMO_WEATHER[code] ?? 'Unknown';
+          weatherCache.set(item.key, { condition, temp, emoji: weatherEmoji(condition) });
+        }
+      }
+    } catch { /* ignore weather errors */ }
+  });
+
+  await Promise.allSettled(fetches);
+}
+
+function getGameWeather(g) {
+  const venueId = g.venue?.id;
+  const date = g.officialDate || g.gameDate?.slice(0, 10);
+  return weatherCache.get(`${venueId}-${date}`) ?? null;
+}
+
 // ── Scores ────────────────────────────────────────────────────────
 function teamAbbr(team) {
   return TEAM_ABBREV[team.id] ?? team.abbreviation ?? team.name.slice(0, 3).toUpperCase();
@@ -217,11 +317,8 @@ function renderGameChip(g) {
   const gamedaySuffix = isPre ? 'preview' : 'final';
   const gamedayUrl = `https://www.mlb.com/gameday/${awaySlug}-vs-${homeSlug}/${gameDate}/${g.gamePk}/${gamedaySuffix}`;
 
-  const weather = g.weather;
-  const wxEmoji = weather?.condition ? weatherEmoji(weather.condition) : '';
-  const wxTemp = weather?.temp ? `${weather.temp}°` : '';
-  const wxTitle = weather?.condition ? `${weather.condition}${wxTemp ? ', ' + wxTemp : ''}` : '';
-  const wxHtml = wxEmoji ? `<span class="chip-weather" title="${esc(wxTitle)}">${wxEmoji}${wxTemp ? ' ' + wxTemp : ''}</span>` : '';
+  const wx = getGameWeather(g);
+  const wxHtml = wx ? `<span class="chip-weather" title="${esc(wx.condition + ', ' + wx.temp + '°F')}">${wx.emoji} ${wx.temp}°</span>` : '';
 
   return `<a class="score-chip ${stateClass}${hasOrioles ? ' orioles' : ''}"
       href="${gamedayUrl}"
@@ -266,10 +363,18 @@ async function loadScores() {
     const tomorrow = localDateStr(1);
 
     const [ydData, todayData, tmData] = await Promise.all([
-      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,weather`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,weather`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,weather`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,venue`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,venue`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,venue`).then(r => r.json()),
     ]);
+
+    // Fetch weather from Open-Meteo for all games
+    const allGames = [
+      ...(ydData.dates?.[0]?.games ?? []),
+      ...(todayData.dates?.[0]?.games ?? []),
+      ...(tmData.dates?.[0]?.games ?? []),
+    ];
+    await fetchWeatherForGames(allGames);
 
     const days = [
       { label: dayLabel(yesterday), games: sortGamesOrioles(ydData.dates?.[0]?.games ?? []) },
@@ -811,6 +916,13 @@ async function loadOnDeck() {
     const homePitcher = home.probablePitcher?.fullName ?? 'TBD';
     const venue = next.venue?.name ?? '';
 
+    // Fetch weather for the game venue
+    await fetchWeatherForGames([next]);
+    const wx = getGameWeather(next);
+    const wxHtml = wx
+      ? `<div class="on-deck-weather"><span>${wx.emoji} ${wx.temp}°F</span><span class="on-deck-wx-desc">${esc(wx.condition)}</span></div>`
+      : '';
+
     const awaySlug = TEAM_SLUG[away.team.id] ?? '';
     const homeSlug = TEAM_SLUG[home.team.id] ?? '';
     const gdDate = next.gameDate.slice(0, 10).replace(/-/g, '/');
@@ -821,6 +933,7 @@ async function loadOnDeck() {
         <div class="on-deck-matchup">
           <span class="on-deck-vs">${isHome ? 'vs' : '@'} ${esc(oppAbbr)}</span>
           <img class="on-deck-logo" src="https://www.mlbstatic.com/team-logos/${opponent.team.id}.svg" alt="" width="32" height="32">
+          ${wxHtml}
         </div>
         <div class="on-deck-details">
           <span class="on-deck-date">${esc(dateStr)} · ${esc(timeStr)}</span>
