@@ -35,8 +35,8 @@ import Layout from '../layouts/Layout.astro';
   <!-- Page Layout -->
   <div class="page-layout">
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
+    <!-- Left Sidebar -->
+    <aside class="sidebar sidebar-left">
       <!-- Search -->
       <div class="search-wrap">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -56,42 +56,40 @@ import Layout from '../layouts/Layout.astro';
       </div>
 
       <!-- On Deck -->
-      <div class="filter-section">
-        <h3 class="section-label">On Deck</h3>
-        <div id="onDeckWrap">
+      <div class="sidebar-section collapsible" data-section="ondeck">
+        <h3 class="section-label section-toggle" data-target="ondeck">
+          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          On Deck
+          <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </h3>
+        <div class="section-body" id="onDeckWrap">
           <span class="sidebar-msg">Loading…</span>
         </div>
       </div>
 
       <!-- Standings -->
-      <div class="standings-section">
-        <h3 class="section-label">Standings</h3>
-        <div class="div-tabs" id="divTabs"></div>
-        <div id="standingsWrap">
-          <span class="sidebar-msg">Loading…</span>
+      <div class="sidebar-section collapsible" data-section="standings">
+        <h3 class="section-label section-toggle" data-target="standings">
+          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8m-4-4v4M3 11h18M5 11V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6"/><path d="m12 11-1.5 4h3L12 11z"/></svg>
+          Standings
+          <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </h3>
+        <div class="section-body">
+          <div class="div-tabs" id="divTabs"></div>
+          <div id="standingsWrap">
+            <span class="sidebar-msg">Loading…</span>
+          </div>
         </div>
       </div>
 
       <!-- Yard Leaders -->
-      <div class="filter-section">
-        <h3 class="section-label">Yard Leaders</h3>
-        <div id="leadersWrap">
-          <span class="sidebar-msg">Loading…</span>
-        </div>
-      </div>
-
-      <!-- Transactions -->
-      <div class="filter-section">
-        <h3 class="section-label">Transactions</h3>
-        <div id="transactionsWrap">
-          <span class="sidebar-msg">Loading…</span>
-        </div>
-      </div>
-
-      <!-- Injury Report -->
-      <div class="filter-section">
-        <h3 class="section-label">Injury Report</h3>
-        <div id="ilWrap">
+      <div class="sidebar-section collapsible" data-section="leaders">
+        <h3 class="section-label section-toggle" data-target="leaders">
+          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Yard Leaders
+          <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </h3>
+        <div class="section-body" id="leadersWrap">
           <span class="sidebar-msg">Loading…</span>
         </div>
       </div>
@@ -135,6 +133,33 @@ import Layout from '../layouts/Layout.astro';
         <div class="feed-msg">Loading news…</div>
       </div>
     </main>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar sidebar-right">
+      <!-- Transactions -->
+      <div class="sidebar-section collapsible" data-section="transactions">
+        <h3 class="section-label section-toggle" data-target="transactions">
+          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+          Transactions
+          <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </h3>
+        <div class="section-body" id="transactionsWrap">
+          <span class="sidebar-msg">Loading…</span>
+        </div>
+      </div>
+
+      <!-- Injury Report -->
+      <div class="sidebar-section collapsible" data-section="il">
+        <h3 class="section-label section-toggle" data-target="il">
+          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-3-3v6"/><circle cx="12" cy="12" r="10"/></svg>
+          Injury Report
+          <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </h3>
+        <div class="section-body" id="ilWrap">
+          <span class="sidebar-msg">Loading…</span>
+        </div>
+      </div>
+    </aside>
 
   </div>
 

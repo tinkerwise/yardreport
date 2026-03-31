@@ -612,6 +612,9 @@ function renderCard(a, i) {
     <span class="source-name">${esc(a.source.name)}</span>
     <span class="article-date">${relativeDate(a.pubDate)}</span>
     ${hasFullContent ? '<span class="full-badge">Full</span>' : ''}
+    <button class="share-btn" data-url="${esc(a.link)}" data-title="${esc(a.title)}" title="Share" onclick="event.stopPropagation();if(navigator.share)navigator.share({title:this.dataset.title,url:this.dataset.url});else{navigator.clipboard.writeText(this.dataset.url);this.textContent='Copied!';setTimeout(()=>this.innerHTML='<svg width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><path d=\\'M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8\\'/><polyline points=\\'16 6 12 2 8 6\\'/><line x1=\\'12\\' y1=\\'2\\' x2=\\'12\\' y2=\\'15\\'/></svg>',1500)}">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+    </button>
   </span>`;
 
   if (mode === 'compact') {
@@ -783,7 +786,7 @@ function renderArticles() {
 
   // Hot Stove bundles (only in default date sort, no search)
   const bundles = (!state.searchQuery && state.sortBy === 'date')
-    ? findStoryBundles(arts, 3) : [];
+    ? findStoryBundles(arts, 3).slice(0, 3) : [];
   const bundledSet = new Set(bundles.flatMap(b => b.articles));
   const unbundled = arts.filter(a => !bundledSet.has(a));
 
@@ -970,9 +973,20 @@ async function loadTransactions() {
     wrap.innerHTML = `<div class="txn-list">${txns.map(t => {
       const date = new Date(t.date || t.effectiveDate);
       const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const pid = t.person?.id;
+      const playerLink = pid ? `https://www.mlb.com/player/${pid}` : '';
+      const playerName = t.person?.fullName ?? 'Unknown';
+      const nameHtml = playerLink
+        ? `<a class="txn-player" href="${playerLink}" target="_blank" rel="noopener">${esc(playerName)}</a>`
+        : esc(playerName);
+      const desc = t.description || `${playerName} - ${t.typeDesc ?? t.typeCode}`;
+      // Replace player name in description with link
+      const descHtml = playerLink
+        ? desc.replace(playerName, `<a class="txn-player" href="${playerLink}" target="_blank" rel="noopener">${esc(playerName)}</a>`)
+        : esc(desc);
       return `<div class="txn-item">
         <span class="txn-date">${esc(dateStr)}</span>
-        <span class="txn-desc">${esc(t.description || `${t.person?.fullName ?? 'Unknown'} - ${t.typeDesc ?? t.typeCode}`)}</span>
+        <span class="txn-desc">${descHtml}</span>
       </div>`;
     }).join('')}</div>`;
   } catch {
@@ -999,8 +1013,9 @@ async function loadInjuryReport() {
 
     wrap.innerHTML = `<div class="il-list">${injured.map(p => {
       const status = p.status.description.replace('Injured ', '');
+      const playerUrl = `https://www.mlb.com/player/${p.person.id}`;
       return `<div class="il-item">
-        <span class="il-name">${esc(p.person.fullName)}</span>
+        <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
         <span class="il-pos">${esc(p.position?.abbreviation ?? '')}</span>
         <span class="il-status">${esc(status)}</span>
       </div>`;
@@ -1011,11 +1026,18 @@ async function loadInjuryReport() {
 }
 
 // ── Yard Leaders ─────────────────────────────────────────────────
+let leadersData = { batting: [], pitching: [] };
+let leadersMode = 'batting';
+
+function savantUrl(playerId) {
+  return `https://baseballsavant.mlb.com/savant-player/${playerId}`;
+}
+
 async function loadLeaders() {
   const wrap = $('leadersWrap');
   try {
     const data = await fetch(
-      `${MLB}/teams/${ORIOLES_ID}/leaders?leaderCategories=battingAverage,homeRuns,runsBattedIn,earnedRunAverage,strikeouts&season=${SEASON}&leaderGameTypes=R`
+      `${MLB}/teams/${ORIOLES_ID}/leaders?leaderCategories=battingAverage,onBasePlusSlugging,homeRuns,hits,baseOnBalls,sluggingPercentage,runsBattedIn,earnedRunAverage,strikeouts,gamesStarted,walksAndHitsPerInningPitched,wins&season=${SEASON}&leaderGameTypes=R`
     ).then(r => r.json());
 
     const categories = data.teamLeaders ?? [];
@@ -1024,25 +1046,50 @@ async function loadLeaders() {
       return;
     }
 
-    const labelMap = {
-      battingAverage: 'AVG', homeRuns: 'HR', runsBattedIn: 'RBI',
-      earnedRunAverage: 'ERA', strikeouts: 'K',
-    };
+    const battingLabels = { battingAverage: 'AVG', onBasePlusSlugging: 'OPS', homeRuns: 'HR', hits: 'H', baseOnBalls: 'BB', sluggingPercentage: 'SLG', runsBattedIn: 'RBI' };
+    const pitchingLabels = { earnedRunAverage: 'ERA', strikeouts: 'K', gamesStarted: 'GS', walksAndHitsPerInningPitched: 'WHIP', wins: 'W' };
 
-    wrap.innerHTML = `<div class="leaders-list">${categories.map(cat => {
-      const label = labelMap[cat.leaderCategory] ?? cat.leaderCategory;
-      const top = cat.leaders?.[0];
-      if (!top) return '';
-      const name = top.person?.fullName?.split(' ').pop() ?? '';
-      return `<div class="leader-item">
-        <span class="leader-cat">${esc(label)}</span>
-        <span class="leader-name">${esc(name)}</span>
-        <span class="leader-val">${esc(top.value)}</span>
-      </div>`;
-    }).join('')}</div>`;
+    leadersData.batting = categories
+      .filter(c => battingLabels[c.leaderCategory] && c.statGroup === 'hitting')
+      .map(c => ({ label: battingLabels[c.leaderCategory], leaders: c.leaders }));
+    leadersData.pitching = categories
+      .filter(c => pitchingLabels[c.leaderCategory] && c.statGroup === 'pitching')
+      .map(c => ({ label: pitchingLabels[c.leaderCategory], leaders: c.leaders }));
+
+    renderLeaders();
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
   }
+}
+
+function renderLeaders() {
+  const wrap = $('leadersWrap');
+  const cats = leadersMode === 'batting' ? leadersData.batting : leadersData.pitching;
+
+  wrap.innerHTML = `
+    <div class="leaders-toggle">
+      <button class="leaders-tab${leadersMode === 'batting' ? ' active' : ''}" data-lmode="batting">Batting</button>
+      <button class="leaders-tab${leadersMode === 'pitching' ? ' active' : ''}" data-lmode="pitching">Pitching</button>
+    </div>
+    <div class="leaders-list">${cats.map(cat => {
+      const top = cat.leaders?.[0];
+      if (!top) return '';
+      const name = top.person?.fullName?.split(' ').pop() ?? '';
+      const pid = top.person?.id;
+      const link = pid ? savantUrl(pid) : '#';
+      return `<div class="leader-item">
+        <span class="leader-cat">${esc(cat.label)}</span>
+        <a class="leader-name" href="${link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(name)}</a>
+        <span class="leader-val">${esc(top.value)}</span>
+      </div>`;
+    }).join('')}</div>`;
+
+  wrap.querySelectorAll('.leaders-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      leadersMode = btn.dataset.lmode;
+      renderLeaders();
+    });
+  });
 }
 
 // ── Refresh ───────────────────────────────────────────────────────
@@ -1100,6 +1147,14 @@ function setupEvents() {
     $('categoryFilters').querySelectorAll('.pill').forEach(p =>
       p.classList.toggle('active', p.dataset.category === state.activeCategory));
     renderArticles();
+  });
+
+  // Collapsible sidebar sections
+  document.querySelectorAll('.section-toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const section = toggle.closest('.sidebar-section');
+      section.classList.toggle('collapsed');
+    });
   });
 
   // Source filter popover
