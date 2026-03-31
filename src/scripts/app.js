@@ -1231,19 +1231,24 @@ function setupEvents() {
 async function init() {
   setupEvents();
 
-  // Load all data in parallel
+  // Load critical data first
   await Promise.allSettled([
     loadScores(),
     loadStandings(),
     loadFeeds(),
     loadOnDeck(),
-    loadTransactions(),
-    loadInjuryReport(),
-    loadLeaders(),
   ]);
 
   const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   $('cacheLabel').textContent = `Updated ${now}`;
+
+  // Load secondary widgets (non-blocking)
+  Promise.allSettled([
+    loadRoster(),
+    loadTransactions(),
+    loadInjuryReport(),
+    loadLeaders(),
+  ]);
 }
 
 if (document.readyState === 'loading') {
