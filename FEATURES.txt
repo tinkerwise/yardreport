@@ -1,7 +1,7 @@
-YARD REPORT — Features & Ideas
+# YARD REPORT — Features & Ideas
 ================================
 
-CURRENT FEATURES
+## CURRENT FEATURES
 ----------------
 
 News Feed
