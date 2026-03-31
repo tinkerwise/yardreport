@@ -56,7 +56,7 @@ IDEAS & WISHLIST
 ----------------
 
 (Add new ideas below — edit this file from GitHub.com on mobile or desktop)
-
--
--
+- move transactions and IL to right sidebar
+- update Leaders (filter batting/pitching), incl. OPS, OBP,WHIP,???
+- add share button
 -
