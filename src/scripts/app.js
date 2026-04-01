@@ -349,8 +349,7 @@ function renderGameChip(g) {
     const bases = `<span class="bases-diamond"><span class="base b2${b2}"></span><span class="base b3${b3}"></span><span class="base b1${b1}"></span></span>`;
     statusInner = `<span class="live-dot"></span> ${half}${inn} ${bases}`;
   } else if (isDone) {
-    const storyUrl = `https://www.mlb.com/stories/game/${g.gamePk}?storylocal=gameday-postgame-wrap-game-embed`;
-    statusInner = `<span class="final-row"><span>Final</span><a class="reel-link" href="${storyUrl}" target="_blank" rel="noopener" title="Game recap" onclick="event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></a></span>`;
+    statusInner = 'Final';
   } else {
     statusInner = formatGameTime(g.gameDate);
   }
