@@ -118,6 +118,7 @@ const state = {
   viewMode: window.innerWidth <= 600 ? 'list' : defaultView,
   standings: [],
   activeDiv: null,
+  gamesMap: {},  // gamePk → game object for box score popover
 };
 
 // ── Utilities ─────────────────────────────────────────────────────
@@ -372,8 +373,9 @@ function renderGameChip(g) {
     : '';
 
   return `<a class="score-chip ${stateClass}${hasOrioles ? ' orioles' : ''}"
+      data-gamepk="${g.gamePk}"
       href="${gamedayUrl}"
-      target="_blank" rel="noopener" title="${esc(away.team.name)} @ ${esc(home.team.name)}${wx ? ' · ' + wx.condition + ', ' + wx.temp + '°F' : ''}">
+      target="_blank" rel="noopener">
     <div class="chip-row${awayWin ? ' winner' : ''}">
       <span class="chip-team">${esc(teamAbbr(away.team))}</span>
       <span class="chip-score">${awayScore}</span>
@@ -406,6 +408,64 @@ function dayLabel(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+function renderBoxScore(g) {
+  const ls = g.linescore;
+  const away = g.teams.away;
+  const home = g.teams.home;
+  const awayAbbr = teamAbbr(away.team);
+  const homeAbbr = teamAbbr(home.team);
+  const innings = ls?.innings ?? [];
+  const numInnings = Math.max(innings.length, 9);
+
+  // Header row: inning numbers
+  let hdr = '<th class="box-team-col"></th>';
+  for (let i = 1; i <= numInnings; i++) hdr += `<th>${i}</th>`;
+  hdr += '<th class="box-total">R</th><th class="box-total">H</th><th class="box-total">E</th>';
+
+  // Away row
+  let awayRow = `<td class="box-team-col">${esc(awayAbbr)}</td>`;
+  for (let i = 0; i < numInnings; i++) {
+    const inn = innings[i];
+    awayRow += `<td>${inn?.away?.runs ?? (i < innings.length ? '0' : '')}</td>`;
+  }
+  const at = ls?.teams?.away ?? {};
+  awayRow += `<td class="box-total">${at.runs ?? away.score ?? ''}</td>`;
+  awayRow += `<td class="box-total">${at.hits ?? ''}</td>`;
+  awayRow += `<td class="box-total">${at.errors ?? ''}</td>`;
+
+  // Home row
+  let homeRow = `<td class="box-team-col">${esc(homeAbbr)}</td>`;
+  for (let i = 0; i < numInnings; i++) {
+    const inn = innings[i];
+    homeRow += `<td>${inn?.home?.runs ?? (i < innings.length ? '0' : '')}</td>`;
+  }
+  const ht = ls?.teams?.home ?? {};
+  homeRow += `<td class="box-total">${ht.runs ?? home.score ?? ''}</td>`;
+  homeRow += `<td class="box-total">${ht.hits ?? ''}</td>`;
+  homeRow += `<td class="box-total">${ht.errors ?? ''}</td>`;
+
+  // Winning / losing pitcher if available
+  let decisions = '';
+  const wp = g.decisions?.winner;
+  const lp = g.decisions?.loser;
+  const sv = g.decisions?.save;
+  if (wp || lp) {
+    const parts = [];
+    if (wp) parts.push(`<span class="box-wp">W: ${esc(wp.fullName)}</span>`);
+    if (lp) parts.push(`<span class="box-lp">L: ${esc(lp.fullName)}</span>`);
+    if (sv) parts.push(`<span class="box-sv">SV: ${esc(sv.fullName)}</span>`);
+    decisions = `<div class="box-decisions">${parts.join(' ')}</div>`;
+  }
+
+  return `<table class="box-score-table">
+    <thead><tr>${hdr}</tr></thead>
+    <tbody>
+      <tr>${awayRow}</tr>
+      <tr>${homeRow}</tr>
+    </tbody>
+  </table>${decisions}`;
+}
+
 async function loadScores() {
   const track = $('scoresTrack');
   try {
@@ -414,17 +474,18 @@ async function loadScores() {
     const tomorrow = localDateStr(1);
 
     const [ydData, todayData, tmData] = await Promise.all([
-      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,venue`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,venue`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,venue`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,venue,decisions`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,venue,decisions`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,venue,decisions`).then(r => r.json()),
     ]);
 
-    // Fetch weather from Open-Meteo for all games
     const allGames = [
       ...(ydData.dates?.[0]?.games ?? []),
       ...(todayData.dates?.[0]?.games ?? []),
       ...(tmData.dates?.[0]?.games ?? []),
     ];
+    // Store games for box score popover
+    for (const g of allGames) state.gamesMap[g.gamePk] = g;
     await fetchWeatherForGames(allGames);
 
     const days = [
@@ -436,7 +497,8 @@ async function loadScores() {
     let html = '';
     for (const day of days) {
       if (day.games.length) {
-        const id = day.label === 'Today' ? ' id="todayLabel"' : '';
+        const id = day.label === 'Today' ? ' id="todayLabel"'
+          : day.label === 'Yesterday' ? ' id="yesterdayLabel"' : '';
         html += `<span class="scores-day-label"${id}>${day.label}</span>`;
         html += day.games.map(renderGameChip).join('');
       }
@@ -452,11 +514,50 @@ async function loadScores() {
       });
     });
 
-    // Scroll today's games into view
-    const todayEl = document.getElementById('todayLabel');
-    if (todayEl) {
+    // Box score popover on hover
+    let boxPopover = document.getElementById('boxScorePopover');
+    if (!boxPopover) {
+      boxPopover = document.createElement('div');
+      boxPopover.id = 'boxScorePopover';
+      boxPopover.className = 'box-score-popover hidden';
+      document.body.appendChild(boxPopover);
+    }
+    let boxTimer = null;
+    track.querySelectorAll('.score-chip').forEach(chip => {
+      chip.addEventListener('mouseenter', () => {
+        const pk = chip.dataset.gamepk;
+        const g = state.gamesMap[pk];
+        if (!g || g.status.abstractGameState === 'Preview') return;
+        clearTimeout(boxTimer);
+        boxPopover.innerHTML = renderBoxScore(g);
+        boxPopover.classList.remove('hidden');
+        const r = chip.getBoundingClientRect();
+        const pw = boxPopover.offsetWidth;
+        let left = r.left + r.width / 2 - pw / 2;
+        if (left < 4) left = 4;
+        if (left + pw > window.innerWidth - 4) left = window.innerWidth - pw - 4;
+        boxPopover.style.left = left + 'px';
+        boxPopover.style.top = (r.bottom + 6) + 'px';
+      });
+      chip.addEventListener('mouseleave', () => {
+        boxTimer = setTimeout(() => boxPopover.classList.add('hidden'), 200);
+      });
+    });
+    boxPopover.addEventListener('mouseenter', () => clearTimeout(boxTimer));
+    boxPopover.addEventListener('mouseleave', () => {
+      boxTimer = setTimeout(() => boxPopover.classList.add('hidden'), 200);
+    });
+
+    // Before noon EDT, keep yesterday's scores front-and-center
+    const nowUTC = new Date();
+    const edtHour = (nowUTC.getUTCHours() - 4 + 24) % 24;
+    const beforeNoonEDT = edtHour < 12;
+    const scrollTarget = beforeNoonEDT
+      ? document.getElementById('yesterdayLabel') || document.getElementById('todayLabel')
+      : document.getElementById('todayLabel');
+    if (scrollTarget) {
       const bar = track.parentElement;
-      bar.scrollLeft = todayEl.offsetLeft - 12;
+      bar.scrollLeft = scrollTarget.offsetLeft - 12;
     }
 
   } catch {

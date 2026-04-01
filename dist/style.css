@@ -236,6 +236,41 @@ img { display: block; }
   cursor: pointer; opacity: 0.85; transition: opacity 0.15s;
 }
 .chip-story:hover { opacity: 1; text-decoration: underline; }
+
+/* Box score popover */
+.box-score-popover {
+  position: fixed; z-index: 100;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  pointer-events: auto;
+  max-width: 95vw; overflow-x: auto;
+}
+.box-score-popover.hidden { display: none; }
+.box-score-table {
+  border-collapse: collapse; font-size: 0.72rem;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  font-family: 'Courier New', Courier, monospace;
+}
+.box-score-table th, .box-score-table td {
+  padding: 2px 6px; text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.box-score-table thead th {
+  font-weight: 700; color: var(--text-3); font-size: 0.65rem;
+  border-bottom: 2px solid var(--border);
+}
+.box-team-col { text-align: left; font-weight: 700; padding-right: 10px; color: var(--text-1); }
+.box-total { font-weight: 700; border-left: 2px solid var(--border); }
+.box-decisions {
+  display: flex; gap: 10px; margin-top: 6px;
+  font-size: 0.68rem; color: var(--text-2);
+}
+.box-wp { color: #22c55e; }
+.box-lp { color: #ef4444; }
+.box-sv { color: var(--text-2); }
+[data-theme="light"] .box-score-popover { background: #fff; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+
 .scores-msg { font-size: 0.8rem; color: var(--text-3); padding: 0 4px; }
 .scores-day-label {
   font-size: 0.65rem;
