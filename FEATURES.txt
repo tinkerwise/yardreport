@@ -1,10 +1,8 @@
-# YARD REPORT — Features & Ideas
-================================
+# YARD REPORT
 
-## CURRENT FEATURES
-----------------
+##Features & Ideas
 
-News Feed
+#News Feed
   - RSS aggregation from 14 baseball sources (Orioles + MLB)
   - 30-day article filter (search bypasses for older articles)
   - Full article reader (iframe for full RSS content, excerpt + link for others)
@@ -15,7 +13,7 @@ News Feed
   - Share button on articles (native share on mobile, clipboard on desktop)
   - Thumbnails standardized to 16:9 aspect ratio
 
-Views & Filters
+#Views & Filters
   - Grid, list, and compact view modes
   - Mobile defaults to list view (grid hidden on small screens)
   - Sort by newest, by date group, or by source
@@ -23,7 +21,7 @@ Views & Filters
   - Source filter (popover in toolbar)
   - Search across all articles
 
-Score Bugs
+#Score Bugs
   - Yesterday / Today / Tomorrow games
   - Auto-scrolls to today's games
   - Orioles games highlighted with orange accent
@@ -32,19 +30,19 @@ Score Bugs
   - Links to MLB Gameday (preview or final)
   - Auto-refresh every 5 minutes
 
-Left Sidebar
+#Left Sidebar
   - Search
   - Category filter (All / Orioles / MLB)
   - On Deck: next Orioles game with opponent, date/time, venue, probable pitchers, weather forecast
   - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
   - Yard Leaders: batting/pitching toggle, expanded stats, player names link to Baseball Savant
 
-Right Sidebar
+#Right Sidebar
   - Roster: active Orioles roster with links to Baseball Savant player pages
   - Transactions: last 7 days of Orioles moves, player names link to MLB.com, link to full transactions page
   - Injury Report: current IL players with position and IL type (10/15/60-day), player names link to MLB.com
 
-Design
+#Design
   - Dark theme
   - 3-column layout (left sidebar / feed / right sidebar)
   - All sidebar sections have inline icons and are collapsible
@@ -52,7 +50,7 @@ Design
   - Responsive: 3-col > 2-col at 1100px > 1-col at 600px (mobile)
   - Scrollable sidebars
 
-Infrastructure
+#Infrastructure
   - Astro static site deployed to cPanel via Git Version Control
   - GitHub Actions CI/CD (build + lftp deploy)
   - PHP RSS proxy with domain allowlist
@@ -61,14 +59,20 @@ Infrastructure
   - Google Favicon API for source icons
 
 
-IDEAS & WISHLIST
-----------------
-(Add new ideas below — edit this file from GitHub.com on mobile or desktop)
+#Ideas
+New ideas below — edit this file from GitHub.com on mobile or desktop)
 
-** Articles **
+#Mobile
+- fix source, roster, stats, transaction list 
+
+#Scores
+- when game starts, change weather icon to game situation (bases icon) 
+
+#Articles
 - add a read/unread feature, somehow sort articles (shuffle below?)
 
-** Stats **
+#Stats
+update to a popout or new page?
 - Batting: add OBP
 - Pitching: add QS, K%, BB%
 
