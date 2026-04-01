@@ -152,6 +152,13 @@ function isOffTopic(article) {
   return OFF_TOPIC.test(text);
 }
 
+// Detect minor league / prospect content
+const MILB_RE = /\b(MiLB|minor.?league|minor.?leaguer|Triple[- ]?A|Double[- ]?A|High[- ]?A|Single[- ]?A|AAA|prospect|prospects|farm.?system|call[- ]?up|Norfolk Tides|Bowie Baysox|Aberdeen IronBirds|Delmarva Shorebirds|draft pick|top.?prospect|pipeline|rookie.?ball)\b/i;
+function isMiLB(article) {
+  const text = `${article.title || ''} ${article.description || ''}`;
+  return MILB_RE.test(text);
+}
+
 function isFillerImage(url) {
   if (!url) return true;
   return FILLER_PATTERNS.some(p => p.test(url));
@@ -359,7 +366,10 @@ function renderGameChip(g) {
   const gamedayUrl = `https://www.mlb.com/gameday/${awaySlug}-vs-${homeSlug}/${gameDate}/${g.gamePk}/${gamedaySuffix}`;
 
   const wx = getGameWeather(g);
-  const wxInline = (!isLive && wx) ? ` ${wx.emoji}${wx.temp}°` : '';
+  // Weather only for preview games; finals get a recap reel icon
+  const wxInline = (isPre && wx) ? ` ${wx.emoji}${wx.temp}°` : '';
+  const storyUrl = `https://www.mlb.com/stories/game/${g.gamePk}?storylocal=gameday-postgame-wrap-game-embed`;
+  const reelIcon = isDone ? ` <a class="reel-link" href="${storyUrl}" target="_blank" rel="noopener" title="Game recap" onclick="event.stopPropagation()">🎬</a>` : '';
 
   return `<a class="score-chip ${stateClass}${hasOrioles ? ' orioles' : ''}"
       href="${gamedayUrl}"
@@ -372,7 +382,7 @@ function renderGameChip(g) {
       <span class="chip-team">${esc(teamAbbr(home.team))}</span>
       <span class="chip-score">${homeScore}</span>
     </div>
-    <span class="chip-status ${stateClass}">${statusInner}${wxInline}</span>
+    <span class="chip-status ${stateClass}">${statusInner}${wxInline}${reelIcon}</span>
   </a>`;
 }
 
@@ -554,7 +564,10 @@ async function loadFeeds() {
     successfulSources.push(source);
     for (const article of articles) {
       if (isOffTopic(article)) continue;
-      state.articles.push({ ...article, source });
+      const effectiveSource = isMiLB(article)
+        ? { ...source, category: 'milb' }
+        : source;
+      state.articles.push({ ...article, source: effectiveSource });
     }
   }
 
@@ -594,7 +607,10 @@ function getFilteredArticles() {
     });
   }
 
-  if (state.activeCategory !== 'all') {
+  if (state.activeCategory === 'all') {
+    // Hide MiLB articles from "All" — they only show under the MiLB filter
+    arts = arts.filter(a => a.source.category !== 'milb');
+  } else {
     arts = arts.filter(a => a.source.category === state.activeCategory);
   }
   if (state.activeSource !== 'all') {
@@ -642,6 +658,7 @@ function renderCard(a, i) {
   const favicon = faviconUrl(a.link);
   const isRead = getReadArticles().has(a.link);
   const readClass = isRead ? ' read' : '';
+  const readTick = isRead ? '<span class="read-tick" title="Read">✓</span>' : '';
 
   const fallback = `<div class=\\'article-thumb-placeholder\\'><img class=\\'placeholder-logo\\' src=\\'${PLACEHOLDER_IMG}\\' alt=\\'\\'></div>`;
   const thumbImg = imgSrc
@@ -658,6 +675,7 @@ function renderCard(a, i) {
     <button class="share-btn" data-url="${esc(a.link)}" data-title="${esc(a.title)}" title="Share" onclick="event.stopPropagation();if(navigator.share)navigator.share({title:this.dataset.title,url:this.dataset.url});else{navigator.clipboard.writeText(this.dataset.url);this.textContent='Copied!';setTimeout(()=>this.innerHTML='<svg width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><path d=\\'M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8\\'/><polyline points=\\'16 6 12 2 8 6\\'/><line x1=\\'12\\' y1=\\'2\\' x2=\\'12\\' y2=\\'15\\'/></svg>',1500)}">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
     </button>
+    ${readTick}
   </span>`;
 
   if (mode === 'compact') {
@@ -702,6 +720,20 @@ function tokenize(title) {
     .filter(w => w.length > 2 && !stop.has(w));
 }
 
+function buildTopicLabel(sharedTokens, articles) {
+  // Capitalize shared keywords into a readable topic phrase
+  // Find the article title that best represents the cluster (most shared tokens in order)
+  if (!sharedTokens.length) {
+    // Fallback: shortest title
+    return articles.slice().sort((a, b) => a.title.length - b.title.length)[0].title;
+  }
+  // Title-case the shared tokens
+  const topic = sharedTokens
+    .map(t => t.charAt(0).toUpperCase() + t.slice(1))
+    .join(' ');
+  return topic.length > 60 ? topic.slice(0, 57) + '…' : topic;
+}
+
 function findStoryBundles(articles, minArticles = 3) {
   if (articles.length < minArticles) return [];
 
@@ -741,11 +773,8 @@ function findStoryBundles(articles, minArticles = 3) {
       }
 
       const clusterArticles = [...refined].map(idx => articles[idx]);
-      // Pick the most descriptive title (longest) as the bundle label
-      const bestTitle = clusterArticles
-        .slice()
-        .sort((a, b) => b.title.length - a.title.length)[0].title;
-      const label = bestTitle.length > 60 ? bestTitle.slice(0, 57) + '…' : bestTitle;
+      // Build a generalized topic label from the shared tokens
+      const label = buildTopicLabel([...sharedTokens], clusterArticles);
 
       clusters.push({
         label,

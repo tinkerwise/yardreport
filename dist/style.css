@@ -228,8 +228,10 @@ img { display: block; }
 }
 .base.on { background: #f59e0b; border-color: #f59e0b; }
 .base.b2 { grid-column: 1; grid-row: 1; }
-.base.b1 { grid-column: 2; grid-row: 2; }
+.base.b1 { grid-column: 2; grid-row: 1; }
 .base.b3 { grid-column: 1; grid-row: 2; }
+.reel-link { text-decoration: none; font-size: 0.65rem; margin-left: 2px; opacity: 0.8; }
+.reel-link:hover { opacity: 1; }
 .scores-msg { font-size: 0.8rem; color: var(--text-3); padding: 0 4px; }
 .scores-day-label {
   font-size: 0.65rem;
@@ -581,6 +583,10 @@ a.il-name:hover { color: var(--orange); }
 .article-card.read { opacity: 0.55; }
 .article-card.read:hover { opacity: 0.85; }
 .article-card.read .article-title { font-weight: 400; }
+.read-tick {
+  color: #22c55e; font-size: 0.7rem; font-weight: 700;
+  margin-left: auto; padding-left: 6px; flex-shrink: 0;
+}
 
 /* Article body */
 .article-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px 14px; }
