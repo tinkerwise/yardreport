@@ -366,8 +366,11 @@ function renderGameChip(g) {
   const gamedayUrl = `https://www.mlb.com/gameday/${awaySlug}-vs-${homeSlug}/${gameDate}/${g.gamePk}/${gamedaySuffix}`;
 
   const wx = getGameWeather(g);
-  // Weather only for preview games; finals get a recap reel icon
   const wxInline = (isPre && wx) ? ` ${wx.emoji}${wx.temp}°` : '';
+  const storyRow = isDone
+    ? `<span class="chip-story" data-story="https://www.mlb.com/stories/game/${g.gamePk}?storylocal=gameday-postgame-wrap-game-embed">Story</span>`
+    : '';
+
   return `<a class="score-chip ${stateClass}${hasOrioles ? ' orioles' : ''}"
       href="${gamedayUrl}"
       target="_blank" rel="noopener" title="${esc(away.team.name)} @ ${esc(home.team.name)}${wx ? ' · ' + wx.condition + ', ' + wx.temp + '°F' : ''}">
@@ -380,6 +383,7 @@ function renderGameChip(g) {
       <span class="chip-score">${homeScore}</span>
     </div>
     <span class="chip-status ${stateClass}">${statusInner}${wxInline}</span>
+    ${storyRow}
   </a>`;
 }
 
@@ -438,6 +442,15 @@ async function loadScores() {
       }
     }
     track.innerHTML = html || '<span class="scores-msg">No games scheduled</span>';
+
+    // Story link click handler — redirect to story URL instead of Gameday
+    track.querySelectorAll('.chip-story').forEach(el => {
+      el.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(el.dataset.story, '_blank');
+      });
+    });
 
     // Scroll today's games into view
     const todayEl = document.getElementById('todayLabel');
