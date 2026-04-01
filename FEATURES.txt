@@ -79,3 +79,5 @@
 - Transactions: ensure the latest transactions are posted. 
 - Roster: create a collapsible widget, default collapsed
 - Widgets: make titles more prominent, as they appear small and greyed out
+
+- Easter Egg: 

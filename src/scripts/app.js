@@ -1202,8 +1202,6 @@ async function loadOnDeck() {
     const dateStr = gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     const timeStr = gameDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-    const awayPitcher = away.probablePitcher?.fullName ?? 'TBD';
-    const homePitcher = home.probablePitcher?.fullName ?? 'TBD';
     const venue = next.venue?.name ?? '';
 
     // Fetch weather for the game venue
@@ -1252,16 +1250,12 @@ async function loadOnDeck() {
       <a class="on-deck-card" href="${gdUrl}" target="_blank" rel="noopener">
         <div class="on-deck-matchup">
           <span class="on-deck-vs">${isHome ? 'vs' : '@'} ${esc(oppAbbr)}</span>
-          <img class="on-deck-logo" src="https://www.mlbstatic.com/team-logos/${opponent.team.id}.svg" alt="" width="32" height="32">
+          <img class="on-deck-logo" src="https://www.mlbstatic.com/team-logos/${opponent.team.id}.svg" alt="" width="28" height="28">
           ${wxHtml}
         </div>
         <div class="on-deck-details">
           <span class="on-deck-date">${esc(dateStr)} · ${esc(timeStr)}</span>
           <span class="on-deck-venue">${esc(venue)}</span>
-        </div>
-        <div class="on-deck-pitchers">
-          <span class="on-deck-pitcher">${esc(TEAM_ABBREV[away.team.id])}: ${esc(awayPitcher)}</span>
-          <span class="on-deck-pitcher">${esc(TEAM_ABBREV[home.team.id])}: ${esc(homePitcher)}</span>
         </div>
       </a>
       ${scheduleHtml}`;

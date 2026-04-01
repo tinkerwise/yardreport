@@ -447,7 +447,7 @@ img { display: block; max-width: 100%; }
 .on-deck-weather { margin-left: auto; text-align: right; font-size: 0.9rem; line-height: 1.2; }
 .on-deck-wx-desc { display: block; font-size: 0.65rem; color: var(--text-3); }
 .on-deck-pitchers { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
-.on-deck-pitcher { font-size: 0.72rem; color: var(--text-2); }
+.on-deck-card { padding: 10px 12px; gap: 6px; }
 
 /* Schedule within On Deck */
 .sched-section { margin-top: 8px; }
