@@ -1,8 +1,15 @@
-# YARD REPORT
+#YARD REPORT
 
-## Features & Ideas
+##Features & Ideas
 
-# News Feed
+**Rules of engagement:** 
+- Don't break the site
+- Prioritize visual design and readability
+- be aware of content overload, always suggest condensing content in some way
+- anticipate visual cues for visitors to types of media content (text, audio, video, graphics)
+
+
+#News Feed
   - RSS aggregation from 14 baseball sources (Orioles + MLB)
   - 30-day article filter (search bypasses for older articles)
   - Full article reader (iframe for full RSS content, excerpt + link for others)
@@ -15,7 +22,7 @@
   - Read/unread tracking (read articles dimmed, persisted to localStorage, green ✓ tick on read cards)
   - Default view: list
 
-# Views & Filters
+#Views & Filters
   - Grid, list, and compact view modes
   - Mobile defaults to list view (grid hidden on small screens)
   - Sort by newest, by date group, or by source
@@ -24,7 +31,7 @@
   - Source filter (popover in toolbar)
   - Search across all articles
 
-# Score Bugs
+#Score Bugs
   - Yesterday / Today / Tomorrow games
   - Auto-scrolls to today's games
   - Orioles games highlighted with orange accent
@@ -35,7 +42,7 @@
   - Links to MLB Gameday (preview or final)
   - Auto-refresh every 5 minutes
 
-# Left Sidebar
+#Left Sidebar
   - Search
   - Category filter (All / Orioles / MLB / MiLB)
   - On Deck: next Orioles game with opponent, date/time, venue, probable pitchers, weather forecast
@@ -44,17 +51,17 @@
     - Batting: AVG, OBP, OPS, HR, H, BB, SLG, RBI
     - Pitching: ERA, K, GS, QS, WHIP, W, K/9, BB/9
 
-# Right Sidebar
+#Right Sidebar
   - Roster: active Orioles roster grouped by position, jersey numbers, links to Baseball Savant
   - Transactions: last 7 days of Orioles moves, player names link to MLB.com, link to full transactions page
   - Injury Report: current IL players with position and IL type (10/15/60-day), player names link to MLB.com
 
-# Settings
+#Settings
   - Settings gear icon in header opens overlay panel
   - Theme: Light / Dark / System (persisted to localStorage, system follows OS)
   - Default view: Grid / List / Compact (persisted to localStorage)
 
-# Design
+#Design
   - Dark theme (default), light theme available
   - 3-column layout (left sidebar / feed / right sidebar)
   - All sidebar sections have inline icons and are collapsible
@@ -63,7 +70,7 @@
   - Mobile: right sidebar widgets show below feed
   - Scrollable sidebars
 
-# Infrastructure
+#Infrastructure
   - Astro static site deployed to cPanel via Git Version Control
   - GitHub Actions CI/CD (build + lftp deploy)
   - PHP RSS proxy with domain allowlist
@@ -72,12 +79,23 @@
   - Google Favicon API for source icons
 
 
-# UPDATES
+#UPDATES
 // New ideas below — edit this file from GitHub.com on mobile or desktop
 - On Deck: reduce height of On Deck widget, perhaps remove starting pitchers
 - Schedule: update to a small calendar, next 5 games for upcoming games, no times, links to mlb preview
 - Transactions: ensure the latest transactions are posted. 
 - Roster: create a collapsible widget, default collapsed
 - Widgets: make titles more prominent, as they appear small and greyed out
+- YouTube widget: Top latest videos list (3 small thumbnails default)
+- Around the Horn description title: update to a phrase rather than just two words, if a player lead with 'First Last Name:' structure
+- add selection for articles from past 7 days, 14 days, or 30 days
+- swipe to mark read/unread, ignore
 
-- Easter Egg: 
+
+#Fun Features
+- Easter Egg: What might be some fun easter eggs for the site? (wait for confirmation)
+
+
+
+
+
