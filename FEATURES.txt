@@ -73,3 +73,9 @@
 # UPDATES
 // New ideas below — edit this file from GitHub.com on mobile or desktop
 
+- Add tick for read/unread articles
+- Rotate the base runner diamond to correctly represent 1st, 2nd, 3rd base locations
+- add a MiLB category and filter any MiLB and non-MLB related articles (indentify with MiLB logo or Prospect tags)
+- Update Around the Horn to have generalized title of bundled stories based on common topic, expanding shows article titles from sites
+- remove weather for final scores, add a reel icon that links to the game story (i.e., https://www.mlb.com/stories/game/824861?storylocal=gameday-postgame-wrap-game-embed)
+
