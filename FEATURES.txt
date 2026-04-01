@@ -62,19 +62,25 @@
 #UPDATES
 //New ideas below — edit this file from GitHub.com on mobile or desktop)
 
-#Views
-##Mobile
+
+#Settings
+- add a settings icon with overlay of settings or a page with settings 
+
+##Theme
+- offer light, dark, or system preference 
+
+#Mobile
 - fix source, roster, stats, transaction list 
 
-##Scores
+#Scores
 - when game starts, change weather icon to game situation (bases icon) 
 
-##Articles
+#Articles
 - add a read/unread feature, somehow sort articles or hide them? shuffle 
 - default to list view on load
 
-##Stats
-update to a popout or new page?
+#Stats
+update to a popout, an overlay or new page?
 - Batting: add OBP
 - Pitching: add QS, K%, BB%
 
