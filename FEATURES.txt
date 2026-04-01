@@ -1,8 +1,8 @@
 # YARD REPORT
 
-##Features & Ideas
+## Features & Ideas
 
-#News Feed
+# News Feed
   - RSS aggregation from 14 baseball sources (Orioles + MLB)
   - 30-day article filter (search bypasses for older articles)
   - Full article reader (iframe for full RSS content, excerpt + link for others)
@@ -12,8 +12,10 @@
   - Source favicon + text on each card
   - Share button on articles (native share on mobile, clipboard on desktop)
   - Thumbnails standardized to 16:9 aspect ratio
+  - Read/unread tracking (read articles dimmed, persisted to localStorage)
+  - Default view: list
 
-#Views & Filters
+# Views & Filters
   - Grid, list, and compact view modes
   - Mobile defaults to list view (grid hidden on small screens)
   - Sort by newest, by date group, or by source
@@ -21,36 +23,45 @@
   - Source filter (popover in toolbar)
   - Search across all articles
 
-#Score Bugs
+# Score Bugs
   - Yesterday / Today / Tomorrow games
   - Auto-scrolls to today's games
   - Orioles games highlighted with orange accent
   - Live game indicator with pulsing dot + inning
-  - Weather emoji + temperature inline with game time (Open-Meteo forecasts)
+  - Base runner diamond during live games (amber bases when occupied)
+  - Weather emoji + temperature inline for preview/final games (Open-Meteo forecasts)
   - Links to MLB Gameday (preview or final)
   - Auto-refresh every 5 minutes
 
-#Left Sidebar
+# Left Sidebar
   - Search
   - Category filter (All / Orioles / MLB)
   - On Deck: next Orioles game with opponent, date/time, venue, probable pitchers, weather forecast
   - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
-  - Yard Leaders: batting/pitching toggle, expanded stats, player names link to Baseball Savant
+  - Yard Leaders: batting/pitching toggle, player names link to Baseball Savant
+    - Batting: AVG, OBP, OPS, HR, H, BB, SLG, RBI
+    - Pitching: ERA, K, GS, QS, WHIP, W, K/9, BB/9
 
-#Right Sidebar
-  - Roster: active Orioles roster with links to Baseball Savant player pages
+# Right Sidebar
+  - Roster: active Orioles roster grouped by position, jersey numbers, links to Baseball Savant
   - Transactions: last 7 days of Orioles moves, player names link to MLB.com, link to full transactions page
   - Injury Report: current IL players with position and IL type (10/15/60-day), player names link to MLB.com
 
-#Design
-  - Dark theme
+# Settings
+  - Settings gear icon in header opens overlay panel
+  - Theme: Light / Dark / System (persisted to localStorage, system follows OS)
+  - Default view: Grid / List / Compact (persisted to localStorage)
+
+# Design
+  - Dark theme (default), light theme available
   - 3-column layout (left sidebar / feed / right sidebar)
   - All sidebar sections have inline icons and are collapsible
   - Sticky header with Yard Report logo
   - Responsive: 3-col > 2-col at 1100px > 1-col at 600px (mobile)
+  - Mobile: right sidebar widgets show below feed
   - Scrollable sidebars
 
-#Infrastructure
+# Infrastructure
   - Astro static site deployed to cPanel via Git Version Control
   - GitHub Actions CI/CD (build + lftp deploy)
   - PHP RSS proxy with domain allowlist
@@ -59,28 +70,6 @@
   - Google Favicon API for source icons
 
 
-#UPDATES
-//New ideas below — edit this file from GitHub.com on mobile or desktop)
-
-
-#Settings
-- add a settings icon with overlay of settings or a page with settings 
-
-##Theme
-- offer light, dark, or system preference 
-
-#Mobile
-- fix source, roster, stats, transaction list 
-
-#Scores
-- when game starts, change weather icon to game situation (bases icon) 
-
-#Articles
-- add a read/unread feature, somehow sort articles or hide them? shuffle 
-- default to list view on load
-
-#Stats
-update to a popout, an overlay or new page?
-- Batting: add OBP
-- Pitching: add QS, K%, BB%
+# UPDATES
+// New ideas below — edit this file from GitHub.com on mobile or desktop
 
