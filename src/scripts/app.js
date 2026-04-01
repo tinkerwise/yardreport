@@ -674,7 +674,7 @@ function renderCard(a, i) {
   const thumbImg = imgSrc
     ? `<img class="article-thumb" src="${esc(imgSrc)}" alt="" loading="lazy"
          onerror="this.outerHTML='${fallback}'"
-         onload="if(this.naturalWidth<20||this.naturalHeight<20)this.outerHTML='${fallback}'">`
+         onload="var w=this.naturalWidth,h=this.naturalHeight,r=w/h;if(w<20||h<20||r>4||r<0.3)this.outerHTML='${fallback}'">`
     : `<div class="article-thumb-placeholder"><img class="placeholder-logo" src="${PLACEHOLDER_IMG}" alt=""></div>`;
 
   const source = `<span class="source-line">
