@@ -1494,15 +1494,35 @@ async function loadInjuryReport() {
       return;
     }
 
-    wrap.innerHTML = `<div class="il-list">${injured.map(p => {
-      const status = p.status.description.replace('Injured ', '');
-      const playerUrl = `https://www.mlb.com/player/${p.person.id}`;
-      return `<div class="il-item">
-        <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
-        <span class="il-pos">${esc(p.position?.abbreviation ?? '')}</span>
-        <span class="il-status">${esc(status)}</span>
-      </div>`;
-    }).join('')}</div>`;
+    // Sort by IL type ascending (10-day first, then 15-day, then 60-day)
+    const ilOrder = { '10': 0, '15': 1, '60': 2 };
+    const getILDays = p => {
+      const m = p.status.description.match(/(\d+)-day/i);
+      return m ? m[1] : '99';
+    };
+    injured.sort((a, b) => (ilOrder[getILDays(a)] ?? 3) - (ilOrder[getILDays(b)] ?? 3));
+
+    // Group by IL type
+    const groups = {};
+    injured.forEach(p => {
+      const days = getILDays(p);
+      const label = days !== '99' ? `${days}-Day IL` : 'IL';
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(p);
+    });
+
+    wrap.innerHTML = `<div class="il-list">${Object.entries(groups).map(([label, players]) =>
+      `<div class="il-group">
+        <div class="il-group-label">${esc(label)}</div>
+        ${players.map(p => {
+          const playerUrl = `https://www.mlb.com/player/${p.person.id}`;
+          return `<div class="il-item">
+            <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+            <span class="il-pos">${esc(p.position?.abbreviation ?? '')}</span>
+          </div>`;
+        }).join('')}
+      </div>`
+    ).join('')}</div>`;
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
   }
