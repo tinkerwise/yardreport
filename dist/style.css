@@ -961,7 +961,7 @@ a.il-name:hover { color: var(--orange); }
   animation: bannerPop 0.6s ease-out, bannerFade 5s ease-in forwards;
 }
 .magic-bird {
-  width: clamp(120px, 30vw, 280px); height: auto;
+  width: clamp(300px, 50vw, 600px); height: auto;
   filter: drop-shadow(0 0 30px rgba(223,70,1,0.6)) drop-shadow(0 0 60px rgba(223,70,1,0.3));
 }
 @keyframes bannerPop { from { transform: translate(-50%, -50%) scale(0.3); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }

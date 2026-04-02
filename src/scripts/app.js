@@ -1831,6 +1831,11 @@ function triggerOriolesMagic() {
   container.innerHTML = `<div class="magic-banner"><img src="/yardreport/img/randBird${birdNum}.png" alt="Oriole Bird" class="magic-bird"></div>`;
   document.body.appendChild(container);
 
+  // Play Orioles Magic audio
+  const audio = new Audio('/yardreport/audio/orioles_magic_short.mp3');
+  audio.volume = 0.7;
+  audio.play().catch(() => {});
+
   // Spawn confetti pieces
   const colors = ['#df4601', '#000', '#fff', '#f59e0b', '#ff6b1a'];
   for (let i = 0; i < 80; i++) {
