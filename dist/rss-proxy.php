@@ -107,11 +107,27 @@ foreach ($entries as $entry) {
 
     // ── Link ──
     $link = '';
-    if (!empty($entry->link)) {
-        $link_val = $entry->link;
-        // Atom uses <link href="..."/>
-        $href = (string)($link_val->attributes()['href'] ?? '');
-        $link = $href ?: (string)$link_val;
+    // YouTube Atom: extract yt:videoId for reliable link + thumbnail
+    $yt_video_id = '';
+    if (isset($entry_ns['yt'])) {
+        $yt = $entry->children($entry_ns['yt']);
+        $yt_video_id = (string)($yt->videoId ?? '');
+        if ($yt_video_id) {
+            $link = 'https://www.youtube.com/watch?v=' . $yt_video_id;
+        }
+    }
+    if (!$link) {
+        // Atom: iterate <link> elements, prefer rel="alternate"
+        if (!empty($entry->link)) {
+            foreach ($entry->link as $lnk) {
+                $attrs = $lnk->attributes();
+                $rel = (string)($attrs['rel'] ?? '');
+                $href = (string)($attrs['href'] ?? '');
+                if ($rel === 'alternate' && $href) { $link = $href; break; }
+                if (!$link && $href) $link = $href;
+            }
+            if (!$link) $link = (string)$entry->link;
+        }
     }
     if (!$link && !empty($entry->guid)) {
         $guid = (string)$entry->guid;
@@ -146,10 +162,21 @@ foreach ($entries as $entry) {
     // ── Thumbnail ──
     $thumbnail = null;
 
-    // media:content or media:thumbnail
+    // media:content or media:thumbnail (also check inside media:group for YouTube)
     if (isset($entry_ns['media'])) {
         $media = $entry->children($entry_ns['media']);
-        if (!empty($media->content)) {
+        if (!empty($media->group)) {
+            $group = $media->group->children($entry_ns['media']);
+            if (!$thumbnail && !empty($group->thumbnail)) {
+                $attrs = $group->thumbnail->attributes();
+                $thumbnail = (string)($attrs['url'] ?? '');
+            }
+            if (!$thumbnail && !empty($group->content)) {
+                $attrs = $group->content->attributes();
+                $thumbnail = (string)($attrs['url'] ?? '');
+            }
+        }
+        if (!$thumbnail && !empty($media->content)) {
             $attrs = $media->content->attributes();
             $thumbnail = (string)($attrs['url'] ?? '');
         }
@@ -157,6 +184,11 @@ foreach ($entries as $entry) {
             $attrs = $media->thumbnail->attributes();
             $thumbnail = (string)($attrs['url'] ?? '');
         }
+    }
+
+    // YouTube fallback: build thumbnail from yt:videoId
+    if (!$thumbnail && $yt_video_id) {
+        $thumbnail = 'https://i.ytimg.com/vi/' . $yt_video_id . '/mqdefault.jpg';
     }
 
     // enclosure with image type

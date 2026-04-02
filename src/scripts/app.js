@@ -1495,12 +1495,14 @@ async function loadVideos() {
         const data = await fetch(url).then(r => r.json());
         const item = (data.items ?? [])[0];
         if (!item) return null;
-        const videoId = (item.link || '').match(/v=([^&]+)/)?.[1] || '';
+        const link = item.link || '';
+        const videoId = link.match(/v=([^&]+)/)?.[1] || link.match(/youtu\.be\/([^?&]+)/)?.[1] || '';
         return {
           title: item.title ?? '',
           label: pl.label,
-          thumb: videoId ? `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg` : '',
-          url: item.link ?? '',
+          thumb: item.thumbnail || (videoId ? `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg` : ''),
+          url: link,
+          videoId,
         };
       })
     );
@@ -1515,8 +1517,7 @@ async function loadVideos() {
     }
 
     wrap.innerHTML = `<div class="video-list">${videos.map(v => {
-      const vidId = (v.url || '').match(/v=([^&]+)/)?.[1] || '';
-      return `<div class="video-item" data-video-id="${esc(vidId)}" data-video-url="${esc(v.url)}">
+      return `<div class="video-item" data-video-id="${esc(v.videoId)}" data-video-url="${esc(v.url)}">
         <div class="video-thumb-wrap">
           <img class="video-thumb" src="${esc(v.thumb)}" alt="" loading="lazy">
           <svg class="video-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
