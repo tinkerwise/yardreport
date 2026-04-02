@@ -1786,9 +1786,10 @@ function setupEvents() {
 
   // ── Easter Eggs ──────────────────────────────────────────────────
 
-  // 1. "magic" in search → Orioles Magic confetti
-  $('searchInput').addEventListener('input', e => {
-    if (e.target.value.trim().toLowerCase() === 'magic') {
+  // 1. "magic" in search → Orioles Magic confetti (Enter key = trusted gesture for audio)
+  $('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.value.trim().toLowerCase() === 'magic') {
+      e.preventDefault();
       triggerOriolesMagic();
     }
   });
