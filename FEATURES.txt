@@ -26,6 +26,7 @@
   - Default view: list
 
 #Views & Filters
+  - Category filter pills (All / Orioles / MLB / MiLB) in feed toolbar
   - Grid, list, and compact view modes
   - Mobile defaults to list view (grid hidden on small screens)
   - Sort by newest, by date group, or by source
@@ -49,19 +50,18 @@
 
 #Left Sidebar
   - Search
-  - Category filter (All / Orioles / MLB / MiLB)
+  - Video: latest video from MLB Fastcast, MLB Top Plays, Jomboy Breakdowns (YouTube RSS), play icon overlay on thumbnails, theater mode overlay with YouTube embed on click
   - On Deck: next Orioles game with opponent, date/time, venue, weather forecast, lineup link on game day
-  - Schedule: compact 5-game calendar (day, date, logo, opponent), links to MLB preview
+  - Schedule: compact 5-game calendar (day, date, logo, opponent), links to MLB preview (combined with On Deck widget)
   - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
+
+#Right Sidebar
   - Yard Leaders: batting/pitching toggle, player names link to Baseball Savant
     - Batting: AVG, OBP, OPS, HR, H, BB, SLG, RBI
     - Pitching: ERA, K, GS, QS, WHIP, W, K/9, BB/9
-
-#Right Sidebar
   - Roster: active Orioles roster grouped by position, jersey numbers, links to Baseball Savant (default collapsed)
   - Transactions: last 14 days of Orioles moves, sorted newest-first, player names link to MLB.com, auto-refreshes every 5 minutes
   - Injury Report: current IL players with position and IL type (10/15/60-day), player names link to MLB.com
-  - Video: latest video from MLB Fastcast, MLB Top Plays, Jomboy Breakdowns (YouTube RSS)
 
 #Settings
   - Settings gear icon in header opens overlay panel
@@ -80,7 +80,7 @@
   - Scrollable sidebars
 
 #Easter Eggs
-  - Type "magic" in search: Orioles Magic confetti animation
+  - Type "magic" + Enter in search: random Oriole bird graphic with confetti animation, Orioles Magic audio clip, display lasts for audio duration
   - Konami Code (↑↑↓↓←→←→BA): Seven Nation Army chant with logo animation
   - Triple-click theme toggle: secret OPACY theme (all-orange dark mode)
 

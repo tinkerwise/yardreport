@@ -1833,10 +1833,18 @@ function triggerOriolesMagic() {
   container.innerHTML = `<div class="magic-banner"><img src="/yardreport/img/randBird${birdNum}.png" alt="Oriole Bird" class="magic-bird"></div>`;
   document.body.appendChild(container);
 
-  // Play Orioles Magic audio
+  // Play Orioles Magic audio — display lasts for audio duration
   const audio = new Audio('/yardreport/audio/orioles_magic_short.mp3');
   audio.volume = 0.7;
-  audio.play().catch(() => {});
+  const removeDisplay = () => {
+    container.classList.add('magic-fade-out');
+    setTimeout(() => container.remove(), 600);
+  };
+  audio.addEventListener('ended', removeDisplay);
+  audio.play().catch(() => {
+    // Audio blocked — fall back to timed display
+    setTimeout(removeDisplay, 5000);
+  });
 
   // Spawn confetti pieces
   const colors = ['#df4601', '#000', '#fff', '#f59e0b', '#ff6b1a'];
@@ -1851,8 +1859,6 @@ function triggerOriolesMagic() {
     piece.style.height = (4 + Math.random() * 6) + 'px';
     container.appendChild(piece);
   }
-
-  setTimeout(() => container.remove(), 5000);
 }
 
 function triggerSevenNationArmy() {
