@@ -1430,12 +1430,7 @@ async function loadOnDeck() {
             <span class="on-deck-date">${esc(dateStr)} · ${esc(timeStr)}</span>
             <span class="on-deck-venue">${esc(venue)}</span>
           </div>
-          ${isToday ? `
-            <div class="on-deck-lineup-status" id="lineupStatus">
-              <span class="lineup-status-label">Lineups</span>
-              <span class="lineup-status-summary">Checking availability…</span>
-            </div>
-          ` : ''}
+          ${isToday ? '<div class="on-deck-lineup-indicator" id="lineupIndicator" aria-hidden="true"></div>' : ''}
         </a>
         ${isToday ? '<div class="lineup-popover hidden" id="lineupPopover"><span class="sidebar-msg">Loading lineup…</span></div>' : ''}
       </div>
@@ -1445,7 +1440,7 @@ async function loadOnDeck() {
     if (isToday) {
       const cardWrap = wrap.querySelector('.on-deck-card-wrap');
       const popover = wrap.querySelector('#lineupPopover');
-      const statusWrap = wrap.querySelector('#lineupStatus');
+      const indicatorWrap = wrap.querySelector('#lineupIndicator');
       let lineupHtml = '<span class="sidebar-msg">Lineups unavailable</span>';
 
       const buildLineupSide = (box, side, label) => {
@@ -1481,24 +1476,24 @@ async function loadOnDeck() {
         const homeLabel = TEAM_ABBREV[home.team.id] ?? 'Home';
         const awayLineup = buildLineupSide(box, 'away', awayLabel);
         const homeLineup = buildLineupSide(box, 'home', homeLabel);
+        const availableCount = Number(awayLineup.available) + Number(homeLineup.available);
 
         lineupHtml = awayLineup.html + homeLineup.html;
         popover.innerHTML = lineupHtml;
 
-        if (statusWrap) {
-          statusWrap.innerHTML = `
-            <span class="lineup-status-label">Lineups</span>
-            <span class="lineup-status-summary">
-              <span class="lineup-status-chip ${awayLineup.available ? 'available' : 'unavailable'}">${esc(awayLabel)} ${awayLineup.available ? 'posted' : 'not posted'}</span>
-              <span class="lineup-status-chip ${homeLineup.available ? 'available' : 'unavailable'}">${esc(homeLabel)} ${homeLineup.available ? 'posted' : 'not posted'}</span>
-            </span>`;
+        if (indicatorWrap) {
+          indicatorWrap.innerHTML = availableCount
+            ? `<span class="lineup-indicator-badge" title="${availableCount === 2 ? 'Both lineups posted' : 'One lineup posted'}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="5" y="3" width="14" height="18" rx="2"></rect>
+                  <path d="M9 7h6M9 11h6M9 15h4"></path>
+                </svg>
+                <span>${availableCount}/2</span>
+              </span>`
+            : '';
         }
       } catch {
-        if (statusWrap) {
-          statusWrap.innerHTML = `
-            <span class="lineup-status-label">Lineups</span>
-            <span class="lineup-status-summary">Status unavailable</span>`;
-        }
+        if (indicatorWrap) indicatorWrap.innerHTML = '';
       }
 
       cardWrap.addEventListener('mouseenter', () => {

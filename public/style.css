@@ -552,6 +552,7 @@ img { display: block; max-width: 100%; }
   display: flex; flex-direction: column; gap: 8px;
   padding: 10px 12px; border-radius: var(--radius);
   background: var(--card); border: 1px solid var(--border);
+  position: relative;
   transition: border-color 0.15s;
 }
 .on-deck-card:hover { border-color: var(--orange); }
@@ -566,27 +567,15 @@ img { display: block; max-width: 100%; }
 .on-deck-pitchers { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
 .on-deck-card { padding: 10px 12px; gap: 6px; }
 .on-deck-card-wrap { position: relative; }
-.on-deck-lineup-status {
+.on-deck-lineup-indicator {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 7px;
-  margin-top: 2px;
-  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+  pointer-events: none;
 }
-.lineup-status-label {
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-3);
-}
-.lineup-status-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.lineup-status-chip,
+.lineup-indicator-badge,
 .lineup-state {
   display: inline-flex;
   align-items: center;
@@ -596,16 +585,19 @@ img { display: block; max-width: 100%; }
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.lineup-status-chip {
-  padding: 3px 7px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
+.lineup-indicator-badge {
+  padding: 4px 8px 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--orange) 26%, var(--border) 74%);
+  background: color-mix(in srgb, var(--surface) 84%, var(--orange) 16%);
+  color: var(--orange);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
 }
-.lineup-status-chip.available,
+.lineup-indicator-badge svg {
+  flex-shrink: 0;
+}
 .lineup-state.available {
   color: #22c55e;
 }
-.lineup-status-chip.unavailable,
 .lineup-state.unavailable {
   color: #f59e0b;
 }
