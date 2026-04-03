@@ -26,13 +26,14 @@
   - Default view: list
 
 #Views & Filters
-  - Category filter pills (All / Orioles / MLB / MiLB) inline with article filters in feed toolbar
+  - Category filter pills (All / Orioles / MLB / MiLB) left-aligned in feed toolbar
   - Grid, list, and compact view modes
+  - View mode icons right-aligned in feed toolbar
   - Mobile defaults to list view (grid hidden on small screens)
   - Sort by newest, by date group, or by source
   - Date range selector (3 / 7 / 14 / 30 days)
   - MiLB auto-detection (prospect, minor league, farm system articles tagged and filtered)
-  - Source filter (popover in toolbar, bottom-sheet on mobile)
+  - Source filter right-aligned with view controls (popover in toolbar, bottom-sheet on mobile)
   - Search across all articles
 
 #Score Bugs
@@ -40,6 +41,7 @@
   - Yesterday's scores stay prominent until noon EDT
   - Orioles games highlighted with orange accent
   - Live game indicator with pulsing dot + inning
+  - Rain Delay and Postponed states called out with dedicated chip styling
   - Base runner diamond during live games (correctly oriented 1st/2nd/3rd, amber bases when occupied)
   - Weather emoji + temperature inline for preview games (Open-Meteo forecasts)
   - "Story" link on final scores linking to MLB game story
@@ -55,12 +57,12 @@
   - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
 
 #Right Sidebar
-  - Yard Leaders: batting/pitching toggle, player names link to Baseball Savant
+  - Yard Leaders: batting/pitching toggle, player names link to Baseball Savant, stat labels link to corresponding Baseball Savant leaderboards/custom stat views
     - Batting: AVG, OBP, OPS, HR, H, BB, SLG, RBI
-    - Pitching: ERA, K, GS, QS, WHIP, W, K/9, BB/9
+    - Pitching: ERA, SO, GS, QS, WHIP, W, K/9, BB/9
   - Roster: active Orioles roster grouped by position, jersey numbers, links to Baseball Savant (default collapsed)
-  - Transactions: last 14 days of Orioles moves, sorted newest-first, player names link to MLB.com, auto-refreshes every 5 minutes
-  - Injury Report: current IL players with position and IL type (10/15/60-day), player names link to MLB.com
+  - Injury Report: current IL players with position, IL type (10/15/60-day), projected return date, and injury note; player names link to MLB.com
+  - Transactions: last 14 days of Orioles moves, sorted newest-first, player names link to MLB.com, auto-refreshes every 5 minutes (positioned below Injury Report)
 
 #Settings
   - Settings gear icon in header opens overlay panel
@@ -79,14 +81,15 @@
   - Scrollable sidebars
 
 #Easter Eggs
-  - Type "magic" + Enter in search: random Oriole bird graphic with confetti animation, Orioles Magic audio clip, display lasts for audio duration
+  - Type "magic" + Enter in search: random Oriole bird graphic centered in viewport with repeating confetti animation, Orioles Magic audio clip, display lasts for audio duration
+  - Type "heritage" + Enter in search: temporary Heritage Edition mode with baseball-card-themed feed cards, force grid view during effect, then restore prior view
   - Konami Code (↑↑↓↓←→←→BA): Seven Nation Army chant with logo animation
   - Triple-click theme toggle: secret OPACY theme (all-orange dark mode)
 
 #Infrastructure
   - Astro static site deployed to cPanel via Git Version Control
   - GitHub Actions CI/CD (build + lftp deploy)
-  - PHP RSS proxy with domain allowlist (includes youtube.com)
+  - PHP RSS proxy with domain allowlist (includes youtube.com) and optional raw text/HTML passthrough for trusted pages
   - MLB Stats API for scores, standings, schedule, roster, transactions, leaders, boxscore
   - Open-Meteo API for weather forecasts (all 30 MLB venues)
   - Google Favicon API for source icons
@@ -96,4 +99,3 @@
 #UPDATES
 // New ideas below — edit this file from GitHub.com on mobile or desktop
 **Always follow the Rules of Engagement above**
-
