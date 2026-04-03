@@ -17,6 +17,7 @@ Lineups
 - Added probable pitchers to lineup popovers so the starters appear even before lineups are posted.
 - Reworked the On Deck lineup popover so it can expand over the page instead of being constrained to the sidebar width.
 - Standardized the lineup/box popover surfaces to use stronger contrasting backgrounds against the rest of the page.
+- Removed the On Deck lineup card hover and replaced it with a custom ballpark-style overlay graphic on hover.
 
 Light Theme
 - Improved light-mode masthead contrast so the header wordmark and banner treatment stand apart more clearly from the page background.

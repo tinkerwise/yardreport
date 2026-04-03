@@ -128,6 +128,7 @@ const state = {
 
 let heritageTimer = null;
 let heritagePreviousView = null;
+const venueCache = {};
 
 // ── Utilities ─────────────────────────────────────────────────────
 function $(id) { return document.getElementById(id); }
@@ -251,6 +252,19 @@ function buildReaderDoc(article, htmlContent) {
 
 function normalizeText(str) {
   return String(str ?? '').replace(/\s+/g, ' ').trim();
+}
+
+async function fetchVenueDetails(venueId) {
+  if (!venueId) return null;
+  if (venueCache[venueId]) return venueCache[venueId];
+  try {
+    const data = await fetch(`${MLB}/venues/${venueId}?hydrate=fieldInfo`).then(r => r.json());
+    const venue = data.venues?.[0] ?? null;
+    venueCache[venueId] = venue;
+    return venue;
+  } catch {
+    return null;
+  }
 }
 
 function decodeHtmlEntities(str) {
@@ -1439,6 +1453,8 @@ async function loadOnDeck() {
     const timeStr = gameDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
     const venue = next.venue?.name ?? '';
+    const venueDetails = await fetchVenueDetails(next.venue?.id);
+    const fieldInfo = venueDetails?.fieldInfo ?? null;
 
     // Fetch weather for the game venue
     await fetchWeatherForGames([next]);
@@ -1479,9 +1495,6 @@ async function loadOnDeck() {
       ? `<div class="sched-row-wrap">${scheduleBoxes}</div>`
       : '';
 
-    // Show lineup on hover if game is today
-    const isToday = next.gameDate.slice(0, 10) === today;
-
     wrap.innerHTML = `
       <div class="on-deck-card-wrap">
         <a class="on-deck-card" href="${gdUrl}" target="_blank" rel="noopener">
@@ -1494,97 +1507,35 @@ async function loadOnDeck() {
             <span class="on-deck-date">${esc(dateStr)} · ${esc(timeStr)}</span>
             <span class="on-deck-venue">${esc(venue)}</span>
           </div>
-          ${isToday ? '<div class="on-deck-lineup-indicator" id="lineupIndicator" aria-hidden="true"></div>' : ''}
         </a>
-        ${isToday ? '<div class="lineup-popover hidden" id="lineupPopover"><span class="sidebar-msg">Loading lineup…</span></div>' : ''}
+        <div class="on-deck-park-overlay hidden" id="onDeckOverlay" aria-hidden="true">
+          <div class="park-overlay-card">
+            <div class="park-overlay-info">
+              <span class="park-overlay-kicker">${esc(venue || 'Ballpark')}</span>
+              <span class="park-overlay-title">${isHome ? 'Orioles vs.' : 'Orioles at'} ${esc(oppAbbr)}</span>
+              <span class="park-overlay-meta">${esc(dateStr)} · ${esc(timeStr)}</span>
+            </div>
+            <div class="park-dimensions-diagram">
+              <div class="park-dimensions-arc"></div>
+              <div class="park-dimensions-infield"></div>
+              <div class="park-dimensions-home"></div>
+              <span class="park-dimension park-dimension-left-line">${fieldInfo?.leftLine ?? '—'}'</span>
+              <span class="park-dimension park-dimension-left">${fieldInfo?.left ?? '—'}'</span>
+              <span class="park-dimension park-dimension-left-center">${fieldInfo?.leftCenter ?? '—'}'</span>
+              <span class="park-dimension park-dimension-center">${fieldInfo?.center ?? '—'}'</span>
+              <span class="park-dimension park-dimension-right-center">${fieldInfo?.rightCenter ?? '—'}'</span>
+              <span class="park-dimension park-dimension-right-line">${fieldInfo?.rightLine ?? '—'}'</span>
+            </div>
+            <div class="park-overlay-footnote">${fieldInfo ? 'Outfield dimensions' : 'Dimensions unavailable'}</div>
+          </div>
+        </div>
       </div>
       ${scheduleHtml}`;
 
-    // Fetch and show lineup status/details for today's game
-    if (isToday) {
-      const cardWrap = wrap.querySelector('.on-deck-card-wrap');
-      const popover = wrap.querySelector('#lineupPopover');
-      const indicatorWrap = wrap.querySelector('#lineupIndicator');
-      let lineupHtml = '<span class="sidebar-msg">Lineups unavailable</span>';
-
-      const buildLineupSide = (box, side, label) => {
-        const players = box.teams?.[side]?.battingOrder ?? [];
-        const roster = box.teams?.[side]?.players ?? {};
-        const available = players.length > 0;
-        const status = available ? 'Available' : 'Not posted';
-        const rows = available
-          ? players.map(id => {
-              const p = roster[`ID${id}`] ?? {};
-              const name = p.person?.fullName ?? 'TBD';
-              const pos = p.position?.abbreviation ?? '';
-              return `<div class="lineup-row"><span class="lineup-pos">${esc(pos)}</span><span class="lineup-name">${esc(name)}</span></div>`;
-            }).join('')
-          : '<div class="lineup-empty">Lineup not yet posted</div>';
-
-        return {
-          available,
-          html: `
-            <div class="lineup-side">
-              <div class="lineup-head">
-                <div class="lineup-label">${esc(label)}</div>
-                <div class="lineup-state ${available ? 'available' : 'unavailable'}">${status}</div>
-              </div>
-              ${rows}
-            </div>`,
-        };
-      };
-
-      const renderOnDeckPopover = (awayLineupHtml, homeLineupHtml) => {
-        return `${renderProbablePitchers(next)}
-          <div class="score-lineups">
-            <div class="score-lineups-title">Lineups</div>
-            <div class="score-lineups-grid">${awayLineupHtml}${homeLineupHtml}</div>
-          </div>`;
-      };
-
-      try {
-        const box = await fetch(`${MLB}/game/${next.gamePk}/boxscore`).then(r => r.json());
-        const awayLabel = TEAM_ABBREV[away.team.id] ?? 'Away';
-        const homeLabel = TEAM_ABBREV[home.team.id] ?? 'Home';
-        const awayLineup = buildLineupSide(box, 'away', awayLabel);
-        const homeLineup = buildLineupSide(box, 'home', homeLabel);
-        const availableCount = Number(awayLineup.available) + Number(homeLineup.available);
-
-        lineupHtml = renderOnDeckPopover(awayLineup.html, homeLineup.html);
-        popover.innerHTML = lineupHtml;
-
-        if (indicatorWrap) {
-          indicatorWrap.innerHTML = `<span class="lineup-indicator-badge ${availableCount ? 'available' : 'unavailable'}" title="${
-            availableCount === 2 ? 'Both lineups posted'
-            : availableCount === 1 ? 'One lineup posted'
-            : 'Lineups not yet posted'
-          }">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <rect x="5" y="3" width="14" height="18" rx="2"></rect>
-                  <path d="M9 7h6M9 11h6M9 15h4"></path>
-                </svg>
-              </span>`;
-        }
-      } catch {
-        lineupHtml = `${renderProbablePitchers(next)}<div class="score-lineups"><div class="score-lineups-title">Lineups</div><div class="score-lineups-empty">Lineups unavailable</div></div>`;
-        if (indicatorWrap) {
-          indicatorWrap.innerHTML = `<span class="lineup-indicator-badge unavailable" title="Lineup status unavailable">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <rect x="5" y="3" width="14" height="18" rx="2"></rect>
-              <path d="M9 7h6M9 11h6M9 15h4"></path>
-            </svg>
-          </span>`;
-        }
-      }
-
-      cardWrap.addEventListener('mouseenter', () => {
-        popover.innerHTML = lineupHtml;
-        popover.classList.remove('hidden');
-      });
-      cardWrap.addEventListener('mouseleave', () => {
-        popover.classList.add('hidden');
-      });
-    }
+    const cardWrap = wrap.querySelector('.on-deck-card-wrap');
+    const overlay = wrap.querySelector('#onDeckOverlay');
+    cardWrap.addEventListener('mouseenter', () => overlay.classList.remove('hidden'));
+    cardWrap.addEventListener('mouseleave', () => overlay.classList.add('hidden'));
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
   }
