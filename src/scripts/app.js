@@ -1,5 +1,6 @@
 // ── Config ────────────────────────────────────────────────────────
 const PROXY = `${import.meta.env.BASE_URL}rss-proxy.php`;
+const ORIOLES_INJURY_PAGE = 'https://www.mlb.com/orioles/news/orioles-injuries-and-roster-moves';
 
 const DIVISION_NAMES = {
   200: 'AL West', 201: 'AL East', 202: 'AL Central',
@@ -247,6 +248,52 @@ function buildReaderDoc(article, htmlContent) {
       table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px;text-align:left}
     </style>
   </head><body>${htmlContent}</body></html>`;
+}
+
+function normalizeText(str) {
+  return String(str ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function escapeRegExp(str) {
+  return String(str ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+async function fetchOriolesInjuryReturns() {
+  try {
+    const url = `${PROXY}?format=text&url=${encodeURIComponent(ORIOLES_INJURY_PAGE)}`;
+    const data = await fetch(url).then(r => r.json());
+    const html = data.text ?? '';
+    if (!html) return new Map();
+
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const rawText = doc.body?.innerText || doc.body?.textContent || '';
+    const lines = rawText
+      .split('\n')
+      .map(line => normalizeText(line))
+      .filter(Boolean);
+
+    const returns = new Map();
+    let currentName = '';
+
+    for (const line of lines) {
+      if (/^LATEST TRANSACTIONS$/i.test(line)) break;
+
+      const playerMatch = line.match(/^(?:[A-Z0-9/]+\s+)?([\p{Lu}][\p{L}'.-]+(?:\s+[\p{Lu}][\p{L}'.-]+)+)$/u);
+      if (playerMatch && !/^Expected return:/i.test(line) && !/^Status:/i.test(line)) {
+        currentName = playerMatch[1];
+        continue;
+      }
+
+      const returnMatch = line.match(/^Expected return:\s*(.+)$/i);
+      if (returnMatch && currentName) {
+        returns.set(currentName, normalizeText(returnMatch[1]));
+      }
+    }
+
+    return returns;
+  } catch {
+    return new Map();
+  }
 }
 
 // ── Weather condition → emoji mapping ─────────────────────────────
@@ -1530,9 +1577,12 @@ async function loadTransactions() {
 async function loadInjuryReport() {
   const wrap = $('ilWrap');
   try {
-    const data = await fetch(
+    const [data, returnDates] = await Promise.all([
+      fetch(
       `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man`
-    ).then(r => r.json());
+      ).then(r => r.json()),
+      fetchOriolesInjuryReturns(),
+    ]);
 
     const injured = (data.roster ?? []).filter(p =>
       p.status?.description?.toLowerCase().includes('injured')
@@ -1553,10 +1603,19 @@ async function loadInjuryReport() {
     wrap.innerHTML = `<div class="il-list">${injured.map(p => {
       const status = p.status.description.replace('Injured ', '');
       const playerUrl = `https://www.mlb.com/player/${p.person.id}`;
+      const projectedReturn = returnDates.get(p.person.fullName) || 'TBD';
+      const note = normalizeText(p.note || '');
       return `<div class="il-item">
-        <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
-        <span class="il-pos">${esc(p.position?.abbreviation ?? '')}</span>
-        <span class="il-status">${esc(status)}</span>
+        <div class="il-topline">
+          <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+          <span class="il-pos">${esc(p.position?.abbreviation ?? '')}</span>
+          <span class="il-status">${esc(status)}</span>
+        </div>
+        <div class="il-meta">
+          <span class="il-return-label">Return</span>
+          <span class="il-return-date">${esc(projectedReturn)}</span>
+        </div>
+        ${note ? `<div class="il-note">${esc(note)}</div>` : ''}
       </div>`;
     }).join('')}</div>`;
   } catch {

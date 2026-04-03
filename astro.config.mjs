@@ -11,6 +11,7 @@ function rssProxyDevPlugin() {
 
         const { searchParams } = new URL(req.url, 'http://localhost');
         const feedUrl = searchParams.get('url');
+        const format = searchParams.get('format');
         if (!feedUrl) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Missing url parameter' }));
@@ -21,10 +22,19 @@ function rssProxyDevPlugin() {
           const response = await fetch(feedUrl, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (compatible; OriolesNews/1.0)',
-              Accept: 'application/rss+xml, application/xml, text/xml, */*',
+              Accept: format === 'text' ? 'text/html, text/plain, */*' : 'application/rss+xml, application/xml, text/xml, */*',
             },
           });
           const xml = await response.text();
+
+          if (format === 'text') {
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            });
+            res.end(JSON.stringify({ text: xml }));
+            return;
+          }
 
           // Extract text content of a single XML tag, handling CDATA
           function extractTag(src, tag) {

@@ -10,6 +10,7 @@ header('Cache-Control: public, max-age=900'); // 15-minute browser cache
 
 // ── Validate URL ──────────────────────────────────────────────────
 $url = filter_var($_GET['url'] ?? '', FILTER_VALIDATE_URL);
+$format = strtolower($_GET['format'] ?? '');
 if (!$url) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing or invalid url parameter']);
@@ -64,7 +65,7 @@ $ctx = stream_context_create([
         'max_redirects'    => 3,
         'header'           => implode("\r\n", [
             'User-Agent: Mozilla/5.0 (compatible; OriolesNews/1.0)',
-            'Accept: application/rss+xml, application/xml, text/xml, */*',
+            'Accept: ' . ($format === 'text' ? 'text/html, text/plain, */*' : 'application/rss+xml, application/xml, text/xml, */*'),
             'Accept-Language: en-US,en;q=0.9',
         ]),
     ],
@@ -78,6 +79,13 @@ $xml_raw = @file_get_contents($url, false, $ctx);
 if ($xml_raw === false) {
     http_response_code(502);
     echo json_encode(['error' => 'Failed to fetch feed']);
+    exit;
+}
+
+if ($format === 'text') {
+    echo json_encode([
+        'text' => $xml_raw,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 

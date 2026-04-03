@@ -572,11 +572,16 @@ a.roster-name:hover { color: var(--orange); }
 
 /* ── Injury Report ────────────────────────────────────────────── */
 .il-list { display: flex; flex-direction: column; gap: 2px; }
-.il-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid #1e1e1e; }
-.il-name { flex: 1; color: var(--text); font-weight: 500; transition: color 0.15s; }
+.il-item { display: flex; flex-direction: column; gap: 5px; font-size: 0.75rem; padding: 6px 0; border-bottom: 1px solid #1e1e1e; }
+.il-topline { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.il-name { flex: 1; min-width: 0; color: var(--text); font-weight: 500; transition: color 0.15s; }
 a.il-name:hover { color: var(--orange); }
 .il-pos { color: var(--text-3); font-size: 0.68rem; }
 .il-status { font-size: 0.65rem; padding: 1px 6px; border-radius: 3px; background: rgba(239,68,68,0.15); color: #ef4444; white-space: nowrap; }
+.il-meta { display: flex; align-items: baseline; gap: 8px; font-size: 0.67rem; color: var(--text-3); }
+.il-return-label { text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.il-return-date { color: var(--text-2); font-weight: 600; }
+.il-note { font-size: 0.69rem; line-height: 1.45; color: var(--text-3); }
 
 /* ── Video Widget ────────────────────────────────────────────── */
 .video-list { display: flex; flex-direction: column; gap: 6px; }
