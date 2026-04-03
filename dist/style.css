@@ -531,12 +531,12 @@ img { display: block; max-width: 100%; }
 .leaders-tab.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 .leaders-list { display: flex; flex-direction: column; }
 .leader-item {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 6px;
   font-size: 0.68rem; padding: 2px 0;
   border-bottom: 1px solid #1e1e1e;
 }
 .leader-item:last-child { border-bottom: none; }
-.leader-cat { font-weight: 700; color: var(--orange); width: 30px; flex-shrink: 0; font-size: 0.63rem; text-decoration: none; transition: color 0.15s; }
+.leader-cat { font-weight: 700; color: var(--orange); width: 34px; flex-shrink: 0; font-size: 0.63rem; text-decoration: none; transition: color 0.15s; }
 a.leader-cat:hover { color: var(--text); }
 .leader-name { flex: 1; color: var(--text); transition: color 0.15s; text-decoration: none; }
 a.leader-name:hover { color: var(--orange); }
