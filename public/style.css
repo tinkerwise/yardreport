@@ -581,6 +581,8 @@ img { display: block; max-width: 100%; }
   scrollbar-color: var(--border) transparent;
 }
 .sidebar-right {
+  position: static;
+  top: auto;
   max-height: none;
   overflow: visible;
 }
@@ -723,9 +725,14 @@ img { display: block; max-width: 100%; }
 .on-deck-pitchers { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
 .on-deck-card { padding: 10px 12px; gap: 6px; }
 .on-deck-card-wrap { position: relative; }
-.on-deck-park-overlay {
+.on-deck-park-popover {
   position: absolute;
-  inset: 0;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  width: min(420px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+  margin-top: 4px;
   z-index: 60;
   border-radius: var(--radius);
   overflow: hidden;
@@ -736,10 +743,8 @@ img { display: block; max-width: 100%; }
   box-shadow: 0 12px 26px rgba(0,0,0,0.34);
   opacity: 1;
 }
-.on-deck-park-overlay.hidden { display: none; }
+.on-deck-park-popover.hidden { display: none; }
 .park-overlay-card {
-  position: absolute;
-  inset: 0;
   padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
@@ -825,6 +830,25 @@ img { display: block; max-width: 100%; }
   color: rgba(255,247,237,0.72);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+[data-theme="light"] .on-deck-park-popover {
+  background: #fff7ed;
+  border-color: #efc08f;
+  box-shadow: 0 8px 24px rgba(91,55,22,0.16);
+}
+[data-theme="light"] .park-overlay-info {
+  color: #4a2b18;
+  text-shadow: none;
+}
+[data-theme="light"] .park-overlay-kicker {
+  color: #9a4f15;
+}
+[data-theme="light"] .park-overlay-meta,
+[data-theme="light"] .park-overlay-footnote {
+  color: rgba(74,43,24,0.72);
+}
+[data-theme="light"] .park-dimension {
+  color: #fffdf9;
 }
 [data-theme="light"] .box-score-popover {
   background: #fff7ed;

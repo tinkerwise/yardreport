@@ -731,9 +731,9 @@ async function loadScores() {
     const tomorrow = localDateStr(1);
 
     const [ydData, todayData, tmData] = await Promise.all([
-      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,venue,decisions`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,venue,decisions`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,venue,decisions`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
+      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
     ]);
 
     const allGames = [
@@ -1508,7 +1508,7 @@ async function loadOnDeck() {
             <span class="on-deck-venue">${esc(venue)}</span>
           </div>
         </a>
-        <div class="on-deck-park-overlay hidden" id="onDeckOverlay" aria-hidden="true">
+        <div class="on-deck-park-popover hidden" id="onDeckOverlay" aria-hidden="true">
           <div class="park-overlay-card">
             <div class="park-overlay-info">
               <span class="park-overlay-kicker">${esc(venue || 'Ballpark')}</span>
