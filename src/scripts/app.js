@@ -1941,21 +1941,20 @@ function setupEvents() {
     if (p.theme === 'system') applyTheme('system');
   });
 
-  // Collapsible sidebar sections
+  // Sidebar accordions: one open widget per side by default
   document.querySelectorAll('.section-toggle').forEach(toggle => {
     toggle.addEventListener('click', () => {
       const section = toggle.closest('.sidebar-section');
-      section.classList.toggle('collapsed');
+      const sidebar = section.closest('.sidebar');
+      const isCollapsed = section.classList.contains('collapsed');
+
+      sidebar.querySelectorAll('.sidebar-section').forEach(peer => {
+        if (peer !== section) peer.classList.add('collapsed');
+      });
+
+      section.classList.toggle('collapsed', !isCollapsed);
     });
   });
-
-  // On mobile, collapse all sidebar sections except search and On Deck
-  if (window.innerWidth <= 600) {
-    document.querySelectorAll('.sidebar-section').forEach(section => {
-      const key = section.dataset.section;
-      if (key !== 'ondeck') section.classList.add('collapsed');
-    });
-  }
 
   // Source filter popover
   $('sourceFilterBtn').addEventListener('click', () => {
