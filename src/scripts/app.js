@@ -1664,29 +1664,51 @@ const TEAM_LEADERS_CATS = 'onBasePlusSlugging,sluggingPercentage,onBasePercentag
 const LEAGUE_LEADERS_CATS = 'onBasePlusSlugging,sluggingPercentage,onBasePercentage,battingAverage,homeRuns,runsBattedIn,hits,walks,earnedRunAverage,walksAndHitsPerInningPitched,strikeoutsPer9Inn,strikeouts,walksPer9Inn,wins,gamesStarted';
 const BATTING_LABELS = { battingAverage: 'AVG', onBasePercentage: 'OBP', onBasePlusSlugging: 'OPS', homeRuns: 'HR', hits: 'H', baseOnBalls: 'BB', walks: 'BB', sluggingPercentage: 'SLG', runsBattedIn: 'RBI' };
 const PITCHING_LABELS = { earnedRunAverage: 'ERA', strikeouts: 'K', gamesStarted: 'GS', qualityStarts: 'QS', walksAndHitsPerInningPitched: 'WHIP', wins: 'W', strikeoutsPer9Inn: 'K/9', walksPer9Inn: 'BB/9' };
-// Baseball Savant leaderboard URLs per stat
-const SAVANT_STAT_URL = {
-  onBasePlusSlugging: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=ops',
-  sluggingPercentage: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=slg',
-  onBasePercentage: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=obp',
-  battingAverage: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=ba',
-  homeRuns: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=hr',
-  runsBattedIn: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=rbi',
-  hits: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=h',
-  baseOnBalls: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=bb',
-  walks: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=bb',
-  earnedRunAverage: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=era&type=pitcher',
-  walksAndHitsPerInningPitched: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=whip&type=pitcher',
-  strikeoutsPer9Inn: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=k_percent&type=pitcher',
-  strikeouts: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=k&type=pitcher',
-  walksPer9Inn: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=bb_percent&type=pitcher',
-  qualityStarts: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=qs&type=pitcher',
-  wins: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=w&type=pitcher',
-  gamesStarted: 'https://baseballsavant.mlb.com/leaderboard/custom?n=qualified&stat=gs&type=pitcher',
+// Baseball Savant custom leaderboard columns keyed to our widget stats.
+// The sort direction matches leaderboard convention: higher-is-better for most
+// stats, lower-is-better for run prevention stats like ERA / WHIP / BB/9.
+const SAVANT_STAT_CONFIG = {
+  onBasePlusSlugging: { stat: 'ops', type: 'batter', sortDir: 'desc' },
+  sluggingPercentage: { stat: 'slg', type: 'batter', sortDir: 'desc' },
+  onBasePercentage: { stat: 'obp', type: 'batter', sortDir: 'desc' },
+  battingAverage: { stat: 'ba', type: 'batter', sortDir: 'desc' },
+  homeRuns: { stat: 'home_run', type: 'batter', sortDir: 'desc' },
+  runsBattedIn: { stat: 'rbi', type: 'batter', sortDir: 'desc' },
+  hits: { stat: 'h', type: 'batter', sortDir: 'desc' },
+  baseOnBalls: { stat: 'bb', type: 'batter', sortDir: 'desc' },
+  walks: { stat: 'bb', type: 'batter', sortDir: 'desc' },
+  earnedRunAverage: { stat: 'era', type: 'pitcher', sortDir: 'asc' },
+  walksAndHitsPerInningPitched: { stat: 'whip', type: 'pitcher', sortDir: 'asc' },
+  strikeoutsPer9Inn: { stat: 'k_9', type: 'pitcher', sortDir: 'desc' },
+  strikeouts: { stat: 'k', type: 'pitcher', sortDir: 'desc' },
+  walksPer9Inn: { stat: 'bb_9', type: 'pitcher', sortDir: 'asc' },
+  qualityStarts: { stat: 'qs', type: 'pitcher', sortDir: 'desc' },
+  wins: { stat: 'w', type: 'pitcher', sortDir: 'desc' },
+  gamesStarted: { stat: 'gs', type: 'pitcher', sortDir: 'desc' },
 };
 
 function savantUrl(playerId) {
   return `https://baseballsavant.mlb.com/savant-player/${playerId}`;
+}
+
+function savantStatUrl(statKey) {
+  const config = SAVANT_STAT_CONFIG[statKey];
+  if (!config) return '#';
+
+  const url = new URL('https://baseballsavant.mlb.com/leaderboard/custom');
+  url.searchParams.set('year', String(SEASON));
+  url.searchParams.set('type', config.type);
+  url.searchParams.set('min', 'q');
+  url.searchParams.set('selections', config.stat);
+  url.searchParams.set('sort', config.stat);
+  url.searchParams.set('sortDir', config.sortDir);
+  url.searchParams.set('chart', 'false');
+  url.searchParams.set('chartType', 'beeswarm');
+  url.searchParams.set('filter', '');
+  url.searchParams.set('r', 'no');
+  url.searchParams.set('x', config.stat);
+  url.searchParams.set('y', config.stat);
+  return url.toString();
 }
 
 function leadersFetchUrl(scope) {
@@ -1754,7 +1776,7 @@ function renderLeaders() {
       const name = fullName.split(' ').pop() ?? '';
       const pid = top.person?.id;
       const playerLink = pid ? savantUrl(pid) : '#';
-      const statLink = SAVANT_STAT_URL[cat.key] ?? '#';
+      const statLink = savantStatUrl(cat.key);
       return `<div class="leader-item">
         <a class="leader-cat" href="${statLink}" target="_blank" rel="noopener">${esc(cat.label)}</a>
         <a class="leader-name" href="${playerLink}" target="_blank" rel="noopener">${esc(name)}</a>
