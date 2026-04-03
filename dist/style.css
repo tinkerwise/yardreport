@@ -428,6 +428,44 @@ img { display: block; max-width: 100%; }
 .box-perf-name { font-weight: 600; color: var(--text-1); }
 .box-perf-team { color: var(--text-3); font-size: 0.6rem; }
 .box-perf-stat { color: var(--text-2); margin-left: auto; white-space: nowrap; }
+.probable-pitchers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.probable-pitchers-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+}
+.probable-pitchers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.probable-pitcher-row {
+  display: flex;
+  gap: 8px;
+  font-size: 0.68rem;
+}
+.probable-pitcher-team {
+  width: 28px;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.probable-pitcher-name {
+  color: var(--text);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .score-lineups {
   display: flex;
   flex-direction: column;
@@ -540,6 +578,10 @@ img { display: block; max-width: 100%; }
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+}
+.sidebar-right {
+  max-height: none;
+  overflow: visible;
 }
 
 .search-wrap {
@@ -785,7 +827,7 @@ img { display: block; max-width: 100%; }
 }
 
 /* ── Yard Leaders ─────────────────────────────────────────────── */
-.leaders-controls { display: flex; gap: 3px; align-items: center; margin-bottom: 4px; }
+.leaders-controls { display: flex; gap: 3px; align-items: center; margin-bottom: 6px; }
 .leaders-scope { display: flex; gap: 2px; }
 .leaders-scope-btn {
   padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px;
@@ -794,15 +836,15 @@ img { display: block; max-width: 100%; }
 }
 .leaders-scope-btn:hover { border-color: var(--orange); color: var(--orange); }
 .leaders-scope-btn.active { background: var(--orange); border-color: var(--orange); color: #fff; }
-.leaders-divider { width: 1px; height: 14px; background: var(--border); margin: 0 2px; }
-.leaders-toggle { display: flex; gap: 2px; }
-.leaders-tab {
-  padding: 1px 6px; border: 1px solid var(--border); border-radius: 3px;
-  background: transparent; color: var(--text-3); font-size: 0.58rem; font-weight: 600;
-  cursor: pointer; transition: all 0.15s;
+.leaders-stack { display: flex; flex-direction: column; gap: 10px; }
+.leaders-group { display: flex; flex-direction: column; gap: 4px; }
+.leaders-group-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
 }
-.leaders-tab:hover { border-color: #3b82f6; color: #3b82f6; }
-.leaders-tab.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 .leaders-list { display: flex; flex-direction: column; }
 .leader-item {
   display: flex; align-items: center; gap: 6px;

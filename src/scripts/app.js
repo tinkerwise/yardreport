@@ -623,12 +623,31 @@ function renderLineupPopover(boxData) {
   </div>`;
 }
 
+function renderProbablePitchers(game) {
+  const awayPitcher = game.teams?.away?.probablePitcher?.fullName;
+  const homePitcher = game.teams?.home?.probablePitcher?.fullName;
+  if (!awayPitcher && !homePitcher) return '';
+
+  const awayLabel = TEAM_ABBREV[game.teams?.away?.team?.id] ?? 'Away';
+  const homeLabel = TEAM_ABBREV[game.teams?.home?.team?.id] ?? 'Home';
+
+  return `<div class="probable-pitchers">
+    <div class="probable-pitchers-title">Probable Pitchers</div>
+    <div class="probable-pitchers-list">
+      <div class="probable-pitcher-row"><span class="probable-pitcher-team">${esc(awayLabel)}</span><span class="probable-pitcher-name">${esc(awayPitcher || 'TBD')}</span></div>
+      <div class="probable-pitcher-row"><span class="probable-pitcher-team">${esc(homeLabel)}</span><span class="probable-pitcher-name">${esc(homePitcher || 'TBD')}</span></div>
+    </div>
+  </div>`;
+}
+
 function renderBoxScore(g, boxData) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
-    return boxData
-      ? renderLineupPopover(boxData)
-      : '<div class="score-lineups"><div class="score-lineups-title">Lineups</div><div class="score-lineups-empty">Loading lineup status…</div></div>';
+    return `${renderProbablePitchers(g)}${
+      boxData
+        ? renderLineupPopover(boxData)
+        : '<div class="score-lineups"><div class="score-lineups-title">Lineups</div><div class="score-lineups-empty">Loading lineup status…</div></div>'
+    }`;
   }
 
   const ls = g.linescore;
@@ -687,7 +706,7 @@ function renderBoxScore(g, boxData) {
       <tr>${awayRow}</tr>
       <tr>${homeRow}</tr>
     </tbody>
-  </table>${decisions}${performers}${renderLineupPopover(boxData)}`;
+  </table>${decisions}${performers}${renderProbablePitchers(g)}${renderLineupPopover(boxData)}`;
 }
 
 async function loadScores() {
@@ -1926,7 +1945,6 @@ function renderLeaders() {
   const wrap = $('leadersWrap');
   const cached = leadersCache[leadersScope];
   if (!cached) { wrap.innerHTML = '<span class="sidebar-msg">Loading…</span>'; return; }
-  const cats = leadersMode === 'batting' ? cached.batting : cached.pitching;
 
   wrap.innerHTML = `
     <div class="leaders-controls">
@@ -1936,37 +1954,48 @@ function renderLeaders() {
         <button class="leaders-scope-btn${leadersScope === 'nl' ? ' active' : ''}" data-scope="nl">NL</button>
         <button class="leaders-scope-btn${leadersScope === 'mlb' ? ' active' : ''}" data-scope="mlb">MLB</button>
       </div>
-      <span class="leaders-divider"></span>
-      <div class="leaders-toggle">
-        <button class="leaders-tab${leadersMode === 'batting' ? ' active' : ''}" data-lmode="batting">Batting</button>
-        <button class="leaders-tab${leadersMode === 'pitching' ? ' active' : ''}" data-lmode="pitching">Pitching</button>
-      </div>
     </div>
-    <div class="leaders-list">${cats.map(cat => {
-      const top = cat.leaders?.[0];
-      if (!top) return '';
-      const fullName = top.person?.fullName ?? '';
-      const name = fullName.split(' ').pop() ?? '';
-      const pid = top.person?.id;
-      const playerLink = pid ? savantUrl(pid) : '#';
-      const statLink = savantStatUrl(cat.key);
-      return `<div class="leader-item">
-        <a class="leader-cat" href="${statLink}" target="_blank" rel="noopener">${esc(cat.label)}</a>
-        <a class="leader-name" href="${playerLink}" target="_blank" rel="noopener">${esc(name)}</a>
-        <span class="leader-val">${esc(top.value)}</span>
-      </div>`;
-    }).join('')}</div>`;
+    <div class="leaders-stack">
+      <div class="leaders-group">
+        <div class="leaders-group-title">Batting</div>
+        <div class="leaders-list">${cached.batting.map(cat => {
+          const top = cat.leaders?.[0];
+          if (!top) return '';
+          const fullName = top.person?.fullName ?? '';
+          const name = fullName.split(' ').pop() ?? '';
+          const pid = top.person?.id;
+          const playerLink = pid ? savantUrl(pid) : '#';
+          const statLink = savantStatUrl(cat.key);
+          return `<div class="leader-item">
+            <a class="leader-cat" href="${statLink}" target="_blank" rel="noopener">${esc(cat.label)}</a>
+            <a class="leader-name" href="${playerLink}" target="_blank" rel="noopener">${esc(name)}</a>
+            <span class="leader-val">${esc(top.value)}</span>
+          </div>`;
+        }).join('')}</div>
+      </div>
+      <div class="leaders-group">
+        <div class="leaders-group-title">Pitching</div>
+        <div class="leaders-list">${cached.pitching.map(cat => {
+          const top = cat.leaders?.[0];
+          if (!top) return '';
+          const fullName = top.person?.fullName ?? '';
+          const name = fullName.split(' ').pop() ?? '';
+          const pid = top.person?.id;
+          const playerLink = pid ? savantUrl(pid) : '#';
+          const statLink = savantStatUrl(cat.key);
+          return `<div class="leader-item">
+            <a class="leader-cat" href="${statLink}" target="_blank" rel="noopener">${esc(cat.label)}</a>
+            <a class="leader-name" href="${playerLink}" target="_blank" rel="noopener">${esc(name)}</a>
+            <span class="leader-val">${esc(top.value)}</span>
+          </div>`;
+        }).join('')}</div>
+      </div>
+    </div>`;
 
   wrap.querySelectorAll('.leaders-scope-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       leadersScope = btn.dataset.scope;
       loadLeaders();
-    });
-  });
-  wrap.querySelectorAll('.leaders-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      leadersMode = btn.dataset.lmode;
-      renderLeaders();
     });
   });
 }
