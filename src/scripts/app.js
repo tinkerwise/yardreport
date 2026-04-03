@@ -1677,14 +1677,14 @@ const SAVANT_STAT_CONFIG = {
   hits: { stat: 'h', type: 'batter', sortDir: 'desc' },
   baseOnBalls: { stat: 'bb', type: 'batter', sortDir: 'desc' },
   walks: { stat: 'bb', type: 'batter', sortDir: 'desc' },
-  earnedRunAverage: { stat: 'era', type: 'pitcher', sortDir: 'asc' },
-  walksAndHitsPerInningPitched: { stat: 'whip', type: 'pitcher', sortDir: 'asc' },
-  strikeoutsPer9Inn: { stat: 'k_9', type: 'pitcher', sortDir: 'desc' },
-  strikeouts: { stat: 'k', type: 'pitcher', sortDir: 'desc' },
-  walksPer9Inn: { stat: 'bb_9', type: 'pitcher', sortDir: 'asc' },
-  qualityStarts: { stat: 'qs', type: 'pitcher', sortDir: 'desc' },
-  wins: { stat: 'w', type: 'pitcher', sortDir: 'desc' },
-  gamesStarted: { stat: 'gs', type: 'pitcher', sortDir: 'desc' },
+  earnedRunAverage: { stat: 'earned_run_avg', type: 'pitcher', sortDir: 'asc' },
+  walksAndHitsPerInningPitched: { stat: 'walks_hits_per_inning_pitched', type: 'pitcher', sortDir: 'asc' },
+  strikeoutsPer9Inn: { stat: 'strikeouts_per_nine', type: 'pitcher', sortDir: 'desc' },
+  strikeouts: { stat: 'strikeouts', type: 'pitcher', sortDir: 'desc' },
+  walksPer9Inn: { stat: 'walks_per_nine', type: 'pitcher', sortDir: 'asc' },
+  qualityStarts: { stat: 'quality_starts', type: 'pitcher', sortDir: 'desc' },
+  wins: { stat: 'wins', type: 'pitcher', sortDir: 'desc' },
+  gamesStarted: { stat: 'games_started', type: 'pitcher', sortDir: 'desc' },
 };
 
 function savantUrl(playerId) {
