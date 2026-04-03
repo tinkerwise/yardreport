@@ -1941,11 +1941,18 @@ function setupEvents() {
     if (p.theme === 'system') applyTheme('system');
   });
 
-  // Sidebar accordions: one open widget per side by default
+  // Right sidebar accordion: one open widget at a time
   document.querySelectorAll('.section-toggle').forEach(toggle => {
     toggle.addEventListener('click', () => {
       const section = toggle.closest('.sidebar-section');
       const sidebar = section.closest('.sidebar');
+      const isRightSidebar = sidebar?.classList.contains('sidebar-right');
+
+      if (!isRightSidebar) {
+        section.classList.toggle('collapsed');
+        return;
+      }
+
       const isCollapsed = section.classList.contains('collapsed');
 
       sidebar.querySelectorAll('.sidebar-section').forEach(peer => {
