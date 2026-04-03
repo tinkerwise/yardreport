@@ -15,12 +15,15 @@ Lineups
 - Expanded the lineup popovers so names fit more comfortably and gave them a warmer distinct background treatment.
 - Simplified the On Deck lineup badge to an icon-only state without the numeric `2/2` counter.
 - Added probable pitchers to lineup popovers so the starters appear even before lineups are posted.
+- Reworked the On Deck lineup popover so it can expand over the page instead of being constrained to the sidebar width.
+- Standardized the lineup/box popover surfaces to use stronger contrasting backgrounds against the rest of the page.
 
 Light Theme
 - Improved light-mode masthead contrast so the header wordmark and banner treatment stand apart more clearly from the page background.
 
 Right Sidebar
 - Let the right-side widgets expand to their full content height instead of clipping to the viewport.
+- Removed the remaining internal height caps from the Roster and Transactions lists so both widgets expand to full content on desktop and mobile.
 
 Yard Leaders
 - Stacked batting and pitching leaders into one expanded widget and removed the separate batting/pitching toggle labels.

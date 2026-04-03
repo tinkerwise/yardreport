@@ -387,7 +387,8 @@ img { display: block; max-width: 100%; }
 /* Box score popover */
 .box-score-popover {
   position: fixed; z-index: 100;
-  background: var(--surface); border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 86%, #241208 14%);
+  border: 1px solid color-mix(in srgb, var(--orange) 24%, var(--border) 76%);
   border-radius: 8px; padding: 10px 12px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   pointer-events: auto;
@@ -767,13 +768,14 @@ img { display: block; max-width: 100%; }
 
 /* Lineup popover on hover */
 .lineup-popover {
-  position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+  position: absolute; top: 100%; left: 0; z-index: 60;
   background: color-mix(in srgb, var(--surface) 86%, #362012 14%);
   border: 1px solid color-mix(in srgb, var(--orange) 24%, var(--border) 76%);
   border-radius: var(--radius); padding: 9px 11px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
   display: flex; gap: 14px; margin-top: 4px;
-  min-width: 340px;
+  width: min(420px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
 }
 .lineup-popover.hidden { display: none; }
 .lineup-popover .sidebar-msg { color: var(--text-2); }
@@ -800,6 +802,11 @@ img { display: block; max-width: 100%; }
   background: #fff7ed;
   border-color: #efc08f;
   box-shadow: 0 8px 24px rgba(91, 55, 22, 0.16);
+}
+[data-theme="light"] .box-score-popover {
+  background: #fff7ed;
+  border-color: #efc08f;
+  box-shadow: 0 8px 28px rgba(91,55,22,0.16);
 }
 
 /* Schedule within On Deck */
@@ -859,7 +866,7 @@ a.leader-name:hover { color: var(--orange); }
 .leader-val { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-2); font-size: 0.63rem; }
 
 /* ── Roster ───────────────────────────────────────────────────── */
-.roster-list { display: flex; flex-direction: column; gap: 1px; max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.roster-list { display: flex; flex-direction: column; gap: 1px; max-height: none; overflow: visible; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .roster-group-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); padding: 6px 0 2px; }
 .roster-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; padding: 3px 0; border-bottom: 1px solid #1e1e1e; }
 .roster-num { width: 20px; text-align: right; color: var(--text-3); font-size: 0.68rem; font-variant-numeric: tabular-nums; flex-shrink: 0; }
@@ -875,7 +882,7 @@ a.roster-name:hover { color: var(--orange); }
 .widget-link:hover { color: var(--orange); }
 
 /* ── Transactions ─────────────────────────────────────────────── */
-.txn-list { display: flex; flex-direction: column; gap: 2px; max-height: 220px; overflow-y: auto; }
+.txn-list { display: flex; flex-direction: column; gap: 2px; max-height: none; overflow: visible; }
 .txn-item { display: flex; gap: 8px; font-size: 0.73rem; padding: 5px 0; border-bottom: 1px solid #1e1e1e; }
 .txn-date { flex-shrink: 0; color: var(--text-3); font-size: 0.68rem; width: 42px; }
 .txn-desc { color: var(--text-2); line-height: 1.4; }
@@ -1698,8 +1705,8 @@ a.il-name:hover { color: var(--orange); }
   .settings-panel { width: 92vw; max-width: none; padding: 20px; }
 
   /* Sidebar widget constraints */
-  .roster-list { max-height: 180px; }
-  .txn-list { max-height: 140px; }
+  .roster-list { max-height: none; }
+  .txn-list { max-height: none; }
   .leaders-list { font-size: 0.72rem; }
   .sched-box { padding: 4px 1px; }
   .sched-box-logo { width: 18px; height: 18px; }

@@ -1534,6 +1534,14 @@ async function loadOnDeck() {
         };
       };
 
+      const renderOnDeckPopover = (awayLineupHtml, homeLineupHtml) => {
+        return `${renderProbablePitchers(next)}
+          <div class="score-lineups">
+            <div class="score-lineups-title">Lineups</div>
+            <div class="score-lineups-grid">${awayLineupHtml}${homeLineupHtml}</div>
+          </div>`;
+      };
+
       try {
         const box = await fetch(`${MLB}/game/${next.gamePk}/boxscore`).then(r => r.json());
         const awayLabel = TEAM_ABBREV[away.team.id] ?? 'Away';
@@ -1542,7 +1550,7 @@ async function loadOnDeck() {
         const homeLineup = buildLineupSide(box, 'home', homeLabel);
         const availableCount = Number(awayLineup.available) + Number(homeLineup.available);
 
-        lineupHtml = awayLineup.html + homeLineup.html;
+        lineupHtml = renderOnDeckPopover(awayLineup.html, homeLineup.html);
         popover.innerHTML = lineupHtml;
 
         if (indicatorWrap) {
@@ -1558,6 +1566,7 @@ async function loadOnDeck() {
               </span>`;
         }
       } catch {
+        lineupHtml = `${renderProbablePitchers(next)}<div class="score-lineups"><div class="score-lineups-title">Lineups</div><div class="score-lineups-empty">Lineups unavailable</div></div>`;
         if (indicatorWrap) {
           indicatorWrap.innerHTML = `<span class="lineup-indicator-badge unavailable" title="Lineup status unavailable">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
