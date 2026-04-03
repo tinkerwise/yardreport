@@ -415,15 +415,6 @@ img { display: block; max-width: 100%; }
     linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, var(--orange) 8%), var(--card));
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10);
 }
-.search-kicker {
-  font-size: 0.7rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--orange);
-  padding-right: 20px;
-}
 .search-icon {
   position: absolute;
   left: 23px;
