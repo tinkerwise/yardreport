@@ -1,14 +1,6 @@
 #YARD REPORT
 
-##Features & Ideas
-
-**Rules of engagement:**
-- Don't break the site
-- Prioritize visual design and readability
-- be aware of content overload, always suggest condensing content in some way
-- anticipate visual cues for visitors to types of media content (text, audio, video, graphics)
-- minimze load on browser cache, memory, etc.
-
+#CURRENT SITE
 
 #News Feed
   - RSS aggregation from 14 baseball sources (Orioles + MLB)
@@ -96,6 +88,25 @@
   - YouTube RSS feeds for video widget
 
 
-#UPDATES
+#PROMPT UPDATES
 // New ideas below — edit this file from GitHub.com on mobile or desktop
-**Always follow the Rules of Engagement above**
+**Always follow the Rules of Engagement below**
+**Rules of Engagement:**
+- Don't break the site
+- Prioritize visual design and readability
+- be aware of content overload, always suggest condensing content in some way
+- anticipate visual cues for visitors to types of media content (text, audio, video, graphics)
+- minimze load on browser cache, memory, etc.
+- work through ##Active then prompt for ##Queued, prompt for help with ##Ideas
+
+##Active
+- Add items here for immediate implementation
+
+##Queued
+Score Bugs:
+- add lineup card popover to each game score bug
+
+On Deck:
+- just use the lineup card icon, greyed for unavailable, green if at least one is posted
+
+##Ideas
