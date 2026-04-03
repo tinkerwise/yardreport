@@ -1921,7 +1921,6 @@ function setupEvents() {
 // ── Easter Egg Functions ───────────────────────────────────────────
 
 function triggerOriolesMagic() {
-  // Create confetti container
   const container = document.createElement('div');
   container.className = 'magic-confetti';
   const birdNum = Math.floor(Math.random() * 10) + 1;
@@ -1937,23 +1936,33 @@ function triggerOriolesMagic() {
   };
   audio.addEventListener('ended', removeDisplay);
   audio.play().catch(() => {
-    // Audio blocked — fall back to timed display
     setTimeout(removeDisplay, 5000);
   });
 
-  // Spawn confetti pieces
-  const colors = ['#df4601', '#000', '#fff', '#f59e0b', '#ff6b1a'];
-  for (let i = 0; i < 80; i++) {
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random() * 100 + 'vw';
-    piece.style.animationDelay = Math.random() * 2 + 's';
-    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
-    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.width = (4 + Math.random() * 6) + 'px';
-    piece.style.height = (4 + Math.random() * 6) + 'px';
-    container.appendChild(piece);
-  }
+  // Confetti explodes from center after bird grows (matches animation duration)
+  setTimeout(() => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight * 0.35;
+    const colors = ['#df4601', '#000', '#fff', '#f59e0b', '#ff6b1a'];
+    for (let i = 0; i < 120; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-burst';
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 200 + Math.random() * 500;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      piece.style.left = cx + 'px';
+      piece.style.top = cy + 'px';
+      piece.style.setProperty('--dx', dx + 'px');
+      piece.style.setProperty('--dy', dy + 'px');
+      piece.style.animationDelay = Math.random() * 0.3 + 's';
+      piece.style.animationDuration = (1 + Math.random() * 1.5) + 's';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.width = (4 + Math.random() * 8) + 'px';
+      piece.style.height = (4 + Math.random() * 8) + 'px';
+      container.appendChild(piece);
+    }
+  }, 600);
 }
 
 function triggerSevenNationArmy() {
