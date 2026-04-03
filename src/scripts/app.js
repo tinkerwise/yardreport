@@ -1672,14 +1672,35 @@ const SAVANT_STAT_CONFIG = {
   hits: { stat: 'h', type: 'batter', sortDir: 'desc' },
   baseOnBalls: { stat: 'bb', type: 'batter', sortDir: 'desc' },
   walks: { stat: 'bb', type: 'batter', sortDir: 'desc' },
-  earnedRunAverage: { stat: 'earned_run_avg', type: 'pitcher', sortDir: 'asc' },
-  walksAndHitsPerInningPitched: { stat: 'walks_hits_per_inning_pitched', type: 'pitcher', sortDir: 'asc' },
-  strikeoutsPer9Inn: { stat: 'strikeouts_per_nine', type: 'pitcher', sortDir: 'desc' },
-  strikeouts: { stat: 'strikeouts', type: 'pitcher', sortDir: 'desc' },
-  walksPer9Inn: { stat: 'walks_per_nine', type: 'pitcher', sortDir: 'asc' },
-  qualityStarts: { stat: 'quality_starts', type: 'pitcher', sortDir: 'desc' },
-  wins: { stat: 'wins', type: 'pitcher', sortDir: 'desc' },
-  gamesStarted: { stat: 'games_started', type: 'pitcher', sortDir: 'desc' },
+  earnedRunAverage: { stat: 'p_era', type: 'pitcher', sortDir: 'asc' },
+  walksAndHitsPerInningPitched: {
+    type: 'pitcher',
+    sort: 'p_walk',
+    sortDir: 'asc',
+    selections: ['p_walk', 'p_total_hits', 'p_formatted_ip'],
+    x: 'p_walk',
+    y: 'p_walk',
+  },
+  strikeoutsPer9Inn: {
+    type: 'pitcher',
+    sort: 'p_strikeout',
+    sortDir: 'desc',
+    selections: ['p_strikeout', 'p_formatted_ip'],
+    x: 'p_strikeout',
+    y: 'p_strikeout',
+  },
+  strikeouts: { stat: 'p_strikeout', type: 'pitcher', sortDir: 'desc' },
+  walksPer9Inn: {
+    type: 'pitcher',
+    sort: 'p_walk',
+    sortDir: 'asc',
+    selections: ['p_walk', 'p_formatted_ip'],
+    x: 'p_walk',
+    y: 'p_walk',
+  },
+  qualityStarts: { stat: 'p_quality_start', type: 'pitcher', sortDir: 'desc' },
+  wins: { stat: 'p_win', type: 'pitcher', sortDir: 'desc' },
+  gamesStarted: { stat: 'p_starting_p', type: 'pitcher', sortDir: 'desc' },
 };
 
 function savantUrl(playerId) {
@@ -1689,20 +1710,24 @@ function savantUrl(playerId) {
 function savantStatUrl(statKey) {
   const config = SAVANT_STAT_CONFIG[statKey];
   if (!config) return '#';
+  const selections = config.selections ?? [config.stat];
+  const sort = config.sort ?? config.stat;
+  const x = config.x ?? sort;
+  const y = config.y ?? sort;
 
   const url = new URL('https://baseballsavant.mlb.com/leaderboard/custom');
   url.searchParams.set('year', String(SEASON));
   url.searchParams.set('type', config.type);
   url.searchParams.set('min', 'q');
-  url.searchParams.set('selections', config.stat);
-  url.searchParams.set('sort', config.stat);
+  url.searchParams.set('selections', selections.join(','));
+  url.searchParams.set('sort', sort);
   url.searchParams.set('sortDir', config.sortDir);
   url.searchParams.set('chart', 'false');
   url.searchParams.set('chartType', 'beeswarm');
   url.searchParams.set('filter', '');
   url.searchParams.set('r', 'no');
-  url.searchParams.set('x', config.stat);
-  url.searchParams.set('y', config.stat);
+  url.searchParams.set('x', x);
+  url.searchParams.set('y', y);
   return url.toString();
 }
 
