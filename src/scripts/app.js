@@ -1668,10 +1668,10 @@ const PITCHING_LABELS = { earnedRunAverage: 'ERA', strikeouts: 'K', gamesStarted
 // The sort direction matches leaderboard convention: higher-is-better for most
 // stats, lower-is-better for run prevention stats like ERA / WHIP / BB/9.
 const SAVANT_STAT_CONFIG = {
-  onBasePlusSlugging: { stat: 'ops', type: 'batter', sortDir: 'desc' },
-  sluggingPercentage: { stat: 'slg', type: 'batter', sortDir: 'desc' },
-  onBasePercentage: { stat: 'obp', type: 'batter', sortDir: 'desc' },
-  battingAverage: { stat: 'ba', type: 'batter', sortDir: 'desc' },
+  onBasePlusSlugging: { stat: 'on_base_plus_slg', type: 'batter', sortDir: 'desc' },
+  sluggingPercentage: { stat: 'slg_percent', type: 'batter', sortDir: 'desc' },
+  onBasePercentage: { stat: 'on_base_percent', type: 'batter', sortDir: 'desc' },
+  battingAverage: { stat: 'batting_avg', type: 'batter', sortDir: 'desc' },
   homeRuns: { stat: 'home_run', type: 'batter', sortDir: 'desc' },
   runsBattedIn: { stat: 'rbi', type: 'batter', sortDir: 'desc' },
   hits: { stat: 'h', type: 'batter', sortDir: 'desc' },
