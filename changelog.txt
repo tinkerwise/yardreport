@@ -12,6 +12,11 @@ Lineups
 - Added lineup-card content to the score bug hover popover so each game chip can surface posted/not-posted lineup state.
 - Updated the On Deck lineup indicator to always show the lineup-card icon, grey when unavailable and green when at least one lineup is posted.
 - Tightened lineup popover rows so player names stay on one line with smaller type and truncation instead of wrapping.
+- Expanded the lineup popovers so names fit more comfortably and gave them a warmer distinct background treatment.
+- Simplified the On Deck lineup badge to an icon-only state without the numeric `2/2` counter.
+
+Light Theme
+- Improved light-mode masthead contrast so the header wordmark and banner treatment stand apart more clearly from the page background.
 
 Feed and Toolbar
 - Tightened the main feed toolbar layout.

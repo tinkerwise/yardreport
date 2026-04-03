@@ -131,13 +131,11 @@ const Te="/yardreport/rss-proxy.php",Qe={200:"AL West",201:"AL East",202:"AL Cen
                   <rect x="5" y="3" width="14" height="18" rx="2"></rect>
                   <path d="M9 7h6M9 11h6M9 15h4"></path>
                 </svg>
-                <span>${E}/2</span>
               </span>`)}catch{I&&(I.innerHTML=`<span class="lineup-indicator-badge unavailable" title="Lineup status unavailable">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <rect x="5" y="3" width="14" height="18" rx="2"></rect>
               <path d="M9 7h6M9 11h6M9 15h4"></path>
             </svg>
-            <span>0/2</span>
           </span>`)}L.addEventListener("mouseenter",()=>{_.innerHTML=F,_.classList.remove("hidden")}),L.addEventListener("mouseleave",()=>{_.classList.add("hidden")})}}catch{e.innerHTML='<span class="sidebar-msg">Unavailable</span>'}}async function je(){const e=p("rosterWrap");try{const a=((await fetch(`${D}/teams/${T}/roster?rosterType=active`).then(n=>n.json())).roster??[]).sort((n,o)=>{const r={P:3,C:0,"1B":0,"2B":0,"3B":0,SS:0,LF:1,CF:1,RF:1,OF:1,DH:1},c=r[n.position?.abbreviation]??2,l=r[o.position?.abbreviation]??2;return c-l||n.person.fullName.localeCompare(o.person.fullName)});if(!a.length){e.innerHTML='<span class="sidebar-msg">Roster unavailable</span>';return}const s={"Position Players":[],Outfielders:[],Pitchers:[]};for(const n of a){const o=n.position?.abbreviation??"";["SP","RP","P"].includes(o)?s.Pitchers.push(n):["LF","CF","RF","OF","DH"].includes(o)?s.Outfielders.push(n):s["Position Players"].push(n)}let i="";for(const[n,o]of Object.entries(s))o.length&&(i+=`<div class="roster-group-label">${d(n)}</div>`,i+=o.map(r=>{const c=qe(r.person.id);return`<div class="roster-item">
           <span class="roster-num">${d(r.jerseyNumber??"")}</span>
           <a class="roster-name" href="${c}" target="_blank" rel="noopener">${d(r.person.fullName)}</a>

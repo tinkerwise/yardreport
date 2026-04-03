@@ -204,8 +204,9 @@ img { display: block; max-width: 100%; }
 }
 [data-theme="light"] .logo {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.28) 36%),
-    linear-gradient(135deg, #f6ead7 0%, #e7d4bd 100%);
+    linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.4) 36%),
+    linear-gradient(135deg, #f3e1c9 0%, #dec2a2 100%);
+  border-color: #c8a98a;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.75),
     0 8px 18px rgba(0,0,0,0.08);
@@ -220,9 +221,8 @@ img { display: block; max-width: 100%; }
     linear-gradient(135deg, rgba(68, 32, 10, 0.94) 0%, rgba(36, 16, 4, 0.98) 100%);
   border-color: rgba(255,107,26,0.18);
 }
-[data-theme="light"] .logo-word {
-  color: #4e2f1c;
-}
+[data-theme="light"] .logo-word { color: #3e2415; }
+[data-theme="light"] .logo-word-accent { color: #b84000; }
 [data-theme="opacy"] .logo-word {
   color: #ffd8b5;
 }
@@ -445,7 +445,8 @@ img { display: block; max-width: 100%; }
 }
 .score-lineups-grid {
   display: flex;
-  gap: 12px;
+  gap: 14px;
+  min-width: 340px;
 }
 .score-lineup-side {
   flex: 1;
@@ -725,12 +726,15 @@ img { display: block; max-width: 100%; }
 /* Lineup popover on hover */
 .lineup-popover {
   position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 8px 10px;
+  background: color-mix(in srgb, var(--surface) 86%, #362012 14%);
+  border: 1px solid color-mix(in srgb, var(--orange) 24%, var(--border) 76%);
+  border-radius: var(--radius); padding: 9px 11px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-  display: flex; gap: 12px; margin-top: 4px;
+  display: flex; gap: 14px; margin-top: 4px;
+  min-width: 340px;
 }
 .lineup-popover.hidden { display: none; }
+.lineup-popover .sidebar-msg { color: var(--text-2); }
 .lineup-side { flex: 1; min-width: 0; }
 .lineup-head {
   display: flex;
@@ -750,6 +754,11 @@ img { display: block; max-width: 100%; }
   text-overflow: ellipsis;
 }
 .lineup-empty { font-size: 0.68rem; color: var(--text-2); }
+[data-theme="light"] .lineup-popover {
+  background: #fff7ed;
+  border-color: #efc08f;
+  box-shadow: 0 8px 24px rgba(91, 55, 22, 0.16);
+}
 
 /* Schedule within On Deck */
 /* Schedule boxes (inline with On Deck) */
