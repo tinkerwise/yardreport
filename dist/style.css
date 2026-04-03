@@ -664,10 +664,16 @@ a.il-name:hover { color: var(--orange); }
 .toolbar-divider {
   width: 1px; height: 20px; background: var(--border); flex-shrink: 0;
 }
-.result-count { font-size: 0.78rem; color: var(--text-3); white-space: nowrap; margin-left: auto; }
-.date-hint { color: var(--text-3); opacity: 0.6; font-size: 0.72rem; }
 .toolbar-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.view-toggle { display: flex; gap: 2px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 2px; }
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+  margin-left: auto;
+}
 .view-btn {
   background: none; border: none; color: var(--text-3); padding: 5px 7px;
   border-radius: 4px; cursor: pointer; display: flex; align-items: center;
@@ -1119,8 +1125,8 @@ a.il-name:hover { color: var(--orange); }
 
   /* Feed toolbar – stack on mobile */
   .feed-toolbar { flex-wrap: wrap; gap: 6px; }
-  .result-count { width: 100%; font-size: 0.72rem; }
   .toolbar-controls { gap: 6px; flex-wrap: wrap; }
+  .view-toggle { margin-left: 0; }
   .view-btn { min-width: 36px; min-height: 36px; }
   .btn-source-filter { padding: 6px 10px; min-height: 36px; }
   .sort-select { min-height: 36px; font-size: 0.75rem; }

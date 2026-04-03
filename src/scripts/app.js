@@ -1120,11 +1120,6 @@ function renderArticles() {
   const list = $('articleList');
   const arts = getFilteredArticles();
 
-  const countText = `${arts.length} article${arts.length !== 1 ? 's' : ''}`;
-  $('resultCount').innerHTML = state.searchQuery
-    ? countText
-    : `${countText} <span class="date-hint">· Last ${state.dateRange} days</span>`;
-
   if (!arts.length) {
     list.innerHTML = '<div class="feed-msg">No articles match your filters.</div>';
     return;

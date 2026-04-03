@@ -101,17 +101,6 @@ import Layout from '../layouts/Layout.astro';
             <button class="pill" data-category="milb">🔻 MiLB</button>
           </div>
           <span class="toolbar-divider"></span>
-          <div class="view-toggle" id="viewToggle">
-            <button class="view-btn active" data-view="grid" title="Grid view">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
-            </button>
-            <button class="view-btn" data-view="list" title="List view">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="7" y="2" width="8" height="2" rx="0.5"/><rect x="1" y="6" width="4" height="4" rx="1"/><rect x="7" y="7" width="8" height="2" rx="0.5"/><rect x="1" y="11" width="4" height="4" rx="1"/><rect x="7" y="12" width="8" height="2" rx="0.5"/></svg>
-            </button>
-            <button class="view-btn" data-view="compact" title="Compact view">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="0.5"/><rect x="1" y="7" width="14" height="2" rx="0.5"/><rect x="1" y="12" width="14" height="2" rx="0.5"/></svg>
-            </button>
-          </div>
           <div class="source-filter-wrap">
             <button class="btn-source-filter" id="sourceFilterBtn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
@@ -134,7 +123,17 @@ import Layout from '../layouts/Layout.astro';
             <option value="14">14 days</option>
             <option value="30">30 days</option>
           </select>
-          <span class="result-count" id="resultCount"></span>
+          <div class="view-toggle" id="viewToggle">
+            <button class="view-btn active" data-view="grid" title="Grid view">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+            </button>
+            <button class="view-btn" data-view="list" title="List view">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="7" y="2" width="8" height="2" rx="0.5"/><rect x="1" y="6" width="4" height="4" rx="1"/><rect x="7" y="7" width="8" height="2" rx="0.5"/><rect x="1" y="11" width="4" height="4" rx="1"/><rect x="7" y="12" width="8" height="2" rx="0.5"/></svg>
+            </button>
+            <button class="view-btn" data-view="compact" title="Compact view">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="0.5"/><rect x="1" y="7" width="14" height="2" rx="0.5"/><rect x="1" y="12" width="14" height="2" rx="0.5"/></svg>
+            </button>
+          </div>
         </div>
       </div>
       <div class="article-list" id="articleList">
