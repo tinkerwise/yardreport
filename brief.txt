@@ -1,6 +1,6 @@
 **Maintainer Brief**
 
-Yard Report is a single-page Astro site with a thin static shell and a very thick client script. The core implementation lives in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js), which owns state, data fetching, rendering, event wiring, settings, Easter eggs, and sidebar widgets like video and the new podcast player. The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract.
+Yard Report is a single-page Astro site with a thin static shell and a very thick client script. The core implementation lives in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js), which owns state, data fetching, rendering, event wiring, settings, Easter eggs, and sidebar widgets like video and the new podcast player. The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) now also serves as the canonical inventory of external feeds, APIs, and asset sources.
 
 **What’s Fragile**
 

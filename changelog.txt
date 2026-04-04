@@ -14,6 +14,7 @@ Infrastructure
 
 Documentation
 - Updated `README.md`, `brief.txt`, `updates.txt`, and `changelog.txt` to reflect the shipped podcast player and proxy support.
+- Added a fuller documentation inventory of the site's external RSS feeds, podcast sources, video playlists, APIs, and asset providers.
 
 April 3, 2026
 

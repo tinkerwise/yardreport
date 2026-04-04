@@ -3,7 +3,7 @@
 #CURRENT SITE
 
 #News Feed
-  - RSS aggregation from 14 baseball sources (Orioles + MLB)
+  - RSS aggregation from 17 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, Eutaw Street Report, MASN Sports, Orioles Hangout, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, CBS Sports MLB, Yahoo Sports MLB, Baseball America, New York Times Baseball, and The Long Game
   - 3-day default article feed with selectable range (3 / 7 / 14 / 30 days)
   - Full article reader (iframe for full RSS content, excerpt + link for others)
   - Off-topic article filter (rejects non-baseball content from general feeds)
@@ -44,7 +44,10 @@
 #Left Sidebar
   - Search
   - Podcast: compact audio player for the latest Baseball Tonight with Buster Olney episode, placed above Video with episode/detail/archive links
+    - RSS feed: https://feeds.megaphone.fm/ESP1723897648
+    - Archive/details page: https://www.espn.com/espnradio/podcast/archive?id=2386164
   - Video: latest video from MLB Fastcast, MLB Top Plays, Orioles Game Recaps, and The Chill plus a random Orioles Moments video on each page load (YouTube RSS), play icon overlay on thumbnails, theater mode overlay with YouTube embed on click
+    - YouTube playlist feeds: MLB Fastcast, MLB Top Plays, Orioles Game Recaps, The Chill, Orioles Moments
   - On Deck: next Orioles game with opponent, date/time, venue, weather forecast, lineup popover on hover (game day)
   - Schedule: horizontal row of game boxes (day, opponent logo, @ indicator for away), links to MLB preview (merged into On Deck widget)
   - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
@@ -88,6 +91,10 @@
   - Google Favicon API for source icons
   - YouTube RSS feeds for video widget
   - Megaphone RSS feed for podcast widget
+  - ESPN podcast archive page for podcast detail links
+  - MLB.com Gameday, story, roster, player, and transaction pages for outbound links
+  - MLBstatic team-logo assets for schedule and On Deck visuals
+  - Baseball Savant player and leaderboard pages for Yard Leaders and roster links
 
 
 #PROMPT UPDATES
@@ -103,7 +110,8 @@
 
 ##Active
 - Add items here for immediate implementation
-
+- update Rain Delay text in Score Bug to be blue text with a preceding inline rain emoji
+- debug why the podcast player feed isn't available, test with an older episode
 ##Queued
 - Add items here for the likely next batch of work
 
