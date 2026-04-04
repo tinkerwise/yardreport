@@ -433,14 +433,16 @@ function getScoreChipStatus(g) {
   if (abstractState === 'Live') {
     const half = g.linescore?.inningHalf === 'Top' ? '▲' : '▼';
     const inn = g.linescore?.currentInning ?? '';
+    const outs = Math.min(g.linescore?.outs ?? 0, 2);
     const offense = g.linescore?.offense ?? {};
     const b1 = offense.first ? ' on' : '';
     const b2 = offense.second ? ' on' : '';
     const b3 = offense.third ? ' on' : '';
     const bases = `<span class="bases-diamond"><span class="base b2${b2}"></span><span class="base b3${b3}"></span><span class="base b1${b1}"></span></span>`;
+    const outsHtml = `<span class="outs-indicator" aria-label="${outs} out${outs === 1 ? '' : 's'}"><span class="out-dot${outs >= 1 ? ' on' : ''}"></span><span class="out-dot${outs >= 2 ? ' on' : ''}"></span></span>`;
     return {
       stateClass: 'live',
-      statusInner: `<span class="live-dot"></span> ${half}${inn} ${bases}`,
+      statusInner: `${half}${inn} ${outsHtml} ${bases}`,
       isPreviewLike: false,
       isFinal: false,
     };

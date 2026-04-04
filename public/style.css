@@ -348,13 +348,22 @@ img { display: block; max-width: 100%; }
   line-height: 1;
   transform: translateY(-1px);
 }
-.live-dot {
-  width: 6px; height: 6px;
-  background: #22c55e;
-  border-radius: 50%;
-  animation: pulse 1.2s ease-in-out infinite;
+.outs-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.out-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid rgba(248, 113, 113, 0.75);
+  background: transparent;
+}
+.out-dot.on {
+  background: #ef4444;
+  border-color: #ef4444;
+}
 
 /* Base runner diamond */
 .bases-diamond {
