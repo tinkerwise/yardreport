@@ -721,51 +721,51 @@ function renderScoutNotes(game) {
 
   if (oriolesBatting) {
     if (basesLoaded) {
-      notes.push(`${playerLabel(batter)} bats with the bases loaded in the ${half} of the ${inning}${ordinalSuffix(inning)}.`);
+      notes.push(`${playerLabel(batter)} steps in with the bases loaded in the ${half} of the ${inning}${ordinalSuffix(inning)}.`);
     } else if (risp > 0) {
-      notes.push(`${playerLabel(batter)} is up with ${risp} runner${risp === 1 ? '' : 's'} in scoring position and ${outs} out${outs === 1 ? '' : 's'}.`);
+      notes.push(`${playerLabel(batter)} is up with ${risp} in scoring position and ${outs} out${outs === 1 ? '' : 's'}.`);
     } else if (offense.first && outs === 0) {
-      notes.push(`${playerLabel(batter)} has leadoff traffic to work with and nobody out.`);
+      notes.push(`${playerLabel(batter)} comes up with early traffic and nobody out.`);
     }
 
     if (diff < 0) {
-      if (diff === -1) notes.push(`${playerLabel(batter)} represents the tying run for Baltimore.`);
-      else if (diff === -2 && runnersOn >= 1) notes.push(`Baltimore has the tying run aboard for ${playerLabel(batter)}.`);
-      else if (diff === -3 && runnersOn >= 2) notes.push(`${playerLabel(batter)} hits with Baltimore building a tying rally.`);
+      if (diff === -1) notes.push(`${playerLabel(batter)} is the tying run at the plate.`);
+      else if (diff === -2 && runnersOn >= 1) notes.push(`The tying run is aboard with ${playerLabel(batter)} up.`);
+      else if (diff === -3 && runnersOn >= 2) notes.push(`${playerLabel(batter)} hits with a real tying rally brewing.`);
     } else if (diff >= 0 && inning >= 7 && runnersOn > 0) {
-      notes.push(`${playerLabel(batter)} has a late chance to tack on with traffic aboard.`);
+      notes.push(`${playerLabel(batter)} has a late chance to add breathing room with traffic aboard.`);
     }
 
     if (balls === 3 && strikes !== 2) {
-      notes.push(`${playerLabel(batter)} is in a hitter-friendly ${balls}-${strikes} count against ${playerLabel(pitcher)}.`);
+      notes.push(`Count leans ${playerLabel(batter)} at ${balls}-${strikes} against ${playerLabel(pitcher)}.`);
     } else if (strikes === 2 && balls != null && balls <= 1) {
       notes.push(`${playerLabel(pitcher)} has ${playerLabel(batter)} in a two-strike spot.`);
     }
 
     if (onDeck?.fullName && inHole?.fullName) {
-      notes.push(`${playerLabel(onDeck)} is on deck with ${playerLabel(inHole)} behind him.`);
+      notes.push(`Next up: ${playerLabel(onDeck)}, then ${playerLabel(inHole)}.`);
     }
   }
 
   if (oriolesPitching) {
     if (diff > 0 && inning >= 8 && diff <= 3) {
-      notes.push(`${playerLabel(defense.pitcher)} is working a save-pressure spot for Baltimore.`);
+      notes.push(`${playerLabel(defense.pitcher)} is in a save-pressure spot.`);
     }
     if (offense.first && outs < 2) {
-      notes.push(`${playerLabel(defense.pitcher)} has a double-play chance with ${playerLabel(opposingBatter)} at the plate.`);
+      notes.push(`${playerLabel(defense.pitcher)} has a double-play chance with ${playerLabel(opposingBatter)} up.`);
     }
     if (risp > 0) {
-      notes.push(`${playerLabel(defense.pitcher)} is pitching through traffic with ${risp} in scoring position.`);
+      notes.push(`${playerLabel(defense.pitcher)} is working through traffic with ${risp} in scoring position.`);
     }
     if (strikes === 2 && balls != null && balls <= 1) {
-      notes.push(`${playerLabel(defense.pitcher)} is ahead of ${playerLabel(opposingBatter)} ${balls}-${strikes}.`);
+      notes.push(`${playerLabel(defense.pitcher)} is ahead ${balls}-${strikes} to ${playerLabel(opposingBatter)}.`);
     } else if (balls === 3 && strikes !== 2) {
-      notes.push(`${playerLabel(opposingBatter)} has worked a favorable ${balls}-${strikes} count on ${playerLabel(defense.pitcher)}.`);
+      notes.push(`${playerLabel(opposingBatter)} has the count edge at ${balls}-${strikes} against ${playerLabel(defense.pitcher)}.`);
     }
   }
 
   if (Math.abs(diff) <= 2 && inning >= 7) {
-    notes.push(`Late leverage spot: Baltimore is within ${Math.abs(diff)} run${Math.abs(diff) === 1 ? '' : 's'} in the ${inning}${ordinalSuffix(inning)}.`);
+    notes.push(`Late leverage: a ${Math.abs(diff)}-run game in the ${inning}${ordinalSuffix(inning)}.`);
   }
 
   const uniqueNotes = [...new Set(notes)].slice(0, 3);
