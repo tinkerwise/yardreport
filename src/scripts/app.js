@@ -424,7 +424,7 @@ function getScoreChipStatus(g) {
   if (isDelayed) {
     return {
       stateClass: 'delay',
-      statusInner: isWeatherRelated ? 'Rain Delay' : detailedState || 'Delayed',
+      statusInner: isWeatherRelated ? '<span class="delay-emoji" aria-hidden="true">🌧️</span> Rain Delay' : detailedState || 'Delayed',
       isPreviewLike: abstractState === 'Preview',
       isFinal: false,
     };
@@ -1729,7 +1729,9 @@ async function loadPodcast() {
   try {
     const url = `${PROXY}?url=${encodeURIComponent(PODCAST_FEED)}`;
     const data = await fetch(url).then(r => r.json());
-    const episode = (data.items ?? []).find(item => item.audioUrl);
+    const episodes = data.items ?? [];
+    const episodeIndex = episodes.findIndex(item => item.audioUrl);
+    const episode = episodeIndex >= 0 ? episodes[episodeIndex] : null;
 
     if (!episode?.audioUrl) {
       wrap.innerHTML = `<div class="podcast-card">
@@ -1746,9 +1748,13 @@ async function loadPodcast() {
     const description = cleanFeedText(episode.description || '');
     const dateLabel = relativeDate(episode.pubDate);
     const descHtml = description ? `<div class="podcast-desc">${esc(description)}</div>` : '';
+    const fallbackLabel = episodeIndex > 0
+      ? '<span class="podcast-fallback-note">Showing a recent playable episode</span>'
+      : '';
 
     wrap.innerHTML = `<div class="podcast-card">
       <span class="podcast-kicker">Baseball Tonight</span>
+      ${fallbackLabel}
       <div class="podcast-title">${esc(title)}</div>
       <div class="podcast-meta">
         <span>${esc(dateLabel || 'Latest episode')}</span>

@@ -335,8 +335,19 @@ img { display: block; max-width: 100%; }
   justify-content: center;
   gap: 4px;
 }
-.chip-status.delay { color: #facc15; }
+.chip-status.delay {
+  color: #60a5fa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 .chip-status.postponed { color: #f87171; }
+.delay-emoji {
+  font-size: 0.8rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
 .live-dot {
   width: 6px; height: 6px;
   background: #22c55e;
@@ -819,6 +830,10 @@ a.il-name:hover { color: var(--orange); }
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--orange);
+}
+.podcast-fallback-note {
+  font-size: 0.62rem;
+  color: var(--text-3);
 }
 .podcast-title {
   font-size: 0.78rem;

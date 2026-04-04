@@ -78,7 +78,16 @@ function rssProxyDevPlugin() {
               thumbnail = content.match(/<img[^>]+src=["']([^"']+)["']/)?.[1] ?? null;
             }
 
-            items.push({ title, link, pubDate, description, content, thumbnail });
+            const audioMatch = itemXml.match(/<enclosure[^>]+type="(audio\/[^"]*)"[^>]+url="([^"]+)"/i)
+              ?? itemXml.match(/<enclosure[^>]+url="([^"]+)"[^>]+type="(audio\/[^"]*)"/i);
+            const audioUrl = audioMatch
+              ? (audioMatch[2]?.startsWith('http') ? audioMatch[2] : audioMatch[1]) ?? null
+              : null;
+            const audioType = audioMatch
+              ? (audioMatch[1]?.startsWith('audio/') ? audioMatch[1] : audioMatch[2]) ?? null
+              : null;
+
+            items.push({ title, link, pubDate, description, content, thumbnail, audioUrl, audioType });
           }
 
           const feedTitle = extractTag(xml.match(/<channel>([\s\S]*)/)?.[1] ?? '', 'title');

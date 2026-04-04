@@ -110,8 +110,8 @@
 
 ##Active
 - Add items here for immediate implementation
-- update Rain Delay text in Score Bug to be blue text with a preceding inline rain emoji
-- debug why the podcast player feed isn't available, test with an older episode
+
+
 ##Queued
 - Add items here for the likely next batch of work
 
