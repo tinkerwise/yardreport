@@ -112,7 +112,9 @@
 ##Active
 - Add items here for immediate implementation
 - update On Deck to switch to next day's game when today's game starts
-
+- add team logo inline leading to player names in Score Bug popover
+- list pitchers based on appearance in game starters first, relievers as they enter game
+- 
 ##Queued
 - Add items here for the likely next batch of work
 - remove the Story link at the bottom of the final Score Bug

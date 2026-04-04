@@ -567,7 +567,7 @@ function topPerformers(boxData) {
 
   let html = '';
   if (topHit.length) {
-    html += '<div class="box-performers"><span class="box-perf-label">Top Hitters</span>';
+    html += '<div class="box-section box-performers"><span class="box-perf-label">Key Hitters</span>';
     html += topHit.map(b => {
       const extras = [];
       if (b.hits > 0 && b.ab > 0) extras.push(`${b.hits}-${b.ab}`);
@@ -575,7 +575,7 @@ function topPerformers(boxData) {
       if (b.hr) extras.push(`${b.hr} HR`);
       if (b.rbi) extras.push(`${b.rbi} RBI`);
       if (b.bb) extras.push(`${b.bb} BB`);
-      const statLine = extras.join(', ') || 'No notable line';
+        const statLine = extras.join(', ') || 'No notable line';
       return `<span class="box-perf-row"><span class="box-perf-name">${esc(b.name)}</span> <span class="box-perf-team">${esc(b.abbr)}</span> <span class="box-perf-stat">${statLine}</span></span>`;
     }).join('');
     html += '</div>';
@@ -661,13 +661,13 @@ function renderPitchingLines(boxData) {
       });
 
     if (!pitchers.length) {
-      return `<div class="box-performers">
+      return `<div class="box-section box-performers">
         <span class="box-perf-label">${esc(label)} Pitching</span>
         <span class="box-perf-row"><span class="box-perf-stat">Pitching lines unavailable</span></span>
       </div>`;
     }
 
-    return `<div class="box-performers">
+    return `<div class="box-section box-performers">
       <span class="box-perf-label">${esc(label)} Pitching</span>
       ${pitchers.map(p => {
         const extras = [];
@@ -683,6 +683,10 @@ function renderPitchingLines(boxData) {
   };
 
   return renderSide('away') + renderSide('home');
+}
+
+function playerLabel(person) {
+  return person?.fullName ? person.fullName.split(' ').slice(-1)[0] : 'Baltimore';
 }
 
 function renderScoutNotes(game) {
@@ -708,53 +712,66 @@ function renderScoutNotes(game) {
   const oriolesScore = awayId === ORIOLES_ID ? (game.teams?.away?.score ?? 0) : (game.teams?.home?.score ?? 0);
   const oppScore = awayId === ORIOLES_ID ? (game.teams?.home?.score ?? 0) : (game.teams?.away?.score ?? 0);
   const diff = oriolesScore - oppScore;
+  const batter = oriolesBatting ? offense.batter : defense.pitcher;
+  const onDeck = oriolesBatting ? offense.onDeck : defense.onDeck;
+  const inHole = oriolesBatting ? offense.inHole : defense.inHole;
+  const pitcher = oriolesBatting ? offense.pitcher : defense.pitcher;
+  const opposingBatter = oriolesPitching ? defense.batter : offense.batter;
   const notes = [];
 
   if (oriolesBatting) {
     if (basesLoaded) {
-      notes.push(`Bases loaded for Baltimore in the ${half} of the ${inning}${ordinalSuffix(inning)}.`);
+      notes.push(`${playerLabel(batter)} bats with the bases loaded in the ${half} of the ${inning}${ordinalSuffix(inning)}.`);
     } else if (risp > 0) {
-      notes.push(`Orioles have ${risp} runner${risp === 1 ? '' : 's'} in scoring position with ${outs} out${outs === 1 ? '' : 's'}.`);
+      notes.push(`${playerLabel(batter)} is up with ${risp} runner${risp === 1 ? '' : 's'} in scoring position and ${outs} out${outs === 1 ? '' : 's'}.`);
     } else if (offense.first && outs === 0) {
-      notes.push('Leadoff traffic for Baltimore with a runner aboard and nobody out.');
+      notes.push(`${playerLabel(batter)} has leadoff traffic to work with and nobody out.`);
     }
 
     if (diff < 0) {
-      if (diff === -1) notes.push('The tying run is at the plate for Baltimore.');
-      else if (diff === -2 && runnersOn >= 1) notes.push('Baltimore has the tying run aboard.');
-      else if (diff === -3 && runnersOn >= 2) notes.push('Baltimore has the tying rally brewing with multiple runners on.');
+      if (diff === -1) notes.push(`${playerLabel(batter)} represents the tying run for Baltimore.`);
+      else if (diff === -2 && runnersOn >= 1) notes.push(`Baltimore has the tying run aboard for ${playerLabel(batter)}.`);
+      else if (diff === -3 && runnersOn >= 2) notes.push(`${playerLabel(batter)} hits with Baltimore building a tying rally.`);
     } else if (diff >= 0 && inning >= 7 && runnersOn > 0) {
-      notes.push('Baltimore has a chance to tack on late with traffic on the bases.');
+      notes.push(`${playerLabel(batter)} has a late chance to tack on with traffic aboard.`);
     }
 
     if (balls === 3 && strikes !== 2) {
-      notes.push('Hitter-friendly count for the Orioles in this plate appearance.');
+      notes.push(`${playerLabel(batter)} is in a hitter-friendly ${balls}-${strikes} count against ${playerLabel(pitcher)}.`);
+    } else if (strikes === 2 && balls != null && balls <= 1) {
+      notes.push(`${playerLabel(pitcher)} has ${playerLabel(batter)} in a two-strike spot.`);
+    }
+
+    if (onDeck?.fullName && inHole?.fullName) {
+      notes.push(`${playerLabel(onDeck)} is on deck with ${playerLabel(inHole)} behind him.`);
     }
   }
 
   if (oriolesPitching) {
     if (diff > 0 && inning >= 8 && diff <= 3) {
-      notes.push('Save-pressure spot for Orioles pitching.');
+      notes.push(`${playerLabel(defense.pitcher)} is working a save-pressure spot for Baltimore.`);
     }
     if (offense.first && outs < 2) {
-      notes.push('Potential double-play chance for the Orioles infield.');
+      notes.push(`${playerLabel(defense.pitcher)} has a double-play chance with ${playerLabel(opposingBatter)} at the plate.`);
     }
     if (risp > 0) {
-      notes.push(`Baltimore is pitching through traffic with ${risp} in scoring position.`);
+      notes.push(`${playerLabel(defense.pitcher)} is pitching through traffic with ${risp} in scoring position.`);
     }
     if (strikes === 2 && balls != null && balls <= 1) {
-      notes.push('Orioles pitcher is ahead in the count.');
+      notes.push(`${playerLabel(defense.pitcher)} is ahead of ${playerLabel(opposingBatter)} ${balls}-${strikes}.`);
+    } else if (balls === 3 && strikes !== 2) {
+      notes.push(`${playerLabel(opposingBatter)} has worked a favorable ${balls}-${strikes} count on ${playerLabel(defense.pitcher)}.`);
     }
   }
 
   if (Math.abs(diff) <= 2 && inning >= 7) {
-    notes.push(`Late leverage spot: this game is still within ${Math.abs(diff)} run${Math.abs(diff) === 1 ? '' : 's'}.`);
+    notes.push(`Late leverage spot: Baltimore is within ${Math.abs(diff)} run${Math.abs(diff) === 1 ? '' : 's'} in the ${inning}${ordinalSuffix(inning)}.`);
   }
 
   const uniqueNotes = [...new Set(notes)].slice(0, 3);
   if (!uniqueNotes.length) return '';
 
-  return `<div class="scout-notes">
+  return `<div class="box-section scout-notes">
     <div class="scout-notes-head">
       <span class="scout-badge">Scout</span>
       <span class="scout-context">${esc(ls.inningHalf || '')} ${esc(String(inning || ''))}</span>
@@ -776,6 +793,18 @@ function ordinalSuffix(num) {
     case 3: return 'rd';
     default: return 'th';
   }
+}
+
+function renderDecisionStrip(g) {
+  const parts = [];
+  const wp = g.decisions?.winner;
+  const lp = g.decisions?.loser;
+  const sv = g.decisions?.save;
+  if (wp) parts.push(`<span class="decision-pill win">W: ${esc(playerLabel(wp))}</span>`);
+  if (lp) parts.push(`<span class="decision-pill loss">L: ${esc(playerLabel(lp))}</span>`);
+  if (sv) parts.push(`<span class="decision-pill save">SV: ${esc(playerLabel(sv))}</span>`);
+  if (!parts.length) return '';
+  return `<div class="box-decisions">${parts.join('')}</div>`;
 }
 
 function renderBoxScore(g, boxData) {
@@ -824,29 +853,27 @@ function renderBoxScore(g, boxData) {
   homeRow += `<td class="box-total">${ht.errors ?? ''}</td>`;
 
   // Winning / losing pitcher if available
-  let decisions = '';
-  const wp = g.decisions?.winner;
-  const lp = g.decisions?.loser;
-  const sv = g.decisions?.save;
-  if (wp || lp) {
-    const parts = [];
-    if (wp) parts.push(`<span class="box-wp">W: ${esc(wp.fullName)}</span>`);
-    if (lp) parts.push(`<span class="box-lp">L: ${esc(lp.fullName)}</span>`);
-    if (sv) parts.push(`<span class="box-sv">SV: ${esc(sv.fullName)}</span>`);
-    decisions = `<div class="box-decisions">${parts.join(' ')}</div>`;
-  }
-
+  const decisions = renderDecisionStrip(g);
   const performers = topPerformers(boxData);
   const pitchingLines = renderPitchingLines(boxData);
   const scoutNotes = renderScoutNotes(g);
 
-  return `<table class="box-score-table">
-    <thead><tr>${hdr}</tr></thead>
-    <tbody>
-      <tr>${awayRow}</tr>
-      <tr>${homeRow}</tr>
-    </tbody>
-  </table>${decisions}${performers}${pitchingLines}${scoutNotes}${renderLineupPopover(boxData)}`;
+  return `<div class="box-popover-stack">
+    <div class="box-section box-linescore">
+      <table class="box-score-table">
+        <thead><tr>${hdr}</tr></thead>
+        <tbody>
+          <tr>${awayRow}</tr>
+          <tr>${homeRow}</tr>
+        </tbody>
+      </table>
+      ${decisions}
+    </div>
+    ${scoutNotes}
+    ${performers}
+    ${pitchingLines}
+    ${renderLineupPopover(boxData)}
+  </div>`;
 }
 
 async function loadScores() {
