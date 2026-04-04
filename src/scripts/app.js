@@ -654,6 +654,49 @@ function renderProbablePitchers(game) {
   </div>`;
 }
 
+function renderPitchingLines(boxData) {
+  if (!boxData?.teams) return '';
+
+  const renderSide = side => {
+    const team = boxData.teams?.[side];
+    if (!team) return '';
+
+    const label = TEAM_ABBREV[team.team?.id] ?? team.team?.abbreviation ?? (side === 'away' ? 'Away' : 'Home');
+    const pitchers = Object.values(team.players ?? {})
+      .filter(player => player.stats?.pitching?.inningsPitched != null)
+      .map(player => {
+        const stats = player.stats.pitching;
+        return {
+          name: player.person?.fullName ?? 'TBD',
+          ip: stats.inningsPitched ?? '0.0',
+          h: stats.hits ?? 0,
+          er: stats.earnedRuns ?? 0,
+          bb: stats.baseOnBalls ?? 0,
+          k: stats.strikeOuts ?? 0,
+          pitches: stats.numberOfPitches ?? null,
+        };
+      });
+
+    if (!pitchers.length) {
+      return `<div class="box-performers">
+        <span class="box-perf-label">${esc(label)} Pitching</span>
+        <span class="box-perf-row"><span class="box-perf-stat">Pitching lines unavailable</span></span>
+      </div>`;
+    }
+
+    return `<div class="box-performers">
+      <span class="box-perf-label">${esc(label)} Pitching</span>
+      ${pitchers.map(p => {
+        const extras = [`${p.ip} IP`, `${p.h} H`, `${p.er} ER`, `${p.bb} BB`, `${p.k} K`];
+        if (p.pitches != null) extras.push(`${p.pitches} P`);
+        return `<span class="box-perf-row"><span class="box-perf-name">${esc(p.name)}</span><span class="box-perf-stat">${extras.join(', ')}</span></span>`;
+      }).join('')}
+    </div>`;
+  };
+
+  return renderSide('away') + renderSide('home');
+}
+
 function renderBoxScore(g, boxData) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
@@ -713,6 +756,7 @@ function renderBoxScore(g, boxData) {
   }
 
   const performers = topPerformers(boxData);
+  const pitchingLines = renderPitchingLines(boxData);
 
   return `<table class="box-score-table">
     <thead><tr>${hdr}</tr></thead>
@@ -720,7 +764,7 @@ function renderBoxScore(g, boxData) {
       <tr>${awayRow}</tr>
       <tr>${homeRow}</tr>
     </tbody>
-  </table>${decisions}${performers}${renderProbablePitchers(g)}${renderLineupPopover(boxData)}`;
+  </table>${decisions}${performers}${pitchingLines}${renderLineupPopover(boxData)}`;
 }
 
 async function loadScores() {
