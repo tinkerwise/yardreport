@@ -84,8 +84,8 @@
   - Triple-click theme toggle: secret OPACY theme (all-orange dark mode)
 
 #Infrastructure
-  - Astro static site deployed to cPanel via Git Version Control
-  - GitHub Actions CI/CD (build + lftp deploy)
+  - GitHub Actions CI/CD is the official deploy path (build + lftp deploy to `public_html/yardreport`)
+  - cPanel Git Version Control remains available only as a manual fallback path
   - PHP RSS proxy with domain allowlist (includes youtube.com and megaphone.fm), audio-enclosure extraction, and optional raw text/HTML passthrough for trusted pages
   - MLB Stats API for scores, standings, schedule, roster, transactions, leaders, boxscore
   - Open-Meteo API for weather forecasts (all 30 MLB venues)
@@ -117,5 +117,4 @@
 - any ideas on how to use this https://www.mlb.com/schedule/gameday/scout on site?
 
 ##Parking lot 
-- Simplify deployment to one official path, likely GitHub Actions FTP deploy with an explicit remote target so cPanel Git Version Control is no longer part of the normal release flow
 - Create a companion mobile app (iOS, Android) based on BIG IDEA #1

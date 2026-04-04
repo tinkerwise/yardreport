@@ -20,6 +20,10 @@ Video Widget
 - Removed The Chill from the video rotation.
 - Kept Orioles Game Recaps in the widget, but now fall back to MLB game media for the latest completed Orioles game when the Orioles YouTube recap playlist is stale.
 
+Deployment
+- Made GitHub Actions the clearer primary release path by deploying to an explicit FTP target path instead of relying on the server's default directory.
+- Documented cPanel Git Version Control as a legacy/manual fallback rather than the normal release workflow.
+
 April 3, 2026
 
 Masthead

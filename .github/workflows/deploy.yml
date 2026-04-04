@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  REMOTE_DEPLOY_PATH: ./public_html/yardreport/
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -25,6 +28,6 @@ jobs:
             set ssl:verify-certificate false;
             set ftp:ssl-force true;
             open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
-            mirror --reverse --delete --verbose ./dist/ ./;
+            mirror --reverse --delete --verbose ./dist/ ${REMOTE_DEPLOY_PATH};
             quit;
           "

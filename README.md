@@ -109,6 +109,13 @@ Preview the production build locally:
 npm run preview
 ```
 
+## Deployment
+
+- Official release path: push to `main`, which triggers [deploy.yml](/Users/briancsmith/Documents/GitHub/yardreport/.github/workflows/deploy.yml)
+- The GitHub Actions workflow builds the site and deploys `dist/` to `./public_html/yardreport/` over FTP
+- cPanel Git Version Control is now a legacy/manual fallback path, not the normal release workflow
+- [.cpanel.yml](/Users/briancsmith/Documents/GitHub/yardreport/.cpanel.yml) remains in the repo only for that manual fallback scenario
+
 ## Project Structure
 
 - [src/pages/index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro): page shell and widget layout
