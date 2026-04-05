@@ -36,10 +36,17 @@
   - Rain Delay and Postponed states called out with dedicated chip styling
   - Base runner diamond during live games (correctly oriented 1st/2nd/3rd, amber bases when occupied)
   - Weather emoji + temperature inline for preview games (Open-Meteo forecasts)
-  - "Story" link on final scores linking to MLB game story
   - Box score popover on hover (inning-by-inning linescore, R/H/E, W/L/SV, top 3 hitters & pitchers)
   - Links to MLB Gameday (preview or final)
   - Auto-refresh every 5 minutes
+  - Pitcher scouting notes with pitch arsenal (pitch type, usage %, velocity) for preview games
+  - Team logos inline with Key Hitters names (removed abbreviations)
+  - Team logos in lineup popover titles with full team names (Baltimore Orioles)
+  - Batter/pitcher handedness (L/R) indicators next to player names
+  - Pitchers sorted by innings pitched (starters first)
+  - Scout Notes for all game states (preview/live/final)
+  - Scout Notes show probable pitcher matchup for preview games
+  - Scout Notes show final result summary for final games
 
 #Left Sidebar
   - Search
@@ -75,7 +82,7 @@
   - Responsive: 3-col > 2-col at 1100px > 1-col at 600px (mobile)
   - Mobile: compact header, right sidebar below feed, sidebar sections auto-collapsed, safe area support
   - Cross-browser optimized (Chrome, Safari, Firefox), iOS momentum scroll, webkit prefixes
-  - Scrollable sidebars
+  - Both left and right sidebars independently scrollable with sticky positioning
 
 #Easter Eggs
   - Type "magic" + Enter in search: random Oriole bird graphic centered in viewport with repeating confetti animation, Orioles Magic audio clip, display lasts for audio duration
@@ -88,13 +95,14 @@
   - cPanel Git Version Control remains available only as a manual fallback path
   - PHP RSS proxy with domain allowlist (includes youtube.com and megaphone.fm), audio-enclosure extraction, and optional raw text/HTML passthrough for trusted pages
   - MLB Stats API for scores, standings, schedule, roster, transactions, leaders, boxscore
+    - Pitcher pitch arsenal: `/people/{playerId}/stats?stats=pitchArsenal&season=YYYY&group=pitching`
   - Open-Meteo API for weather forecasts (all 30 MLB venues)
   - Google Favicon API for source icons
   - YouTube RSS feeds for video widget
   - Megaphone RSS feed for podcast widget
   - ESPN podcast archive page for podcast detail links
-  - MLB.com Gameday, story, roster, player, and transaction pages for outbound links
-  - MLBstatic team-logo assets for schedule and On Deck visuals
+  - MLB.com Gameday, roster, player, and transaction pages for outbound links
+  - MLBstatic team-logo assets for team badges and On Deck visuals
   - Baseball Savant player and leaderboard pages for Yard Leaders and roster links
 
 
@@ -110,8 +118,8 @@
 - work through ##Active then prompt for ##Queued, prompt for help with ##Ideas
 - update this file after tasks are completed
 
-##Active
-//Add items here for immediate implementation
+##Recently Completed (April 4, 2026)
+// All items from this session are now live
 
 # TEAM LOGO WORK (Score Bug popover)
 - ✓ add team logo inline leading to Key Hitters names (remove abbr, replace with logo)
@@ -124,21 +132,33 @@
 # GAME STATE & CONTENT
 - ✓ update On Deck to switch to next day's game when today's game starts
 - ✓ Add Scout Notes to each game popover
-
-# WIDGETS
-- ✓ fix audio widget to feed and play podcast audio
-- ✓ scroll left sidebar similar to right sidebar
-
-##Queued
-//Add items here for the likely next batch of work
 - ✓ remove the Story link at the bottom of the final Score Bug
 
 # SCOUT FEATURES (MLB Scout Integration)
 - ✓ Pitcher scouting notes: show pitch arsenal (type, %, velo) for Preview games
-  - Displays as pill badges below each probable pitcher
+  - Displays as pill badges below each probable pitcher (top 5 by usage %)
   - Two-phase async load: "Loading…" → full arsenal once API responds
   - Live games: Scout Notes unchanged (content-dense, no arsenal display)
-- Future: Live game current pitcher arsenal, batter matchup context
+
+# WIDGETS & INFRASTRUCTURE
+- ✓ fix audio widget to feed and play podcast audio
+- ✓ scroll left sidebar similar to right sidebar
+- ✓ Both sidebars independently scrollable with sticky positioning
+
+##Active
+// Add items here for immediate implementation
+- Clean up and organize app.js: consider splitting by domain (feeds, scores, sidebars, reader, settings)
+- Improve content overload detection: refactor feed/popover to be more space-efficient
+- Scout insights for Live games: add current pitcher's top 3 pitches as mini-section (optional)
+
+##Queued
+// Add items here for the likely next batch of work
+- Add batter matchup context (vs LHP/RHP splits) next to lineup names
+- Scout Notes: surface team tendencies and historical matchup stats for preview games
+- Expand score bug box score with recent team/pitcher form indicators
+- Add video widget refresh interval (currently loads on page load only)
 
 ##Parking lot
 - Create a companion mobile app (iOS, Android) based on BIG IDEA #1
+- Refactor app.js into modules by domain (feeds, scores, sidebars, reader, settings, easter eggs)
+- Add smoke-test checklist for feed load, filters, reader, scores, and settings persistence
