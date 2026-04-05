@@ -2332,9 +2332,6 @@ async function loadVideos() {
 const PODCAST_FEED = 'https://feeds.megaphone.fm/ESP1723897648';
 const PODCAST_SHOW_URL = 'https://www.espn.com/espnradio/podcast/archive?id=2386164';
 
-function podcastAudioUrl(audioUrl) {
-  return audioUrl ?? '';
-}
 
 function setupPodcastHover(card) {
   if (!card) return;
@@ -2375,13 +2372,19 @@ function setupPodcastHover(card) {
 async function loadPodcast() {
   const wrap = $('podcastWrap');
   try {
-    const url = `${PROXY}?url=${encodeURIComponent(PODCAST_FEED)}`;
-    const data = await fetch(url).then(r => r.json());
-    const episodes = data.items ?? [];
-    const episodeIndex = episodes.findIndex(item => item.audioUrl);
-    const episode = episodeIndex >= 0 ? episodes[episodeIndex] : null;
+    // Fetch the RSS feed directly — feeds.megaphone.fm allows CORS, so no proxy needed.
+    // This avoids PHP SimpleXML's enclosure-parsing quirk that yields audioUrl: null.
+    const xmlText = await fetch(PODCAST_FEED).then(r => r.text());
+    const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+    const allItems = Array.from(doc.querySelectorAll('channel > item'));
 
-    if (!episode?.audioUrl) {
+    const episodeIndex = allItems.findIndex(item => {
+      const enc = item.querySelector('enclosure');
+      return enc && enc.getAttribute('type')?.startsWith('audio/');
+    });
+    const rawEpisode = episodeIndex >= 0 ? allItems[episodeIndex] : null;
+
+    if (!rawEpisode) {
       wrap.innerHTML = `<div class="podcast-card">
         <span class="podcast-kicker">Baseball Tonight</span>
         <div class="podcast-title">Podcast feed is temporarily unavailable.</div>
@@ -2392,13 +2395,21 @@ async function loadPodcast() {
       return;
     }
 
-    const title = cleanFeedText(episode.title || 'Latest episode');
-    const description = cleanFeedText(episode.description || '');
-    const dateLabel = relativeDate(episode.pubDate);
+    const enc = rawEpisode.querySelector('enclosure');
+    const audioUrl = enc?.getAttribute('url') || '';
+    const audioType = enc?.getAttribute('type') || 'audio/mpeg';
+    const rawTitle = rawEpisode.querySelector('title')?.textContent || 'Latest episode';
+    const rawDesc = rawEpisode.querySelector('description')?.textContent || '';
+    const rawDate = rawEpisode.querySelector('pubDate')?.textContent || '';
+    const rawLink = rawEpisode.querySelector('link')?.textContent || PODCAST_SHOW_URL;
+
+    const title = cleanFeedText(rawTitle);
+    const description = cleanFeedText(rawDesc);
+    const dateLabel = relativeDate(rawDate);
     const fallbackLabel = episodeIndex > 0
       ? '<span class="podcast-fallback-note">Showing a recent playable episode</span>'
       : '';
-    const playableUrl = podcastAudioUrl(episode.audioUrl);
+    const playableUrl = audioUrl;
     const titleClass = title.length > 62 ? 'podcast-title podcast-title--scroll' : 'podcast-title';
     const hoverPanel = description
       ? `<div class="podcast-hover-panel" aria-hidden="true">
@@ -2416,11 +2427,11 @@ async function loadPodcast() {
         <span>Buster Olney</span>
       </div>
       <audio class="podcast-player" controls preload="metadata">
-        <source src="${playableUrl}" type="${episode.audioType || 'audio/mpeg'}">
+        <source src="${playableUrl}" type="${audioType}">
         Your browser does not support the audio element.
       </audio>
       <div class="podcast-links">
-        <a class="podcast-link" href="${esc(episode.link || PODCAST_SHOW_URL)}" target="_blank" rel="noopener">Episode details ↗</a>
+        <a class="podcast-link" href="${esc(rawLink || PODCAST_SHOW_URL)}" target="_blank" rel="noopener">Episode details ↗</a>
         <a class="podcast-link" href="${PODCAST_SHOW_URL}" target="_blank" rel="noopener">Show archive ↗</a>
       </div>
       ${hoverPanel}
