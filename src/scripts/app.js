@@ -1451,7 +1451,11 @@ function getAthArticles(articles, windowDays = 3) {
 }
 
 function getAthCandidateArticles() {
-  let arts = state.articles.filter(a => a.source.category !== 'milb');
+  let arts = state.articles;
+
+  if (state.activeCategory !== 'milb') {
+    arts = arts.filter(a => a.source.category !== 'milb');
+  }
 
   if (state.activeCategory !== 'all') {
     arts = arts.filter(a => a.source.category === state.activeCategory);
@@ -1767,7 +1771,7 @@ function findStoryBundles(articles, minArticles = 3) {
 }
 
 function renderBundle(bundle, allArticles) {
-  const thumb = bundlePhoto(bundle);
+  const thumb = bundlePhoto(bundle) || PLACEHOLDER_IMG;
   const variant = bundleVariant(bundle);
   const thumbHtml = `<img class="bundle-thumb" src="${esc(thumb)}" alt="" loading="lazy">`;
 
@@ -1834,7 +1838,26 @@ function selectAthBundles(articles) {
   return picks.slice(0, 3);
 }
 
+function selectTopStoryBundles(articles, limit = 3) {
+  return articles
+    .slice()
+    .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
+    .slice(0, limit)
+    .map(article => ({
+      label: fitBundleHeadline(article.title, 54),
+      slug: bundleSlug(article.link || article.title),
+      tokens: tokenize(article.title),
+      articles: [article],
+      sourceCount: 1,
+    }));
+}
+
 function selectAdaptiveAthBundles(articles) {
+  if (state.activeCategory === 'milb') {
+    const recent = getAthArticles(articles, 7);
+    return selectTopStoryBundles(recent.length ? recent : articles, 3);
+  }
+
   const windows = [3, 7, 14, 30];
   let best = [];
 
