@@ -389,7 +389,9 @@ img { display: block; max-width: 100%; }
   border-radius: 8px; padding: 8px 10px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   pointer-events: auto;
-  max-width: 95vw; overflow-x: auto;
+  width: min(760px, calc(100vw - 24px));
+  max-width: 95vw;
+  overflow-x: auto;
 }
 .box-score-popover.hidden { visibility: hidden; pointer-events: none; }
 .box-popover-stack {
@@ -663,7 +665,17 @@ img { display: block; max-width: 100%; }
   gap: 14px;
   min-width: 320px;
 }
+.score-lineups-grid--details {
+  min-width: 640px;
+}
 .preview-team-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.team-detail-card {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -720,6 +732,24 @@ img { display: block; max-width: 100%; }
   padding: 1px 0;
   min-width: 0;
   align-items: baseline;
+}
+.team-detail-card .box-perf-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.61rem;
+  padding: 1px 0;
+  min-width: 0;
+}
+.team-detail-card .box-perf-name {
+  flex: 1;
+  min-width: 0;
+}
+.team-detail-card .box-perf-stat {
+  max-width: 58%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .score-lineup-pos {
   width: 18px;

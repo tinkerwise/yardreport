@@ -768,11 +768,9 @@ function renderPreviewMatchup(game, boxData, arsenals, matchupCtx = null) {
 function renderPitchingLines(boxData) {
   if (!boxData?.teams) return '';
 
-  const renderSide = side => {
+  const renderPitchingRows = side => {
     const team = boxData.teams?.[side];
-    if (!team) return '';
-
-    const label = TEAM_ABBREV[team.team?.id] ?? team.team?.abbreviation ?? (side === 'away' ? 'Away' : 'Home');
+    if (!team) return '<div class="score-lineups-empty">Pitching lines unavailable</div>';
     const pitchers = Object.values(team.players ?? {})
       .filter(player => player.stats?.pitching?.inningsPitched != null)
       .map(player => {
@@ -792,15 +790,10 @@ function renderPitchingLines(boxData) {
       .sort((a, b) => b.ipNum - a.ipNum);
 
     if (!pitchers.length) {
-      return `<div class="box-section box-performers">
-        <span class="box-perf-label">${esc(label)} Pitching</span>
-        <span class="box-perf-row"><span class="box-perf-stat">Pitching lines unavailable</span></span>
-      </div>`;
+      return '<div class="score-lineups-empty">Pitching lines unavailable</div>';
     }
 
-    return `<div class="box-section box-performers">
-      <span class="box-perf-label">${esc(label)} Pitching</span>
-      ${pitchers.map(p => {
+    return pitchers.map(p => {
         const extras = [];
         if (parseFloat(p.ip) > 0) extras.push(`${p.ip} IP`);
         if (p.h > 0) extras.push(`${p.h} H`);
@@ -810,11 +803,33 @@ function renderPitchingLines(boxData) {
         if ((p.pitches ?? 0) > 0) extras.push(`${p.pitches} P`);
         const pitchHandDisplay = p.pitchHand ? `<span class="box-perf-hand">${p.pitchHand}</span>` : '';
         return `<span class="box-perf-row"><span class="box-perf-name">${esc(compactBoxName(p.name))}${pitchHandDisplay}</span><span class="box-perf-stat">${extras.join(', ') || 'No notable line'}</span></span>`;
-      }).join('')}
+      }).join('');
+  };
+
+  const renderSide = side => {
+    const team = boxData.teams?.[side];
+    if (!team) return '';
+    const teamName = team.team?.teamName ?? team.team?.name ?? (side === 'away' ? 'Away' : 'Home');
+    const teamId = team.team?.id;
+    const logoHtml = teamId ? `<img class="score-lineup-logo" src="https://www.mlbstatic.com/team-logos/${teamId}.svg" alt="${esc(teamName)}" width="20" height="20">` : '';
+    return `<div class="team-detail-card">
+      <div class="score-lineup-head">
+        ${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span>
+      </div>
+      <div class="preview-team-section">
+        <div class="preview-team-subhead">Pitching</div>
+        <div class="score-lineup-side">${renderPitchingRows(side)}</div>
+      </div>
+      <div class="preview-team-section">
+        <div class="preview-team-subhead">Lineup</div>
+        <div class="score-lineup-side">${renderLineupRows(team)}</div>
+      </div>
     </div>`;
   };
 
-  return renderSide('away') + renderSide('home');
+  return `<div class="score-lineups">
+    <div class="score-lineups-grid score-lineups-grid--details">${renderSide('away')}${renderSide('home')}</div>
+  </div>`;
 }
 
 function playerLabel(person) {
@@ -1098,7 +1113,6 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
     </div>
     ${performers}
     ${pitchingLines}
-    ${renderLineupPopover(boxData)}
   </div>`;
 }
 

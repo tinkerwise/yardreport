@@ -12,7 +12,6 @@
 
 ##Active
 // Add items here for immediate implementation
-
 ##Queued
 // Add items here for the likely next batch of work
 
@@ -23,6 +22,11 @@
 ---
 
 ##Recently Completed (April 5, 2026)
+
+# SCORE BUG POPOVER LAYOUT
+- ✓ aligned pitching and lineup details by team in side-by-side columns for live/final popovers
+- ✓ widened the popover so pitching order and lineup slash lines fit more cleanly
+- ✓ grouped each team's pitching and lineup info together for easier scanning
 
 # FEEDS
 - ✓ removed Orioles Hangout from the source mix
