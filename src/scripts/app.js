@@ -2333,8 +2333,7 @@ const PODCAST_FEED = 'https://feeds.megaphone.fm/ESP1723897648';
 const PODCAST_SHOW_URL = 'https://www.espn.com/espnradio/podcast/archive?id=2386164';
 
 function podcastAudioUrl(audioUrl) {
-  if (!audioUrl) return '';
-  return `${PROXY}?format=audio&url=${encodeURIComponent(audioUrl)}`;
+  return audioUrl ?? '';
 }
 
 function setupPodcastHover(card) {
