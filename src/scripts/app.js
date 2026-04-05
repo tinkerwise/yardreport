@@ -519,7 +519,7 @@ function topPerformers(boxData) {
         // Score: weight HRs and multi-hit games
         const score = hits * 2 + hr * 5 + rbi * 2 + bb;
         const batSide = p.person?.batSide?.code ?? '';
-        allBatters.push({ name: p.person?.fullName ?? '', abbr, teamId, hits, ab, hr, rbi, bb, score, batSide });
+        allBatters.push({ name: p.person?.fullName ?? '', playerId: p.person?.id ?? null, abbr, teamId, hits, ab, hr, rbi, bb, score, batSide });
       }
     }
   }
@@ -541,7 +541,7 @@ function topPerformers(boxData) {
         const statLine = extras.join(', ') || 'No notable line';
       const logoHtml = b.teamId ? `<img class="box-perf-logo" src="https://www.mlbstatic.com/team-logos/${b.teamId}.svg" alt="${esc(b.abbr)}" width="18" height="18">` : '';
       const batSideDisplay = b.batSide ? `<span class="box-perf-hand">${b.batSide}</span>` : '';
-      return `<span class="box-perf-row">${logoHtml}<span class="box-perf-name">${esc(compactBoxName(b.name))}${batSideDisplay}</span> <span class="box-perf-stat">${statLine}</span></span>`;
+      return `<span class="box-perf-row">${logoHtml}<span class="box-perf-name">${renderPlayerNameLink(compactBoxName(b.name), b.playerId)}${batSideDisplay}</span> <span class="box-perf-stat">${statLine}</span></span>`;
     }).join('');
     html += '</div>';
   }
@@ -552,7 +552,19 @@ function formatSlashStat(value) {
   if (value == null || value === '') return '.---';
   const str = String(value).trim();
   if (!str) return '.---';
+  if (/^\d+\.\d+$/.test(str)) return str;
   return str.startsWith('.') ? str : `.${str.replace(/^0?\./, '')}`;
+}
+
+function mlbPlayerUrl(playerId) {
+  return playerId ? `https://www.mlb.com/player/${playerId}` : '';
+}
+
+function renderPlayerNameLink(name, playerId, className = 'popover-player-link') {
+  const label = esc(name || 'TBD');
+  const href = mlbPlayerUrl(playerId);
+  if (!href) return `<span class="${className}">${label}</span>`;
+  return `<a class="${className}" href="${href}" target="_blank" rel="noopener">${label}</a>`;
 }
 
 function getLineupBattingStats(player) {
@@ -589,9 +601,16 @@ function lineupLeaders(players, roster) {
   return leaders;
 }
 
-function renderSlashSegment(value, isLeader) {
+const MLB_TOP_TEN_PROXY_RATES = {
+  avg: 0.295,
+  obp: 0.38,
+  ops: 0.9,
+};
+
+function renderSlashSegment(value, isLeader, isTopTenProxy = false) {
   const classes = ['score-lineup-rate'];
   if (isLeader) classes.push('score-lineup-rate--leader');
+  if (isTopTenProxy) classes.push('score-lineup-rate--top-ten');
   return `<span class="${classes.join(' ')}">${esc(formatSlashStat(value))}</span>`;
 }
 
@@ -615,13 +634,13 @@ function renderLineupRows(team) {
     const obpValue = Number.parseFloat(rates.obp ?? 0) || 0;
     const opsValue = Number.parseFloat(rates.ops ?? 0) || 0;
     const slashLine = [
-      renderSlashSegment(rates.avg, avgValue > 0 && avgValue === leaders.avg),
-      renderSlashSegment(rates.obp, obpValue > 0 && obpValue === leaders.obp),
-      renderSlashSegment(rates.ops, opsValue > 0 && opsValue === leaders.ops),
+      renderSlashSegment(rates.avg, avgValue > 0 && avgValue === leaders.avg, avgValue >= MLB_TOP_TEN_PROXY_RATES.avg),
+      renderSlashSegment(rates.obp, obpValue > 0 && obpValue === leaders.obp, obpValue >= MLB_TOP_TEN_PROXY_RATES.obp),
+      renderSlashSegment(rates.ops, opsValue > 0 && opsValue === leaders.ops, opsValue >= MLB_TOP_TEN_PROXY_RATES.ops),
     ].join('<span class="score-lineup-rate-sep">/</span>');
     return `<div class="score-lineup-row">
       <span class="score-lineup-pos">${esc(pos)}</span>
-      <span class="score-lineup-name">${esc(name)}${batSideDisplay}</span>
+      <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}${batSideDisplay}</span>
       <span class="score-lineup-slash">${slashLine}</span>
     </div>`;
   }).join('');
@@ -734,6 +753,7 @@ function renderPreviewTeamCard(game, boxData, side, arsenalData) {
   const teamId = matchupTeam.id ?? boxTeam?.team?.id;
   const teamName = matchupTeam.teamName ?? boxTeam?.team?.teamName ?? matchupTeam.name ?? (side === 'away' ? 'Away Team' : 'Home Team');
   const probablePitcher = game.teams?.[side]?.probablePitcher?.fullName ?? 'TBD';
+  const probablePitcherId = game.teams?.[side]?.probablePitcher?.id ?? null;
   const lineupRows = boxTeam ? renderLineupRows(boxTeam) : '<div class="score-lineups-empty">Loading lineup status…</div>';
   const arsenal = renderPitcherArsenal(arsenalData ?? null, { limit: 7, showVelo: false });
   const logoHtml = teamId ? `<img class="score-lineup-logo" src="https://www.mlbstatic.com/team-logos/${teamId}.svg" alt="${esc(teamName)}" width="20" height="20">` : '';
@@ -744,7 +764,7 @@ function renderPreviewTeamCard(game, boxData, side, arsenalData) {
     </div>
     <div class="preview-team-section">
       <div class="preview-team-subhead">Probable Pitcher</div>
-      <div class="probable-pitcher-row"><span class="probable-pitcher-name">${esc(probablePitcher)}</span></div>
+      <div class="probable-pitcher-row"><span class="probable-pitcher-name">${renderPlayerNameLink(probablePitcher, probablePitcherId)}</span></div>
       ${arsenal}
     </div>
     <div class="preview-team-section">
@@ -767,6 +787,8 @@ function renderPreviewMatchup(game, boxData, arsenals, matchupCtx = null) {
 
 function renderPitchingLines(boxData) {
   if (!boxData?.teams) return '';
+  // Show SP + up to 3 relievers before collapsing to "+N more"
+  const MAX_VISIBLE_PITCHERS = 4;
 
   const renderPitchingRows = side => {
     const team = boxData.teams?.[side];
@@ -777,6 +799,7 @@ function renderPitchingLines(boxData) {
         const stats = player.stats.pitching;
         return {
           name: player.person?.fullName ?? 'TBD',
+          playerId: player.person?.id ?? null,
           ip: stats.inningsPitched ?? '0.0',
           h: stats.hits ?? 0,
           er: stats.earnedRuns ?? 0,
@@ -793,7 +816,13 @@ function renderPitchingLines(boxData) {
       return '<div class="score-lineups-empty">Pitching lines unavailable</div>';
     }
 
-    return pitchers.map(p => {
+    // The top-IP pitcher is the SP if they threw at least 2 innings
+    const spIndex = pitchers[0].ipNum >= 2 ? 0 : -1;
+
+    const visiblePitchers = pitchers.slice(0, MAX_VISIBLE_PITCHERS);
+    const hiddenPitchers = pitchers.slice(MAX_VISIBLE_PITCHERS);
+
+    const visibleRows = visiblePitchers.map((p, i) => {
         const extras = [];
         if (parseFloat(p.ip) > 0) extras.push(`${p.ip} IP`);
         if (p.h > 0) extras.push(`${p.h} H`);
@@ -802,8 +831,18 @@ function renderPitchingLines(boxData) {
         if (p.k > 0) extras.push(`${p.k} K`);
         if ((p.pitches ?? 0) > 0) extras.push(`${p.pitches} P`);
         const pitchHandDisplay = p.pitchHand ? `<span class="box-perf-hand">${p.pitchHand}</span>` : '';
-        return `<span class="box-perf-row"><span class="box-perf-name">${esc(compactBoxName(p.name))}${pitchHandDisplay}</span><span class="box-perf-stat">${extras.join(', ') || 'No notable line'}</span></span>`;
+        const spBadge = i === spIndex ? '<span class="pitcher-role-badge">SP</span>' : '';
+        return `<span class="box-perf-row"><span class="box-perf-name">${spBadge}${renderPlayerNameLink(compactBoxName(p.name), p.playerId)}${pitchHandDisplay}</span><span class="box-perf-stat">${extras.join(', ') || 'No notable line'}</span></span>`;
       }).join('');
+
+    if (!hiddenPitchers.length) return visibleRows;
+
+    const hiddenSummary = hiddenPitchers
+      .slice(0, 3)
+      .map(p => compactBoxName(p.name))
+      .join(', ');
+
+    return `${visibleRows}<div class="box-perf-more">+${hiddenPitchers.length} more pitcher${hiddenPitchers.length === 1 ? '' : 's'}${hiddenSummary ? `: ${esc(hiddenSummary)}` : ''}</div>`;
   };
 
   const renderSide = side => {
@@ -816,7 +855,7 @@ function renderPitchingLines(boxData) {
       <div class="score-lineup-head">
         ${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span>
       </div>
-      <div class="preview-team-section">
+      <div class="preview-team-section team-detail-pitching">
         <div class="preview-team-subhead">Pitching</div>
         <div class="score-lineup-side">${renderPitchingRows(side)}</div>
       </div>
@@ -830,6 +869,16 @@ function renderPitchingLines(boxData) {
   return `<div class="score-lineups">
     <div class="score-lineups-grid score-lineups-grid--details">${renderSide('away')}${renderSide('home')}</div>
   </div>`;
+}
+
+function syncPopoverTeamDetailHeights(popover) {
+  if (!popover) return;
+  const sections = [...popover.querySelectorAll('.team-detail-pitching')];
+  if (!sections.length) return;
+  sections.forEach(section => { section.style.minHeight = ''; });
+  const maxHeight = Math.max(...sections.map(section => section.offsetHeight || 0));
+  if (!maxHeight) return;
+  sections.forEach(section => { section.style.minHeight = `${maxHeight}px`; });
 }
 
 function playerLabel(person) {
@@ -998,18 +1047,7 @@ function renderScoutNotes(game, arsenals, matchupCtx = null) {
       }
     }
   } else if (isFinal) {
-    badge = 'Final';
-    const oriolesScore = awayId === ORIOLES_ID ? (game.teams?.away?.score ?? 0) : (game.teams?.home?.score ?? 0);
-    const oppScore = awayId === ORIOLES_ID ? (game.teams?.home?.score ?? 0) : (game.teams?.away?.score ?? 0);
-    const oppName = awayId === ORIOLES_ID ? game.teams?.home?.team?.name : game.teams?.away?.team?.name;
-    const oppAbbr = TEAM_ABBREV[awayId === ORIOLES_ID ? (game.teams?.home?.team?.id) : (game.teams?.away?.team?.id)] ?? '';
-    if (oriolesScore > oppScore) {
-      notes.push(`Orioles won ${oriolesScore}-${oppScore} vs ${oppAbbr}.`);
-    } else if (oriolesScore < oppScore) {
-      notes.push(`Orioles lost ${oriolesScore}-${oppScore} vs ${oppAbbr}.`);
-    } else {
-      notes.push(`Orioles tied ${oriolesScore}-${oppScore} vs ${oppAbbr}.`);
-    }
+    return '';
   }
 
   const uniqueNotes = [...new Set(notes)].slice(0, 4);
@@ -1052,6 +1090,14 @@ function renderDecisionStrip(g) {
   return `<div class="box-decisions">${parts.join('')}</div>`;
 }
 
+function renderPopoverLegend() {
+  return `<div class="box-legend" aria-label="Popover legend">
+    <span class="box-legend-label">Legend</span>
+    <span class="box-legend-item"><span class="box-legend-chip box-legend-chip--leader">Team Leader</span></span>
+    <span class="box-legend-item"><span class="box-legend-text box-legend-text--top-ten">MLB Top 10</span></span>
+  </div>`;
+}
+
 function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
@@ -1078,6 +1124,7 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
     awayRow += `<td>${inn?.away?.runs ?? (i < innings.length ? '0' : '')}</td>`;
   }
   const at = ls?.teams?.away ?? {};
+  const awayRuns = Number(at.runs ?? away.score ?? 0);
   awayRow += `<td class="box-total">${at.runs ?? away.score ?? ''}</td>`;
   awayRow += `<td class="box-total">${at.hits ?? ''}</td>`;
   awayRow += `<td class="box-total">${at.errors ?? ''}</td>`;
@@ -1089,9 +1136,12 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
     homeRow += `<td>${inn?.home?.runs ?? (i < innings.length ? '0' : '')}</td>`;
   }
   const ht = ls?.teams?.home ?? {};
+  const homeRuns = Number(ht.runs ?? home.score ?? 0);
   homeRow += `<td class="box-total">${ht.runs ?? home.score ?? ''}</td>`;
   homeRow += `<td class="box-total">${ht.hits ?? ''}</td>`;
   homeRow += `<td class="box-total">${ht.errors ?? ''}</td>`;
+  const awayWinnerClass = awayRuns > homeRuns ? ' class="box-score-row box-score-row--winner"' : ' class="box-score-row"';
+  const homeWinnerClass = homeRuns > awayRuns ? ' class="box-score-row box-score-row--winner"' : ' class="box-score-row"';
 
   // Winning / losing pitcher if available
   const decisions = renderDecisionStrip(g);
@@ -1105,14 +1155,15 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
       <table class="box-score-table">
         <thead><tr>${hdr}</tr></thead>
         <tbody>
-          <tr>${awayRow}</tr>
-          <tr>${homeRow}</tr>
+          <tr${awayWinnerClass}>${awayRow}</tr>
+          <tr${homeWinnerClass}>${homeRow}</tr>
         </tbody>
       </table>
       ${decisions}
     </div>
     ${performers}
     ${pitchingLines}
+    ${renderPopoverLegend()}
   </div>`;
 }
 
@@ -1222,6 +1273,7 @@ async function loadScores() {
       boxPopover.style.left = '-9999px';
       boxPopover.style.top = '0';
       boxPopover.classList.remove('hidden');
+      syncPopoverTeamDetailHeights(boxPopover);
       positionPopover(chip);
 
       // Phase 2: fetch whatever is missing, then re-render once
@@ -1242,6 +1294,7 @@ async function loadScores() {
         Promise.all(missing).then(() => {
           if (boxPopover.classList.contains('hidden')) return;
           boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
+          syncPopoverTeamDetailHeights(boxPopover);
           positionPopover(chip);
         });
       }
