@@ -517,6 +517,62 @@ function topPerformers(boxData) {
   return html;
 }
 
+function formatSlashStat(value) {
+  if (value == null || value === '') return '.---';
+  const str = String(value).trim();
+  if (!str) return '.---';
+  return str.startsWith('.') ? str : `.${str.replace(/^0?\./, '')}`;
+}
+
+function formatLineupSlashLine(player) {
+  const stats = player?.stats?.batting ?? {};
+  return [
+    formatSlashStat(stats.battingAverage),
+    formatSlashStat(stats.onBasePercentage),
+    formatSlashStat(stats.ops ?? stats.onBasePlusSlugging),
+  ].join('/');
+}
+
+function lineupHotnessScore(player) {
+  const stats = player?.stats?.batting ?? {};
+  const ops = Number.parseFloat(stats.ops ?? stats.onBasePlusSlugging ?? 0) || 0;
+  const avg = Number.parseFloat(stats.battingAverage ?? 0) || 0;
+  const obp = Number.parseFloat(stats.onBasePercentage ?? 0) || 0;
+  const slg = Number.parseFloat(stats.sluggingPercentage ?? 0) || 0;
+  return (ops * 1000) + (obp * 100) + (slg * 10) + avg;
+}
+
+function renderLineupRows(team) {
+  const players = team?.battingOrder ?? [];
+  const roster = team?.players ?? {};
+  if (!players.length) {
+    return '<div class="score-lineups-empty">Lineup not yet posted</div>';
+  }
+
+  const hottestIds = new Set(
+    [...players]
+      .map(id => ({ id, player: roster[`ID${id}`] ?? {} }))
+      .sort((a, b) => lineupHotnessScore(b.player) - lineupHotnessScore(a.player))
+      .slice(0, 2)
+      .map(entry => entry.id)
+  );
+
+  return players.map(id => {
+    const p = roster[`ID${id}`] ?? {};
+    const name = compactBoxName(p.person?.fullName ?? 'TBD');
+    const pos = p.position?.abbreviation ?? '';
+    const batSide = p.person?.batSide?.code ?? '';
+    const batSideDisplay = batSide ? `<span class="score-lineup-hand">${batSide}</span>` : '';
+    const slashLine = formatLineupSlashLine(p);
+    const hotClass = hottestIds.has(id) ? ' score-lineup-row--hot' : '';
+    return `<div class="score-lineup-row${hotClass}">
+      <span class="score-lineup-pos">${esc(pos)}</span>
+      <span class="score-lineup-name">${esc(name)}${batSideDisplay}</span>
+      <span class="score-lineup-slash">${esc(slashLine)}</span>
+    </div>`;
+  }).join('');
+}
+
 function renderLineupPopover(boxData) {
   if (!boxData?.teams) {
     return '<div class="score-lineups-empty">Lineup not yet posted</div>';
@@ -525,40 +581,17 @@ function renderLineupPopover(boxData) {
   const renderSide = side => {
     const team = boxData.teams?.[side];
     if (!team) return '';
-    const teamId = team.team?.id;
-    const teamName = team.team?.name ?? (side === 'away' ? 'Away Team' : 'Home Team');
-    const players = team.battingOrder ?? [];
-    const roster = team.players ?? {};
-    const available = players.length > 0;
-    const rows = available
-      ? players.map(id => {
-          const p = roster[`ID${id}`] ?? {};
-          const name = compactBoxName(p.person?.fullName ?? 'TBD');
-          const pos = p.position?.abbreviation ?? '';
-          const batSide = p.person?.batSide?.code ?? '';
-          const batSideDisplay = batSide ? `<span class="score-lineup-hand">${batSide}</span>` : '';
-          return `<div class="score-lineup-row"><span class="score-lineup-pos">${esc(pos)}</span><span class="score-lineup-name">${esc(name)}${batSideDisplay}</span></div>`;
-        }).join('')
-      : '<div class="score-lineups-empty">Lineup not yet posted</div>';
-
-    const logoHtml = teamId ? `<img class="score-lineup-logo" src="https://www.mlbstatic.com/team-logos/${teamId}.svg" alt="${esc(teamName)}" width="20" height="20">` : '';
-    return `<div class="score-lineup-side">
-      <div class="score-lineup-head">
-        ${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span>
-      </div>
-      ${rows}
-    </div>`;
+    return `<div class="score-lineup-side">${renderLineupRows(team)}</div>`;
   };
 
   const awayHtml = renderSide('away');
   const homeHtml = renderSide('home');
   return `<div class="score-lineups">
-    <div class="score-lineups-title">Lineups</div>
     <div class="score-lineups-grid">${awayHtml}${homeHtml}</div>
   </div>`;
 }
 
-function renderPitcherArsenal(arsenalData) {
+function renderPitcherArsenal(arsenalData, { limit = 5, showVelo = true } = {}) {
   if (!arsenalData) {
     return `<div class="pitcher-arsenal pitcher-arsenal--loading">
       <span class="arsenal-loading">Loading…</span>
@@ -572,10 +605,10 @@ function renderPitcherArsenal(arsenalData) {
     </div>`;
   }
 
-  // Sort by usage % descending, take up to 5 pitches
+  // Sort by usage % descending, take up to the requested number of pitches
   const sorted = [...items]
     .sort((a, b) => (b.stat?.percentage ?? 0) - (a.stat?.percentage ?? 0))
-    .slice(0, 5);
+    .slice(0, limit);
 
   const pills = sorted.map(item => {
     const desc = item.type?.description ?? '';
@@ -583,7 +616,7 @@ function renderPitcherArsenal(arsenalData) {
     const pct  = item.stat?.percentage != null
       ? Math.round(item.stat.percentage * 100) + '%'
       : '';
-    const velo = item.stat?.averageSpeed != null
+    const velo = showVelo && item.stat?.averageSpeed != null
       ? Math.round(item.stat.averageSpeed) + ''
       : '';
     return `<span class="arsenal-pill" title="${esc(desc)}">
@@ -595,24 +628,37 @@ function renderPitcherArsenal(arsenalData) {
   return `<div class="pitcher-arsenal">${pills}</div>`;
 }
 
-function renderProbablePitchers(game, arsenals) {
-  const awayPitcher = game.teams?.away?.probablePitcher?.fullName;
-  const homePitcher = game.teams?.home?.probablePitcher?.fullName;
-  if (!awayPitcher && !homePitcher) return '';
+function renderPreviewTeamCard(game, boxData, side, arsenalData) {
+  const matchupTeam = game.teams?.[side]?.team ?? {};
+  const boxTeam = boxData?.teams?.[side] ?? null;
+  const teamId = matchupTeam.id ?? boxTeam?.team?.id;
+  const teamName = matchupTeam.teamName ?? boxTeam?.team?.teamName ?? matchupTeam.name ?? (side === 'away' ? 'Away Team' : 'Home Team');
+  const probablePitcher = game.teams?.[side]?.probablePitcher?.fullName ?? 'TBD';
+  const lineupRows = boxTeam ? renderLineupRows(boxTeam) : '<div class="score-lineups-empty">Loading lineup status…</div>';
+  const arsenal = renderPitcherArsenal(arsenalData ?? null, { limit: 7, showVelo: false });
+  const logoHtml = teamId ? `<img class="score-lineup-logo" src="https://www.mlbstatic.com/team-logos/${teamId}.svg" alt="${esc(teamName)}" width="20" height="20">` : '';
 
-  const awayLabel = TEAM_ABBREV[game.teams?.away?.team?.id] ?? 'Away';
-  const homeLabel = TEAM_ABBREV[game.teams?.home?.team?.id] ?? 'Home';
+  return `<div class="preview-team-card">
+    <div class="score-lineup-head">
+      ${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span>
+    </div>
+    <div class="preview-team-section">
+      <div class="preview-team-subhead">Probable Pitcher</div>
+      <div class="probable-pitcher-row"><span class="probable-pitcher-name">${esc(probablePitcher)}</span></div>
+      ${arsenal}
+    </div>
+    <div class="preview-team-section">
+      <div class="preview-team-subhead">Lineup</div>
+      <div class="score-lineup-side">${lineupRows}</div>
+    </div>
+  </div>`;
+}
 
-  const awayArsenal = renderPitcherArsenal(arsenals?.away ?? null);
-  const homeArsenal = renderPitcherArsenal(arsenals?.home ?? null);
-
-  return `<div class="probable-pitchers">
-    <div class="probable-pitchers-title">Probable Pitchers</div>
-    <div class="probable-pitchers-list">
-      <div class="probable-pitcher-row"><span class="probable-pitcher-team">${esc(awayLabel)}</span><span class="probable-pitcher-name">${esc(awayPitcher || 'TBD')}</span></div>
-      ${awayArsenal}
-      <div class="probable-pitcher-row"><span class="probable-pitcher-team">${esc(homeLabel)}</span><span class="probable-pitcher-name">${esc(homePitcher || 'TBD')}</span></div>
-      ${homeArsenal}
+function renderPreviewMatchup(game, boxData, arsenals) {
+  return `<div class="probable-pitchers probable-pitchers--preview">
+    <div class="score-lineups-grid">
+      ${renderPreviewTeamCard(game, boxData, 'away', arsenals?.away ?? null)}
+      ${renderPreviewTeamCard(game, boxData, 'home', arsenals?.home ?? null)}
     </div>
   </div>`;
 }
@@ -860,11 +906,7 @@ function renderDecisionStrip(g) {
 function renderBoxScore(g, boxData, arsenals) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
-    return `${renderProbablePitchers(g, arsenals)}${
-      boxData
-        ? renderLineupPopover(boxData)
-        : '<div class="score-lineups"><div class="score-lineups-title">Lineups</div><div class="score-lineups-empty">Loading lineup status…</div></div>'
-    }`;
+    return renderPreviewMatchup(g, boxData, arsenals);
   }
 
   const ls = g.linescore;
