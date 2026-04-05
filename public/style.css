@@ -926,13 +926,37 @@ img { display: block; max-width: 100%; }
 .score-lineup-row--dnp { opacity: 0.4; }
 .score-lineup-box-cols {
   display: grid;
-  grid-template-columns: repeat(6, 1.8em);
+  grid-template-columns: repeat(4, 1.8em);
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-size: var(--popover-stat-size);
   color: var(--text-2);
   margin-left: auto;
   white-space: nowrap;
+}
+.score-lineup-notes {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+  min-width: 32px;
+}
+.box-notable {
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--orange);
+  background: var(--orange-dim);
+  border-radius: 3px;
+  padding: 0 3px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.box-notable--pitch {
+  color: var(--text-3);
+  background: color-mix(in srgb, var(--border) 60%, transparent 40%);
+}
+.score-lineup-box-cols--pitch {
+  grid-template-columns: repeat(4, 2em);
 }
 .score-lineup-rate {
   color: var(--text-2);
