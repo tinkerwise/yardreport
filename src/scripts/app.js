@@ -524,8 +524,12 @@ function formatSlashStat(value) {
   return str.startsWith('.') ? str : `.${str.replace(/^0?\./, '')}`;
 }
 
+function getLineupBattingStats(player) {
+  return player?.seasonStats?.batting ?? player?.stats?.batting ?? {};
+}
+
 function formatLineupSlashLine(player) {
-  const stats = player?.stats?.batting ?? {};
+  const stats = getLineupBattingStats(player);
   return [
     formatSlashStat(stats.battingAverage),
     formatSlashStat(stats.onBasePercentage),
@@ -534,7 +538,7 @@ function formatLineupSlashLine(player) {
 }
 
 function lineupHotnessScore(player) {
-  const stats = player?.stats?.batting ?? {};
+  const stats = getLineupBattingStats(player);
   const ops = Number.parseFloat(stats.ops ?? stats.onBasePlusSlugging ?? 0) || 0;
   const avg = Number.parseFloat(stats.battingAverage ?? 0) || 0;
   const obp = Number.parseFloat(stats.onBasePercentage ?? 0) || 0;
