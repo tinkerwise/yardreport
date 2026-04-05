@@ -37,11 +37,11 @@ const TEAM_PAGE = {
 const MLB = 'https://statsapi.mlb.com/api/v1';
 const ORIOLES_ID = 110;
 const SEASON = new Date().getFullYear();
-const PITCH_ABBREV = {
-  'Four-Seam Fastball': 'FF', 'Two-Seam Fastball': 'FT', 'Sinker': 'SI',
-  'Slider': 'SL', 'Curveball': 'CU', 'Changeup': 'CH', 'Cutter': 'FC',
-  'Splitter': 'FS', 'Sweeper': 'SW', 'Knuckle Curve': 'KC',
-  'Knuckleball': 'KN', 'Forkball': 'FO', 'Eephus': 'EP',
+const PITCH_NAMES = {
+  'Four-Seam Fastball': '4SF', 'Two-Seam Fastball': '2SF', 'Sinker': 'Sinker',
+  'Slider': 'Slider', 'Curveball': 'Curve', 'Changeup': 'Changeup', 'Cutter': 'Cutter',
+  'Splitter': 'Splitter', 'Sweeper': 'Sweeper', 'Knuckle Curve': 'K. Curve',
+  'Knuckleball': 'Knuckle', 'Forkball': 'Forkball', 'Eephus': 'Eephus',
 };
 
 // MLB venue coordinates for Open-Meteo weather lookups
@@ -666,7 +666,7 @@ function renderPitcherArsenal(arsenalData) {
 
   const pills = sorted.map(item => {
     const desc = item.type?.description ?? '';
-    const abbr = PITCH_ABBREV[desc] ?? desc.slice(0, 2).toUpperCase();
+    const pitchName = PITCH_NAMES[desc] ?? desc.slice(0, 2).toUpperCase();
     const pct  = item.stat?.percentage != null
       ? Math.round(item.stat.percentage * 100) + '%'
       : '';
@@ -674,7 +674,7 @@ function renderPitcherArsenal(arsenalData) {
       ? Math.round(item.stat.averageSpeed) + ''
       : '';
     return `<span class="arsenal-pill" title="${esc(desc)}">
-      <span class="arsenal-pill-type">${esc(abbr)}</span>
+      <span class="arsenal-pill-type">${esc(pitchName)}</span>
       <span class="arsenal-pill-stats">${esc(pct)}${velo ? ` ${esc(velo)}` : ''}</span>
     </span>`;
   }).join('');
