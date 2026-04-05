@@ -497,50 +497,6 @@ async function fetchPitcherVsTeam(pitcherId, oppTeamId) {
   } catch { return null; }
 }
 
-function topPerformers(boxData) {
-  if (!boxData) return '';
-
-  const bestFromSide = side => {
-    const team = boxData.teams?.[side];
-    if (!team) return null;
-    const teamId = team.team?.id;
-    const abbr = TEAM_ABBREV[teamId] ?? team.team?.abbreviation ?? '';
-    let best = null;
-    for (const [, p] of Object.entries(team.players ?? {})) {
-      const bs = p.stats?.batting;
-      if (!bs || (bs.atBats === 0 && bs.baseOnBalls === 0)) continue;
-      const hits = bs.hits ?? 0;
-      const ab = bs.atBats ?? 0;
-      const hr = bs.homeRuns ?? 0;
-      const rbi = bs.rbi ?? 0;
-      const bb = bs.baseOnBalls ?? 0;
-      const score = hits * 2 + hr * 5 + rbi * 2 + bb;
-      if (!best || score > best.score) {
-        best = { name: p.person?.fullName ?? '', playerId: p.person?.id ?? null, abbr, teamId, hits, ab, hr, rbi, bb, score };
-      }
-    }
-    return best;
-  };
-
-  const rows = ['away', 'home'].map(side => {
-    const b = bestFromSide(side);
-    if (!b || b.score === 0) return '';
-    const extras = [];
-    if (b.hits > 0 && b.ab > 0) extras.push(`${b.hits}-${b.ab}`);
-    else if (b.ab > 0) extras.push(`${b.ab} AB`);
-    if (b.hr) extras.push(`${b.hr} HR`);
-    if (b.rbi) extras.push(`${b.rbi} RBI`);
-    if (b.bb) extras.push(`${b.bb} BB`);
-    const statLine = extras.join(', ');
-    if (!statLine) return '';
-    const abbr = b.abbr ? `<span class="box-perf-team">${esc(b.abbr)}</span>` : '';
-    return `<span class="box-perf-row">${abbr}<span class="box-perf-name">${renderPlayerNameLink(compactBoxName(b.name), b.playerId)}</span><span class="box-perf-stat">${statLine}</span></span>`;
-  }).filter(Boolean);
-
-  if (!rows.length) return '';
-  return `<div class="box-top-performers">${rows.join('')}</div>`;
-}
-
 function formatSlashStat(value) {
   if (value == null || value === '') return '.---';
   const str = String(value).trim();
@@ -607,15 +563,68 @@ function renderSlashSegment(value, isLeader, isTopTenProxy = false) {
   return `<span class="${classes.join(' ')}">${esc(formatSlashStat(value))}</span>`;
 }
 
-function renderLineupRows(team) {
+function renderLineupRows(team, gameState = 'preview') {
   const players = team?.battingOrder ?? [];
   const roster = team?.players ?? {};
   if (!players.length) {
     return '<div class="score-lineups-empty">Lineup not yet posted</div>';
   }
 
-  const leaders = lineupLeaders(players, roster);
+  // ── Final: newspaper-style box score columns ───────────────────
+  if (gameState === 'final') {
+    const header = `<div class="score-lineup-row score-lineup-row--header">
+      <span class="score-lineup-pos"></span>
+      <span class="score-lineup-name"></span>
+      <span class="score-lineup-box-cols">
+        <span>AB</span><span>R</span><span>H</span><span>RBI</span><span>BB</span><span>K</span>
+      </span>
+    </div>`;
+    const rows = players.map(id => {
+      const p = roster[`ID${id}`] ?? {};
+      const name = compactBoxName(p.person?.fullName ?? 'TBD');
+      const pos = p.position?.abbreviation ?? '';
+      const bs = p.stats?.batting ?? {};
+      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.strikeOuts ?? 0]
+        .map(v => `<span>${v}</span>`).join('');
+      const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
+      return `<div class="score-lineup-row${hasActivity ? '' : ' score-lineup-row--dnp'}">
+        <span class="score-lineup-pos">${esc(pos)}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}</span>
+        <span class="score-lineup-box-cols">${cols}</span>
+      </div>`;
+    }).join('');
+    return header + rows;
+  }
 
+  // ── Live: in-game line (H-AB, HR, RBI, BB) ────────────────────
+  if (gameState === 'live') {
+    return players.map(id => {
+      const p = roster[`ID${id}`] ?? {};
+      const name = compactBoxName(p.person?.fullName ?? 'TBD');
+      const pos = p.position?.abbreviation ?? '';
+      const bs = p.stats?.batting ?? {};
+      const ab = bs.atBats ?? 0;
+      const h = bs.hits ?? 0;
+      const hr = bs.homeRuns ?? 0;
+      const rbi = bs.rbi ?? 0;
+      const bb = bs.baseOnBalls ?? 0;
+      const parts = [];
+      if (ab > 0 || bb > 0) parts.push(`${h}-${ab}`);
+      if (hr) parts.push(`${hr} HR`);
+      if (rbi) parts.push(`${rbi} RBI`);
+      if (bb) parts.push(`${bb} BB`);
+      const statLine = parts.join(', ') || '0-0';
+      const isCurrentBatter = p.gameStatus?.isCurrentBatter;
+      return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}">
+        <span class="score-lineup-pos">${esc(pos)}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}</span>
+        <span class="score-lineup-slash score-lineup-slash--live">${esc(statLine)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Preview: season slashlines (AVG/OBP/OPS) ──────────────────
+  const leaders = lineupLeaders(players, roster);
   return players.map(id => {
     const p = roster[`ID${id}`] ?? {};
     const name = compactBoxName(p.person?.fullName ?? 'TBD');
@@ -747,7 +756,7 @@ function renderPreviewTeamCard(game, boxData, side, arsenalData) {
   const teamName = matchupTeam.teamName ?? boxTeam?.team?.teamName ?? matchupTeam.name ?? (side === 'away' ? 'Away Team' : 'Home Team');
   const probablePitcher = game.teams?.[side]?.probablePitcher?.fullName ?? 'TBD';
   const probablePitcherId = game.teams?.[side]?.probablePitcher?.id ?? null;
-  const lineupRows = boxTeam ? renderLineupRows(boxTeam) : '<div class="score-lineups-empty">Loading lineup status…</div>';
+  const lineupRows = boxTeam ? renderLineupRows(boxTeam, 'preview') : '<div class="score-lineups-empty">Loading lineup status…</div>';
   const arsenal = renderPitcherArsenal(arsenalData ?? null, { limit: 7, showVelo: false });
   const logoHtml = teamId ? `<img class="score-lineup-logo" src="https://www.mlbstatic.com/team-logos/${teamId}.svg" alt="${esc(teamName)}" width="20" height="20">` : '';
 
@@ -778,7 +787,7 @@ function renderPreviewMatchup(game, boxData, arsenals, matchupCtx = null) {
   </div>`;
 }
 
-function renderPitchingLines(boxData) {
+function renderPitchingLines(boxData, gameState = 'final') {
   if (!boxData?.teams) return '';
 
   const renderPitchingRows = side => {
@@ -846,7 +855,7 @@ function renderPitchingLines(boxData) {
       </div>
       <div class="preview-team-section">
         <div class="preview-team-subhead">Lineup</div>
-        <div class="score-lineup-side">${renderLineupRows(team)}</div>
+        <div class="score-lineup-side">${renderLineupRows(team, gameState)}</div>
       </div>
     </div>`;
   };
@@ -1129,9 +1138,9 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const homeWinnerClass = homeRuns > awayRuns ? ' class="box-score-row box-score-row--winner"' : ' class="box-score-row"';
 
   // Winning / losing pitcher if available
+  const gameState = g.status.abstractGameState === 'Live' ? 'live' : 'final';
   const decisions = renderDecisionStrip(g);
-  const performers = topPerformers(boxData);
-  const pitchingLines = renderPitchingLines(boxData);
+  const pitchingLines = renderPitchingLines(boxData, gameState);
   const scoutNotes = renderScoutNotes(g, arsenals, null);
 
   return `<div class="box-popover-stack">
@@ -1145,7 +1154,6 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
         </tbody>
       </table>
       ${decisions}
-      ${performers}
     </div>
     ${pitchingLines}
     ${renderPopoverLegend()}

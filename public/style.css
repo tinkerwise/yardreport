@@ -906,6 +906,34 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
   margin-left: auto;
 }
+.score-lineup-slash--live {
+  font-weight: 500;
+  color: var(--text-2);
+}
+/* Newspaper-style box score columns (Final state) */
+.score-lineup-row--header {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+  padding-bottom: 2px;
+}
+.score-lineup-row--header .score-lineup-box-cols {
+  color: var(--text-3);
+  font-weight: 700;
+  font-size: var(--popover-meta-size);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.score-lineup-row--dnp { opacity: 0.4; }
+.score-lineup-box-cols {
+  display: grid;
+  grid-template-columns: repeat(6, 1.8em);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--popover-stat-size);
+  color: var(--text-2);
+  margin-left: auto;
+  white-space: nowrap;
+}
 .score-lineup-rate {
   color: var(--text-2);
 }
