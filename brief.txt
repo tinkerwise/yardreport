@@ -45,6 +45,22 @@ If we want the repo easier to maintain without changing behavior, the highest-va
 - [updates.txt](/Users/briancsmith/Documents/GitHub/yardreport/updates.txt): running feature/spec file
 - [changelog.txt](/Users/briancsmith/Documents/GitHub/yardreport/changelog.txt): recent project change log
 
+**Stack**
+
+- Astro 4
+- Static deployment
+- Client-heavy rendering and state in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js)
+- PHP RSS proxy for production feed fetching in [rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php)
+- MLB Stats API and Open-Meteo as primary runtime data services
+
+**Development**
+
+- Install dependencies: `npm install`
+- Start local dev: `npm run dev`
+- Build the site: `npm run build`
+- Run the built-in smoke test: `npm run smoke`
+- Preview the production build locally: `npm run preview`
+
 **Deployment**
 
 - Official release path: push to `main`, which triggers [.github/workflows/deploy.yml](/Users/briancsmith/Documents/GitHub/yardreport/.github/workflows/deploy.yml)

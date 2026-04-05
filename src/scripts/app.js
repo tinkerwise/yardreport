@@ -2332,6 +2332,47 @@ async function loadVideos() {
 const PODCAST_FEED = 'https://feeds.megaphone.fm/ESP1723897648';
 const PODCAST_SHOW_URL = 'https://www.espn.com/espnradio/podcast/archive?id=2386164';
 
+function podcastAudioUrl(audioUrl) {
+  if (!audioUrl) return '';
+  return `${PROXY}?format=audio&url=${encodeURIComponent(audioUrl)}`;
+}
+
+function setupPodcastHover(card) {
+  if (!card) return;
+  const panel = card.querySelector('.podcast-hover-panel');
+  if (!panel) return;
+
+  document.querySelectorAll('.podcast-hover-panel--floating').forEach(node => node.remove());
+  panel.classList.add('podcast-hover-panel--floating');
+  document.body.appendChild(panel);
+
+  let active = false;
+  const place = () => {
+    const rect = card.getBoundingClientRect();
+    panel.style.left = `${Math.min(rect.right + 12, window.innerWidth - panel.offsetWidth - 12)}px`;
+    panel.style.top = `${Math.max(12, rect.top)}px`;
+  };
+  const show = () => {
+    active = true;
+    place();
+    panel.classList.add('is-visible');
+  };
+  const hide = () => {
+    active = false;
+    panel.classList.remove('is-visible');
+  };
+  const refresh = () => {
+    if (active) place();
+  };
+
+  card.addEventListener('mouseenter', show);
+  card.addEventListener('mouseleave', hide);
+  card.addEventListener('focusin', show);
+  card.addEventListener('focusout', hide);
+  window.addEventListener('scroll', refresh, { passive: true });
+  window.addEventListener('resize', refresh);
+}
+
 async function loadPodcast() {
   const wrap = $('podcastWrap');
   try {
@@ -2355,29 +2396,37 @@ async function loadPodcast() {
     const title = cleanFeedText(episode.title || 'Latest episode');
     const description = cleanFeedText(episode.description || '');
     const dateLabel = relativeDate(episode.pubDate);
-    const descHtml = description ? `<div class="podcast-desc">${esc(description)}</div>` : '';
     const fallbackLabel = episodeIndex > 0
       ? '<span class="podcast-fallback-note">Showing a recent playable episode</span>'
       : '';
+    const playableUrl = podcastAudioUrl(episode.audioUrl);
+    const titleClass = title.length > 62 ? 'podcast-title podcast-title--scroll' : 'podcast-title';
+    const hoverPanel = description
+      ? `<div class="podcast-hover-panel" aria-hidden="true">
+          <div class="podcast-hover-title">${esc(title)}</div>
+          <div class="podcast-hover-desc">${esc(description)}</div>
+        </div>`
+      : '';
 
-    wrap.innerHTML = `<div class="podcast-card">
+    wrap.innerHTML = `<div class="podcast-card podcast-card--hoverable">
       <span class="podcast-kicker">Baseball Tonight</span>
       ${fallbackLabel}
-      <div class="podcast-title">${esc(title)}</div>
+      <div class="${titleClass}"><span class="podcast-title-track">${esc(title)}</span></div>
       <div class="podcast-meta">
         <span>${esc(dateLabel || 'Latest episode')}</span>
         <span>Buster Olney</span>
       </div>
       <audio class="podcast-player" controls preload="metadata">
-        <source src="${episode.audioUrl}" type="${episode.audioType || 'audio/mpeg'}">
+        <source src="${playableUrl}" type="${episode.audioType || 'audio/mpeg'}">
         Your browser does not support the audio element.
       </audio>
-      ${descHtml}
       <div class="podcast-links">
         <a class="podcast-link" href="${esc(episode.link || PODCAST_SHOW_URL)}" target="_blank" rel="noopener">Episode details ↗</a>
         <a class="podcast-link" href="${PODCAST_SHOW_URL}" target="_blank" rel="noopener">Show archive ↗</a>
       </div>
+      ${hoverPanel}
     </div>`;
+    setupPodcastHover(wrap.querySelector('.podcast-card--hoverable'));
   } catch {
     wrap.innerHTML = `<div class="podcast-card">
       <span class="podcast-kicker">Baseball Tonight</span>

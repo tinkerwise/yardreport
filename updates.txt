@@ -157,6 +157,10 @@
 
 ##Active
 // Add items here for immediate implementation
+- show podcast title and description on hover 
+- troubleshoot and find solution to play audio on deployed site, plays in localStorage
+- fix ATH cards on mobile, smaller logo icon, smaller title text, don't overlap source icons; basically, scale down for mobile browsing (until I create a mobile app)
+- change score bug timing to switch to today's games by 09:00 EDT each day
 
 ##Queued
 // Add items here for the likely next batch of work
@@ -164,6 +168,6 @@
 
 
 ##Parking lot
-- Create a companion mobile app (iOS, Android) based on BIG IDEA #1
+- Create a companion mobile app (iOS)
 - Refactor app.js into modules by domain (feeds, scores, sidebars, reader, settings, easter eggs)
-- Add smoke-test checklist for feed load, filters, reader, scores, and settings persistence
+

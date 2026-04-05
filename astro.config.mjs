@@ -22,9 +22,29 @@ function rssProxyDevPlugin() {
           const response = await fetch(feedUrl, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (compatible; OriolesNews/1.0)',
-              Accept: format === 'text' ? 'text/html, text/plain, */*' : 'application/rss+xml, application/xml, text/xml, */*',
+              Accept: format === 'text'
+                ? 'text/html, text/plain, */*'
+                : format === 'audio'
+                  ? 'audio/*,*/*;q=0.8'
+                  : 'application/rss+xml, application/xml, text/xml, */*',
+              ...(format === 'audio' && req.headers.range ? { Range: req.headers.range } : {}),
             },
           });
+          if (format === 'audio') {
+            const buffer = Buffer.from(await response.arrayBuffer());
+            res.writeHead(response.status || 200, {
+              'Content-Type': response.headers.get('content-type') || 'audio/mpeg',
+              'Content-Length': response.headers.get('content-length') || String(buffer.length),
+              'Accept-Ranges': response.headers.get('accept-ranges') || 'bytes',
+              ...(response.headers.get('content-range')
+                ? { 'Content-Range': response.headers.get('content-range') }
+                : {}),
+              'Access-Control-Allow-Origin': '*',
+              'Cache-Control': 'public, max-age=900',
+            });
+            res.end(buffer);
+            return;
+          }
           const xml = await response.text();
 
           if (format === 'text') {

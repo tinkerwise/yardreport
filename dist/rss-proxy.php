@@ -5,8 +5,6 @@
  */
 
 header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: public, max-age=900'); // 15-minute browser cache
 
 // ── Validate URL ──────────────────────────────────────────────────
 $url = filter_var($_GET['url'] ?? '', FILTER_VALIDATE_URL);
@@ -58,17 +56,30 @@ if (!$trusted) {
     exit;
 }
 
-// ── Fetch the RSS feed ────────────────────────────────────────────
+// ── Fetch the upstream resource ───────────────────────────────────
+$accept = 'application/rss+xml, application/xml, text/xml, */*';
+if ($format === 'text') {
+    $accept = 'text/html, text/plain, */*';
+} elseif ($format === 'audio') {
+    $accept = 'audio/*,*/*;q=0.8';
+}
+
+$headers = [
+    'User-Agent: Mozilla/5.0 (compatible; OriolesNews/1.0)',
+    'Accept: ' . $accept,
+    'Accept-Language: en-US,en;q=0.9',
+];
+if ($format === 'audio' && !empty($_SERVER['HTTP_RANGE'])) {
+    $headers[] = 'Range: ' . $_SERVER['HTTP_RANGE'];
+}
+
 $ctx = stream_context_create([
     'http' => [
         'timeout'          => 10,
         'follow_location'  => 1,
         'max_redirects'    => 3,
-        'header'           => implode("\r\n", [
-            'User-Agent: Mozilla/5.0 (compatible; OriolesNews/1.0)',
-            'Accept: ' . ($format === 'text' ? 'text/html, text/plain, */*' : 'application/rss+xml, application/xml, text/xml, */*'),
-            'Accept-Language: en-US,en;q=0.9',
-        ]),
+        'ignore_errors'    => true,
+        'header'           => implode("\r\n", $headers),
     ],
     'ssl' => [
         'verify_peer'      => true,
@@ -79,9 +90,47 @@ $ctx = stream_context_create([
 $xml_raw = @file_get_contents($url, false, $ctx);
 if ($xml_raw === false) {
     http_response_code(502);
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'Failed to fetch feed']);
     exit;
 }
+
+if ($format === 'audio') {
+    $response_headers = $http_response_header ?? [];
+    $status_code = 200;
+    $content_type = 'audio/mpeg';
+    $content_length = strlen($xml_raw);
+    $content_range = null;
+    $accept_ranges = 'bytes';
+
+    foreach ($response_headers as $header_line) {
+        if (preg_match('#^HTTP/\S+\s+(\d{3})#', $header_line, $m)) {
+            $status_code = (int)$m[1];
+        } elseif (stripos($header_line, 'Content-Type:') === 0) {
+            $content_type = trim(substr($header_line, 13));
+        } elseif (stripos($header_line, 'Content-Length:') === 0) {
+            $content_length = trim(substr($header_line, 15));
+        } elseif (stripos($header_line, 'Content-Range:') === 0) {
+            $content_range = trim(substr($header_line, 14));
+        } elseif (stripos($header_line, 'Accept-Ranges:') === 0) {
+            $accept_ranges = trim(substr($header_line, 14));
+        }
+    }
+
+    http_response_code($status_code);
+    header('Cache-Control: public, max-age=900');
+    header('Content-Type: ' . $content_type);
+    header('Content-Length: ' . $content_length);
+    header('Accept-Ranges: ' . $accept_ranges);
+    if ($content_range) {
+        header('Content-Range: ' . $content_range);
+    }
+    echo $xml_raw;
+    exit;
+}
+
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: public, max-age=900'); // 15-minute browser cache
 
 if ($format === 'text') {
     echo json_encode([
