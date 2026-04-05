@@ -451,11 +451,11 @@ img { display: block; max-width: 100%; }
   font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.05em; color: var(--text-3); margin-bottom: 1px;
 }
-.box-perf-row { display: flex; align-items: center; gap: 5px; font-size: 0.66rem; }
+.box-perf-row { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; }
 .box-perf-logo { width: 18px; height: 18px; flex-shrink: 0; }
 .box-perf-name { font-weight: 600; color: var(--text-1); display: flex; align-items: baseline; gap: 4px; }
-.box-perf-hand { font-size: 0.55rem; color: var(--text-3); font-weight: 400; }
-.box-perf-team { color: var(--text-3); font-size: 0.6rem; }
+.box-perf-hand { font-size: 0.58rem; color: var(--text-3); font-weight: 400; }
+.box-perf-team { color: var(--text-3); font-size: 0.64rem; }
 .box-perf-stat { color: var(--text-2); margin-left: auto; white-space: nowrap; text-align: right; }
 .scout-notes {
   gap: 6px;

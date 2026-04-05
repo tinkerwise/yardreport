@@ -466,6 +466,37 @@ async function fetchArsenal(playerId) {
   } catch { return null; }
 }
 
+// Cache for team season batting stats (keyed by teamId)
+const teamStatsCache = {};
+async function fetchTeamStats(teamId) {
+  if (!teamId) return null;
+  if (teamStatsCache[teamId]) return teamStatsCache[teamId];
+  try {
+    const data = await fetch(
+      `${MLB}/teams/${teamId}/stats?stats=season&season=${SEASON}&group=hitting`
+    ).then(r => r.json());
+    const result = data.stats?.[0]?.splits?.[0]?.stat ?? null;
+    teamStatsCache[teamId] = result;
+    return result;
+  } catch { return null; }
+}
+
+// Cache for pitcher career stats vs a specific opponent (keyed by "pitcherId_vs_teamId")
+const pitcherVsCache = {};
+async function fetchPitcherVsTeam(pitcherId, oppTeamId) {
+  if (!pitcherId || !oppTeamId) return null;
+  const key = `${pitcherId}_vs_${oppTeamId}`;
+  if (pitcherVsCache[key] !== undefined) return pitcherVsCache[key];
+  try {
+    const data = await fetch(
+      `${MLB}/people/${pitcherId}/stats?stats=vsTeamTotal&group=pitching&opposingTeamId=${oppTeamId}`
+    ).then(r => r.json());
+    const result = data.stats?.[0]?.splits?.[0]?.stat ?? null;
+    pitcherVsCache[key] = result;
+    return result;
+  } catch { return null; }
+}
+
 function topPerformers(boxData) {
   if (!boxData) return '';
   const sides = ['away', 'home'];
@@ -723,8 +754,10 @@ function renderPreviewTeamCard(game, boxData, side, arsenalData) {
   </div>`;
 }
 
-function renderPreviewMatchup(game, boxData, arsenals) {
+function renderPreviewMatchup(game, boxData, arsenals, matchupCtx = null) {
+  const scoutNotes = renderScoutNotes(game, arsenals, matchupCtx);
   return `<div class="probable-pitchers probable-pitchers--preview">
+    ${scoutNotes}
     <div class="score-lineups-grid">
       ${renderPreviewTeamCard(game, boxData, 'away', arsenals?.away ?? null)}
       ${renderPreviewTeamCard(game, boxData, 'home', arsenals?.home ?? null)}
@@ -823,7 +856,7 @@ function renderScoutPitchMix(arsenalData, pitcherName) {
   </div>`;
 }
 
-function renderScoutNotes(game, arsenals) {
+function renderScoutNotes(game, arsenals, matchupCtx = null) {
   const isLive = game.status?.abstractGameState === 'Live';
   const isPreview = game.status?.abstractGameState === 'Preview';
   const isFinal = game.status?.abstractGameState === 'Final';
@@ -918,6 +951,37 @@ function renderScoutNotes(game, arsenals) {
     if (awayPitcher || homePitcher) {
       notes.push(`${awayPitcher || 'TBD'} vs ${homePitcher || 'TBD'}`);
     }
+
+    const mc = matchupCtx;
+    if (mc) {
+      // Orioles pitcher career stats vs today's opponent
+      const oriolesPitcherVs = awayId === ORIOLES_ID ? mc.awayPitcherVs : mc.homePitcherVs;
+      const oppAbbr = TEAM_ABBREV[awayId === ORIOLES_ID ? game.teams?.home?.team?.id : game.teams?.away?.team?.id] ?? '';
+      if (oriolesPitcherVs?.gamesPlayed >= 1) {
+        const gp = oriolesPitcherVs.gamesPlayed;
+        const oppBA = oriolesPitcherVs.avg ?? '';
+        const k = oriolesPitcherVs.strikeOuts ?? '';
+        const oriolesPitcherName = compactBoxName(awayId === ORIOLES_ID ? awayPitcher : homePitcher);
+        const parts = [`${gp} G`];
+        if (oppBA) parts.push(`opp. BA ${oppBA}`);
+        if (k !== '') parts.push(`${k} K`);
+        notes.push(`${oriolesPitcherName} vs ${oppAbbr} (career): ${parts.join(', ')}`);
+      }
+
+      // Orioles season batting line
+      const oriolesStats = awayId === ORIOLES_ID ? mc.awayTeamStats : mc.homeTeamStats;
+      if (oriolesStats?.avg) {
+        const avg = oriolesStats.avg;
+        const obp = oriolesStats.obp ?? '';
+        const gp = oriolesStats.gamesPlayed ?? 0;
+        const rpg = gp > 0 && oriolesStats.runs != null
+          ? (oriolesStats.runs / gp).toFixed(1)
+          : null;
+        const parts = [`${avg}/${obp}`];
+        if (rpg) parts.push(`${rpg} R/G`);
+        notes.push(`BAL offense: ${parts.join(', ')}`);
+      }
+    }
   } else if (isFinal) {
     badge = 'Final';
     const oriolesScore = awayId === ORIOLES_ID ? (game.teams?.away?.score ?? 0) : (game.teams?.home?.score ?? 0);
@@ -933,7 +997,7 @@ function renderScoutNotes(game, arsenals) {
     }
   }
 
-  const uniqueNotes = [...new Set(notes)].slice(0, 3);
+  const uniqueNotes = [...new Set(notes)].slice(0, 4);
   if (!uniqueNotes.length) return '';
 
   return `<div class="box-section scout-notes">
@@ -973,10 +1037,10 @@ function renderDecisionStrip(g) {
   return `<div class="box-decisions">${parts.join('')}</div>`;
 }
 
-function renderBoxScore(g, boxData, arsenals) {
+function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
-    return renderPreviewMatchup(g, boxData, arsenals);
+    return renderPreviewMatchup(g, boxData, arsenals, matchupCtx);
   }
 
   const ls = g.linescore;
@@ -1018,7 +1082,7 @@ function renderBoxScore(g, boxData, arsenals) {
   const decisions = renderDecisionStrip(g);
   const performers = topPerformers(boxData);
   const pitchingLines = renderPitchingLines(boxData);
-  const scoutNotes = renderScoutNotes(g, arsenals);
+  const scoutNotes = renderScoutNotes(g, arsenals, null);
 
   return `<div class="box-popover-stack">
     ${scoutNotes}
@@ -1107,43 +1171,63 @@ async function loadScores() {
       const isPreview = g.status?.abstractGameState === 'Preview';
       const isLive = g.status?.abstractGameState === 'Live';
       const isOriolesGame = g.teams?.away?.team?.id === ORIOLES_ID || g.teams?.home?.team?.id === ORIOLES_ID;
-      const awayId = g.teams?.away?.probablePitcher?.id;
-      const homeId = g.teams?.home?.probablePitcher?.id;
+      const awayPitcherId = g.teams?.away?.probablePitcher?.id;
+      const homePitcherId = g.teams?.home?.probablePitcher?.id;
+      const awayTeamId = g.teams?.away?.team?.id;
+      const homeTeamId = g.teams?.home?.team?.id;
       const livePitcherId = isLive && isOriolesGame
         ? (g.linescore?.offense?.team?.id === ORIOLES_ID
             ? g.linescore?.offense?.pitcher?.id
             : g.linescore?.defense?.pitcher?.id)
         : null;
 
-      // Phase 1: render with cached data
-      const currentArsenals = isPreview
-        ? { away: arsenalCache[awayId] ?? null, home: arsenalCache[homeId] ?? null }
-        : isLive
-          ? { current: arsenalCache[livePitcherId] ?? null }
-          : null;
-      boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, currentArsenals);
+      // Keys for pitcher-vs-team cache
+      const awayVsKey = `${awayPitcherId}_vs_${homeTeamId}`;
+      const homeVsKey = `${homePitcherId}_vs_${awayTeamId}`;
+
+      function buildArsenals() {
+        return isPreview
+          ? { away: arsenalCache[awayPitcherId] ?? null, home: arsenalCache[homePitcherId] ?? null }
+          : isLive
+            ? { current: arsenalCache[livePitcherId] ?? null }
+            : null;
+      }
+
+      function buildMatchupCtx() {
+        if (!isPreview || !isOriolesGame) return null;
+        return {
+          awayPitcherVs: pitcherVsCache[awayVsKey] ?? null,
+          homePitcherVs: pitcherVsCache[homeVsKey] ?? null,
+          awayTeamStats:  teamStatsCache[awayTeamId]  ?? null,
+          homeTeamStats:  teamStatsCache[homeTeamId]  ?? null,
+        };
+      }
+
+      // Phase 1: render immediately with whatever is cached
+      boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
       boxPopover.style.left = '-9999px';
       boxPopover.style.top = '0';
       boxPopover.classList.remove('hidden');
       positionPopover(chip);
 
-      // Phase 2: fetch missing data
+      // Phase 2: fetch whatever is missing, then re-render once
       const missing = [
-        !boxscoreCache[pk]               && fetchBoxscore(pk),
-        isPreview && !arsenalCache[awayId] && fetchArsenal(awayId),
-        isPreview && !arsenalCache[homeId] && fetchArsenal(homeId),
-        isLive && livePitcherId && !arsenalCache[livePitcherId] && fetchArsenal(livePitcherId),
+        !boxscoreCache[pk]                                          && fetchBoxscore(pk),
+        isPreview && !arsenalCache[awayPitcherId]                  && fetchArsenal(awayPitcherId),
+        isPreview && !arsenalCache[homePitcherId]                  && fetchArsenal(homePitcherId),
+        isLive && livePitcherId && !arsenalCache[livePitcherId]    && fetchArsenal(livePitcherId),
+        isPreview && isOriolesGame && pitcherVsCache[awayVsKey] === undefined
+          && fetchPitcherVsTeam(awayPitcherId, homeTeamId),
+        isPreview && isOriolesGame && pitcherVsCache[homeVsKey] === undefined
+          && fetchPitcherVsTeam(homePitcherId, awayTeamId),
+        isPreview && isOriolesGame && !teamStatsCache[awayTeamId]  && fetchTeamStats(awayTeamId),
+        isPreview && isOriolesGame && !teamStatsCache[homeTeamId]  && fetchTeamStats(homeTeamId),
       ].filter(Boolean);
 
       if (missing.length) {
         Promise.all(missing).then(() => {
           if (boxPopover.classList.contains('hidden')) return;
-          const updatedArsenals = isPreview
-            ? { away: arsenalCache[awayId] ?? null, home: arsenalCache[homeId] ?? null }
-            : isLive
-              ? { current: arsenalCache[livePitcherId] ?? null }
-              : null;
-          boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, updatedArsenals);
+          boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
           positionPopover(chip);
         });
       }
