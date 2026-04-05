@@ -2127,8 +2127,9 @@ async function loadOnDeck() {
         <a class="on-deck-card" href="${gdUrl}" target="_blank" rel="noopener">
           ${wxHtml}
           <div class="on-deck-matchup">
+            <span class="on-deck-at">${isHome ? 'vs' : '@'}</span>
             <img class="on-deck-logo" src="https://www.mlbstatic.com/team-logos/${opponent.team.id}.svg" alt="" width="28" height="28">
-            <span class="on-deck-opp"><span class="on-deck-at">${isHome ? 'vs' : '@'}</span> ${esc(onDeckOpponentLabel)}</span>
+            <span class="on-deck-opp">${esc(onDeckOpponentLabel)}</span>
           </div>
           <div class="on-deck-details">
             <span class="on-deck-date">${esc(dateStr)} · ${esc(timeStr)}</span>

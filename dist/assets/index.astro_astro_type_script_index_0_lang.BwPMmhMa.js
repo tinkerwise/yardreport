@@ -167,8 +167,9 @@ const we="/yardreport/rss-proxy.php",bt={200:"AL West",201:"AL East",202:"AL Cen
         <a class="on-deck-card" href="${R}" target="_blank" rel="noopener">
           ${D}
           <div class="on-deck-matchup">
+            <span class="on-deck-at">${p?"vs":"@"}</span>
             <img class="on-deck-logo" src="https://www.mlbstatic.com/team-logos/${g.team.id}.svg" alt="" width="28" height="28">
-            <span class="on-deck-opp"><span class="on-deck-at">${p?"vs":"@"}</span> ${d(h)}</span>
+            <span class="on-deck-opp">${d(h)}</span>
           </div>
           <div class="on-deck-details">
             <span class="on-deck-date">${d(k)} · ${d(T)}</span>
