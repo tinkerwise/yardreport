@@ -84,8 +84,8 @@ const FILLER_PATTERNS = [
   /no[-_]?image/i,
 ];
 
-// Filter out non-baseball articles that leak in from general sports feeds
-const OFF_TOPIC = /\b(NHL|hockey|NBA|basketball|NFL|football|soccer|MLS|tennis|golf|NASCAR|F1|UFC|MMA|boxing)\b/i;
+// Filter out non-baseball articles and gambling content that leak in from general sports feeds
+const OFF_TOPIC = /\b(NHL|hockey|NBA|basketball|NFL|football|soccer|MLS|tennis|golf|NASCAR|F1|UFC|MMA|boxing|betting|bet|bets|better|odds|wager|wagers|wagering|sportsbook|sportsbooks|parlay|parlays|prop bet|prop bets|gambling|gamble|picks against the spread|best bets)\b/i;
 function isOffTopic(article) {
   const text = `${article.title || ''} ${article.description || ''}`;
   return OFF_TOPIC.test(text);
