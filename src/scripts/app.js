@@ -603,6 +603,34 @@ function renderLineupPopover(boxData) {
   </div>`;
 }
 
+function resolvePitchName(pitchType = {}) {
+  const raw = [
+    pitchType.description,
+    pitchType.code,
+    pitchType.abbreviation,
+  ].find(value => typeof value === 'string' && value.trim()) || '';
+
+  const pitchMap = {
+    ...PITCH_NAMES,
+    FF: '4SF',
+    FA: '4SF',
+    FT: '2SF',
+    SI: 'Sinker',
+    FC: 'Cutter',
+    SL: 'Slider',
+    CU: 'Curve',
+    KC: 'K. Curve',
+    CH: 'Changeup',
+    FS: 'Splitter',
+    FO: 'Forkball',
+    ST: 'Sweeper',
+    KN: 'Knuckle',
+    EP: 'Eephus',
+  };
+
+  return pitchMap[raw] ?? raw ?? 'Pitch';
+}
+
 function renderPitcherArsenal(arsenalData, { limit = 5, showVelo = true } = {}) {
   if (!arsenalData) {
     return `<div class="pitcher-arsenal pitcher-arsenal--loading">
@@ -623,8 +651,8 @@ function renderPitcherArsenal(arsenalData, { limit = 5, showVelo = true } = {}) 
     .slice(0, limit);
 
   const pills = sorted.map(item => {
-    const desc = item.type?.description ?? '';
-    const pitchName = PITCH_NAMES[desc] ?? desc ?? 'Pitch';
+    const desc = item.type?.description ?? item.type?.code ?? '';
+    const pitchName = resolvePitchName(item.type);
     const pct  = item.stat?.percentage != null
       ? Math.round(item.stat.percentage * 100) + '%'
       : '';
@@ -750,7 +778,7 @@ function renderScoutPitchMix(arsenalData, pitcherName) {
     .slice(0, 3)
     .map(item => {
       const desc = item.type?.description ?? '';
-      const pitchName = PITCH_NAMES[desc] ?? desc.slice(0, 2).toUpperCase();
+      const pitchName = resolvePitchName(item.type);
       const pct = item.stat?.percentage != null ? `${Math.round(item.stat.percentage * 100)}%` : '';
       const velo = item.stat?.averageSpeed != null ? `${Math.round(item.stat.averageSpeed)} mph` : '';
       return `<span class="scout-pitch-pill" title="${esc(desc)}">
