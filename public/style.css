@@ -945,7 +945,14 @@ img { display: block; max-width: 100%; }
   transition: border-color 0.15s;
 }
 .on-deck-card:hover { border-color: var(--orange); }
-.on-deck-matchup { display: flex; align-items: center; gap: 8px; min-height: 28px; padding-right: 68px; }
+.on-deck-matchup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding-right: 68px;
+  min-width: 0;
+}
 .on-deck-at {
   font-size: 0.74rem;
   font-weight: 800;
@@ -954,7 +961,14 @@ img { display: block; max-width: 100%; }
   letter-spacing: 0.05em;
 }
 .on-deck-logo { width: 28px; height: 28px; }
-.on-deck-opp { font-size: 1rem; font-weight: 700; min-width: 0; }
+.on-deck-opp {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
 .on-deck-details { display: flex; flex-direction: column; gap: 1px; }
 .on-deck-date { font-size: 0.75rem; color: var(--text-2); }
 .on-deck-venue { font-size: 0.68rem; color: var(--text-3); }
