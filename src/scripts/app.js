@@ -1771,7 +1771,8 @@ function findStoryBundles(articles, minArticles = 3) {
 }
 
 function renderBundle(bundle, allArticles) {
-  const thumb = bundlePhoto(bundle) || PLACEHOLDER_IMG;
+  const thumb = bundlePhoto(bundle);
+  if (!thumb) return '';
   const variant = bundleVariant(bundle);
   const thumbHtml = `<img class="bundle-thumb" src="${esc(thumb)}" alt="" loading="lazy">`;
 
@@ -1838,18 +1839,32 @@ function selectAthBundles(articles) {
   return picks.slice(0, 3);
 }
 
-function selectTopStoryBundles(articles, limit = 3) {
-  return articles
-    .slice()
-    .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
-    .slice(0, limit)
-    .map(article => ({
+function selectTopStoryBundles(articles, limit = 3, excludeLinks = new Set()) {
+  const picks = [];
+  const seenLinks = new Set(excludeLinks);
+  const seenTitles = new Set();
+
+  for (const article of articles.slice().sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))) {
+    const photo = extractThumbnail(article);
+    const normalizedTitle = cleanBundleHeadline(article.title).toLowerCase();
+    if (!photo) continue;
+    if (article.link && seenLinks.has(article.link)) continue;
+    if (normalizedTitle && seenTitles.has(normalizedTitle)) continue;
+
+    picks.push({
       label: fitBundleHeadline(article.title, 54),
       slug: bundleSlug(article.link || article.title),
       tokens: tokenize(article.title),
       articles: [article],
       sourceCount: 1,
-    }));
+    });
+
+    if (article.link) seenLinks.add(article.link);
+    if (normalizedTitle) seenTitles.add(normalizedTitle);
+    if (picks.length === limit) break;
+  }
+
+  return picks;
 }
 
 function selectAdaptiveAthBundles(articles) {
@@ -1865,6 +1880,13 @@ function selectAdaptiveAthBundles(articles) {
     const bundles = selectAthBundles(getAthArticles(articles, days));
     if (bundles.length > best.length) best = bundles;
     if (bundles.length >= 3) return bundles;
+  }
+
+   if (state.activeCategory === 'mlb' && best.length < 3) {
+    const usedLinks = new Set(best.flatMap(bundle => bundle.articles.map(article => article?.link).filter(Boolean)));
+    const fallbackArticles = articles.filter(article => !usedLinks.has(article.link));
+    const fallbackBundles = selectTopStoryBundles(fallbackArticles, 3 - best.length, usedLinks);
+    return [...best, ...fallbackBundles].slice(0, 3);
   }
 
   return best;
