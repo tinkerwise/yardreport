@@ -497,7 +497,7 @@ img { display: block; max-width: 100%; }
 .box-perf-hand { font-size: calc(var(--popover-meta-size) - 0.02rem); color: var(--text-3); font-weight: 400; }
 .pitcher-role-badge {
   font-size: 0.5rem; font-weight: 800; letter-spacing: 0.06em;
-  color: var(--text-3); border: 1px solid var(--border);
+  color: var(--text-2); border: 1px solid color-mix(in srgb, var(--border) 60%, var(--text-2) 40%);
   border-radius: 3px; padding: 0 3px; line-height: 1.5;
   flex-shrink: 0; align-self: center;
 }
