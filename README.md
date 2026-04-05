@@ -1,92 +1,26 @@
 # Yard Report
 
-Yard Report is a personal Orioles- and MLB-focused news aggregator built as a static Astro site. It combines baseball news, score bugs, sidebar widgets, and a few hidden seasonal/site-specific Easter eggs into a single-page dashboard.
+Yard Report is a personal Orioles- and MLB-focused news dashboard built with Astro. It combines a filtered baseball news feed with live score bugs and Orioles-first sidebar widgets in a single-page experience.
 
-## What The Site Does
+## Features
 
-- Aggregates Orioles and MLB news from multiple RSS sources
-- Supports grid, list, and compact article views
-- Includes category, source, search, sort, and date-range filtering
-- Bundles major cross-source stories into "Around the Horn" groups
-- Shows score bugs for yesterday, today, and tomorrow, including live state, delays/postponements, weather, and box score hover details
-- Surfaces Orioles-focused sidebar widgets for On Deck, standings, Yard Leaders, roster, injury report, transactions, a compact podcast player, and video
-- Persists theme, default view, and read/unread state in localStorage
-
-## Current Highlights
-
-- News feed with full-reader modal, thumbnails, share actions, read tracking, and mobile swipe mark/unmark
-- Feed toolbar with left-aligned category pills and right-aligned source/view controls
-- Score bugs with probable pitcher scouting notes including pitch arsenal (type, usage %, velocity) for preview games
-- On Deck widget with schedule strip and game-day lineup popover
-- Standings widget with division tabs
-- Yard Leaders widget with Baseball Savant player/stat links
-- Injury Report with IL type and injury note
-- Transactions widget covering the last 14 days
-- Podcast widget with a small native audio player for the latest `Baseball Tonight with Buster Olney` episode plus episode/archive links
-- Video widget with MLB Fastcast, MLB Top Plays, Orioles Game Recaps, and a random Orioles Moments video on each page load, with Orioles recap fallback to MLB game media when the team playlist is stale
-- Easter eggs including `magic`, `heritage`, Konami Code, and the hidden OPACY theme
+- Orioles- and MLB-focused news aggregation
+- Grid, list, and compact article views
+- Category, source, search, sort, and date-range filtering
+- Score bugs for yesterday, today, and tomorrow with live game details
+- Orioles-focused sidebar widgets for On Deck, standings, leaders, roster, injuries, transactions, podcast, and video
+- Reader modal with share actions and read/unread tracking
+- Theme and default-view preferences saved in localStorage
 
 ## Stack
 
 - Astro 4
 - Static deployment
-- MLB Stats API for baseball data
-- Open-Meteo for ballpark forecasts
-- Google Favicon API for source icons
-- PHP RSS proxy for production feed/text fetching
-- Megaphone RSS feed for the podcast widget
-- ESPN podcast archive page for podcast detail/archive links
-- Dev-only Astro middleware proxy for local development
+- MLB Stats API
+- Open-Meteo
+- PHP RSS proxy for production feed fetching
 
-## External Sources And Feeds
-
-### News RSS Sources
-
-- Baltimore Orioles: `https://www.mlb.com/orioles/feeds/news/rss.xml`
-- Baltimore Baseball: `https://www.baltimorebaseball.com/feed/`
-- Camden Chat: `https://www.camdenchat.com/rss/index.xml`
-- Birds Watcher: `https://birdswatcher.com/feed/`
-- Eutaw Street Report: `https://www.eutawstreetreport.com/feed/`
-- MASN Sports: `https://www.masnsports.com/feed`
-- Orioles Hangout: `https://www.orioleshangout.com/feed/`
-- MLB.com: `https://www.mlb.com/feeds/news/rss.xml`
-- MLB Trade Rumors: `https://www.mlbtraderumors.com/baltimore-orioles/feed`
-- ESPN MLB: `https://www.espn.com/espn/rss/mlb/news`
-- FanGraphs: `https://blogs.fangraphs.com/feed/`
-- Baseball Prospectus: `https://www.baseballprospectus.com/tag/baltimore-orioles/feed/`
-- CBS Sports MLB: `https://www.cbssports.com/rss/headlines/mlb/`
-- Yahoo Sports MLB: `https://sports.yahoo.com/mlb/rss.xml`
-- Baseball America: `https://www.baseballamerica.com/feed/`
-- New York Times Baseball: `https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml`
-- The Long Game: `https://mollyknight.substack.com/feed`
-
-### Podcast Sources
-
-- Baseball Tonight with Buster Olney RSS: `https://feeds.megaphone.fm/ESP1723897648`
-- ESPN archive/details page: `https://www.espn.com/espnradio/podcast/archive?id=2386164`
-
-### Video Sources
-
-- YouTube playlist feed: `https://www.youtube.com/feeds/videos.xml?playlist_id=<PLAYLIST_ID>`
-- MLB Fastcast playlist ID: `PLL-lmlkrmJakABrOT6FmV0mU-5oIF8nGu`
-- MLB Top Plays playlist ID: `PLL-lmlkrmJalPg-EgiZ92Eyg9YodLbQsE`
-- Orioles Game Recaps playlist ID: `PLoeYQM_iUEVyoMu-AIZFXs9ja6GMzF1Ce`
-- Orioles Moments playlist ID: `PLoeYQM_iUEVwNa9HwsFfS0aWvshxoYnhy`
-- MLB game-content media fallback for Orioles recap freshness: `https://statsapi.mlb.com/api/v1/schedule?...&hydrate=game(content(media(epg)))`
-
-### Data And Asset Services
-
-- MLB Stats API: `https://statsapi.mlb.com/api/v1`
-  - Schedule, standings, roster, boxscore, leaders, and probable pitchers hydration
-  - Pitch arsenal (pitch type, usage %, velocity) per pitcher: `/people/{playerId}/stats?stats=pitchArsenal&season=YYYY&group=pitching`
-- Open-Meteo forecast API: `https://api.open-meteo.com/v1/forecast`
-- Google Favicon API: `https://www.google.com/s2/favicons`
-- MLB Gameday and story links: `https://www.mlb.com/gameday/...` and `https://www.mlb.com/stories/game/...`
-- MLB team/player/transactions pages: `https://www.mlb.com/...`
-- MLB team logo assets: `https://www.mlbstatic.com/team-logos/...`
-- Baseball Savant player and leaderboard links: `https://baseballsavant.mlb.com/...`
-
-## Local Development
+## Development
 
 Install dependencies:
 
@@ -106,6 +40,12 @@ Build the site:
 npm run build
 ```
 
+Run the built-in smoke test:
+
+```bash
+npm run smoke
+```
+
 Preview the production build locally:
 
 ```bash
@@ -114,25 +54,15 @@ npm run preview
 
 ## Deployment
 
-- Official release path: push to `main`, which triggers [deploy.yml](/Users/briancsmith/Documents/GitHub/yardreport/.github/workflows/deploy.yml)
-- The GitHub Actions workflow builds the site and deploys `dist/` to `./public_html/yardreport/` over FTP
-- cPanel Git Version Control is now a legacy/manual fallback path, not the normal release workflow
-- [.cpanel.yml](/Users/briancsmith/Documents/GitHub/yardreport/.cpanel.yml) remains in the repo only for that manual fallback scenario
+Push to `main` to trigger the GitHub Actions deployment workflow. The workflow runs the smoke test, builds the site, and deploys `dist/` to the live server over FTP.
 
-## Project Structure
+A scheduled GitHub Actions health workflow also runs daily checks for:
+- smoke test + live homepage check
+- production proxy/feed check
 
-- [src/pages/index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro): page shell and widget layout
-- [src/scripts/app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js): main client-side app logic
-- [public/style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css): global styling
-- [public/feeds.json](/Users/briancsmith/Documents/GitHub/yardreport/public/feeds.json): news/video source definitions
-- [public/rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php): production proxy for trusted feeds/pages
-- [updates.txt](/Users/briancsmith/Documents/GitHub/yardreport/updates.txt): running feature/spec file
-- [changelog.txt](/Users/briancsmith/Documents/GitHub/yardreport/changelog.txt): recent project change log
+For maintainer operations guidance, including recommended cron/health-check cadence, see [brief.txt](/Users/briancsmith/Documents/GitHub/yardreport/brief.txt).
 
-## Workflow Notes
+## Notes
 
-`updates.txt` is the main running spec for feature work. New ideas, shipped features, and implementation prompts should stay aligned with that file.
-
-The main implementation surface is `src/scripts/app.js`, so even small changes can have broad UI impact. When making updates, preserve readability, avoid content overload, and be careful with shared render/state logic.
-
-The canonical inventory of third-party feeds and services now lives in the `External Sources And Feeds` section above and should be kept in sync with [public/feeds.json](/Users/briancsmith/Documents/GitHub/yardreport/public/feeds.json) and [src/scripts/app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js).
+- This repository is maintained as a personal project with an Orioles-first editorial bias.
+- Maintainer-specific workflow notes, source inventories, and implementation details live in [brief.txt](/Users/briancsmith/Documents/GitHub/yardreport/brief.txt).

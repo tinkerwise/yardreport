@@ -1,6 +1,6 @@
 **Maintainer Brief**
 
-Yard Report is a single-page Astro site with a thin static shell and a very thick client script. The core implementation lives in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js), which owns state, data fetching, rendering, event wiring, settings, Easter eggs, and sidebar widgets like video and the new podcast player. The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) now also serves as the canonical inventory of external feeds, APIs, and asset sources.
+Yard Report is a single-page Astro site with a thin static shell and a very thick client script. The core implementation lives in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js), which owns state, data fetching, rendering, event wiring, settings, Easter eggs, and sidebar widgets like video and podcast. The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is now intentionally public-facing and brief; this file is the home for maintainer detail.
 
 **What’s Fragile**
 
@@ -32,6 +32,104 @@ If we want the repo easier to maintain without changing behavior, the highest-va
 - separate pure render helpers from fetch/state logic
 - centralize API wrappers and response shaping
 - add a small smoke-test checklist for feed load, filters, reader, scores, and settings persistence
+
+**Project Structure**
+
+- [src/pages/index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro): page shell and widget layout
+- [src/scripts/app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js): main client-side app logic
+- [src/scripts/config.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/config.js): shared config/constants
+- [src/scripts/storage.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/storage.js): localStorage helpers
+- [public/style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css): global styling
+- [public/feeds.json](/Users/briancsmith/Documents/GitHub/yardreport/public/feeds.json): news/video source definitions
+- [public/rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php): production proxy for trusted feeds/pages
+- [updates.txt](/Users/briancsmith/Documents/GitHub/yardreport/updates.txt): running feature/spec file
+- [changelog.txt](/Users/briancsmith/Documents/GitHub/yardreport/changelog.txt): recent project change log
+
+**Deployment**
+
+- Official release path: push to `main`, which triggers [.github/workflows/deploy.yml](/Users/briancsmith/Documents/GitHub/yardreport/.github/workflows/deploy.yml)
+- The GitHub Actions workflow runs `npm run smoke`, builds the site, and deploys `dist/` to `./public_html/yardreport/` over FTP
+- The same workflow file also runs two scheduled daily health jobs:
+  - smoke test + live homepage check
+  - production RSS proxy/feed check
+- cPanel Git Version Control is a legacy/manual fallback path, not the normal release workflow
+- [.cpanel.yml](/Users/briancsmith/Documents/GitHub/yardreport/.cpanel.yml) remains in the repo only for that fallback scenario
+
+**Cron Guidance**
+
+Cron jobs should stay minimal because most site data is fetched client-side at runtime. The useful recurring checks are operational sanity checks, not scheduled content refreshes.
+
+Recommended recurring tasks:
+- Run `npm run smoke` after deploys and optionally once daily in CI for early warning on build/output regressions
+- Run a lightweight live homepage health check daily to confirm the deployed site still returns `200`
+- Run a lightweight production proxy/feed sanity check daily if RSS proxy stability becomes a concern
+
+Not worth scheduling as cron:
+- plain `npm run build` without smoke/deploy follow-through
+- score refreshes, standings refreshes, video refreshes, podcast refreshes, or other freshness jobs, because those surfaces are already fetched client-side
+
+Preferred cadence:
+- per deploy: `npm run smoke`
+- daily: smoke test + homepage health check
+- daily: RSS proxy/feed sanity check
+
+**Workflow Notes**
+
+`updates.txt` is the main running spec for feature work. New ideas, shipped features, and implementation prompts should stay aligned with that file.
+
+The main implementation surface is `src/scripts/app.js`, so even small changes can have broad UI impact. When making updates, preserve readability, avoid content overload, and be careful with shared render/state logic.
+
+The built-in smoke test is `npm run smoke`. It runs a production build and then checks that the generated site still includes the core UI surfaces: scores, feed, On Deck, podcast, video, standings, leaders, reader overlay, settings overlay, plus key built assets.
+
+Branch usage for this repo should stay simple:
+- treat `main` as the deployable branch
+- use a feature/fix/docs branch for larger, riskier, or unrelated work
+- keep one branch per topic
+- merge back into `main` only when the change is ready, since pushes to `main` trigger deployment
+- for tiny safe edits, working directly on `main` is fine
+
+To preview a branch without merging to `main`, check out that branch and run `npm run dev` for a local preview or `npm run build && npm run preview` for a production-like local preview. Stop the dev server before switching branches, then restart it on the branch you want to inspect.
+
+**External Sources And Feeds**
+
+News RSS sources:
+- Baltimore Orioles: `https://www.mlb.com/orioles/feeds/news/rss.xml`
+- Baltimore Baseball: `https://www.baltimorebaseball.com/feed/`
+- Camden Chat: `https://www.camdenchat.com/rss/index.xml`
+- Birds Watcher: `https://birdswatcher.com/feed/`
+- Eutaw Street Report: `https://www.eutawstreetreport.com/feed/`
+- MASN Sports: `https://www.masnsports.com/feed`
+- Orioles Hangout: `https://www.orioleshangout.com/feed/`
+- MLB.com: `https://www.mlb.com/feeds/news/rss.xml`
+- MLB Trade Rumors: `https://www.mlbtraderumors.com/baltimore-orioles/feed`
+- ESPN MLB: `https://www.espn.com/espn/rss/mlb/news`
+- FanGraphs: `https://blogs.fangraphs.com/feed/`
+- Baseball Prospectus: `https://www.baseballprospectus.com/tag/baltimore-orioles/feed/`
+- Baseball America: `https://www.baseballamerica.com/feed/`
+- New York Times Baseball: `https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml`
+- The Long Game: `https://mollyknight.substack.com/feed`
+
+Podcast sources:
+- Baseball Tonight with Buster Olney RSS: `https://feeds.megaphone.fm/ESP1723897648`
+- ESPN archive/details page: `https://www.espn.com/espnradio/podcast/archive?id=2386164`
+
+Video sources:
+- YouTube playlist feed: `https://www.youtube.com/feeds/videos.xml?playlist_id=<PLAYLIST_ID>`
+- MLB Fastcast playlist ID: `PLL-lmlkrmJakABrOT6FmV0mU-5oIF8nGu`
+- MLB Top Plays playlist ID: `PLL-lmlkrmJalPg-EgiZ92Eyg9YodLbQsE`
+- Orioles Game Recaps playlist ID: `PLoeYQM_iUEVyoMu-AIZFXs9ja6GMzF1Ce`
+- Orioles Moments playlist ID: `PLoeYQM_iUEVwNa9HwsFfS0aWvshxoYnhy`
+- MLB game-content media fallback for Orioles recap freshness: `https://statsapi.mlb.com/api/v1/schedule?...&hydrate=game(content(media(epg)))`
+
+Data and asset services:
+- MLB Stats API: `https://statsapi.mlb.com/api/v1`
+  Schedule, standings, roster, boxscore, leaders, probable pitchers, and pitch arsenal
+- Open-Meteo forecast API: `https://api.open-meteo.com/v1/forecast`
+- Google Favicon API: `https://www.google.com/s2/favicons`
+- MLB Gameday and story links: `https://www.mlb.com/gameday/...` and `https://www.mlb.com/stories/game/...`
+- MLB team/player/transactions pages: `https://www.mlb.com/...`
+- MLB team logo assets: `https://www.mlbstatic.com/team-logos/...`
+- Baseball Savant player and leaderboard links: `https://baseballsavant.mlb.com/...`
 
 **Prompting Guidance**
 

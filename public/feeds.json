@@ -11,8 +11,6 @@
   { "id": "espn",         "name": "ESPN MLB",            "url": "https://www.espn.com/espn/rss/mlb/news",                         "color": "#cc0000", "category": "mlb"     },
   { "id": "fangraphs",    "name": "FanGraphs",           "url": "https://blogs.fangraphs.com/feed/",                              "color": "#22c55e", "category": "mlb"     },
   { "id": "bp",           "name": "Baseball Prospectus",  "url": "https://www.baseballprospectus.com/tag/baltimore-orioles/feed/", "color": "#1e40af", "category": "mlb"     },
-  { "id": "cbs",          "name": "CBS Sports MLB",      "url": "https://www.cbssports.com/rss/headlines/mlb/",                   "color": "#0369a1", "category": "mlb"     },
-  { "id": "yahoo",        "name": "Yahoo Sports MLB",    "url": "https://sports.yahoo.com/mlb/rss.xml",                           "color": "#7c3aed", "category": "mlb"     },
   { "id": "ba",           "name": "Baseball America",    "url": "https://www.baseballamerica.com/feed/",                          "color": "#b91c1c", "category": "mlb"     },
   { "id": "nyt",          "name": "NY Times Baseball",   "url": "https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml",      "color": "#1a1a1a", "category": "mlb"     },
   { "id": "knight",       "name": "The Long Game",       "url": "https://mollyknight.substack.com/feed",                          "color": "#be185d", "category": "mlb"     }

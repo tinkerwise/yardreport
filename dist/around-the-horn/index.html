@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"><meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="description" content="Baltimore Orioles and MLB news aggregator"><title>Around the Horn | Yard Report</title><link rel="icon" type="image/jpeg" href="/yardreport/favicon.jpg"><link rel="stylesheet" href="/yardreport/style.css"></head> <body>  <main class="ath-page"> <div class="ath-page-shell"> <a class="ath-page-back" href="/yardreport/">← Back to Yard Report</a> <header class="ath-page-head"> <span class="ath-page-kicker">Around the Horn</span> <h1 class="ath-page-title" id="athPageTitle">Loading story…</h1> <p class="ath-page-subtitle" id="athPageSubtitle">Gathering related coverage from the saved bundle.</p> </header> <section class="ath-story-grid" id="athStoryGrid"> <div class="feed-msg">Loading bundle…</div> </section> </div> </main> <script type="module">
+    const grid = document.getElementById('athStoryGrid');
+    const title = document.getElementById('athPageTitle');
+    const subtitle = document.getElementById('athPageSubtitle');
+    const key = 'yr_ath_bundles';
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('topic') || '';
+
+    function esc(str = '') {
+      return String(str).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function faviconUrl(link) {
+      try {
+        const { hostname } = new URL(link);
+        return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+      } catch {
+        return '';
+      }
+    }
+
+    function relativeDate(dateStr) {
+      const d = new Date(dateStr);
+      if (Number.isNaN(d.getTime())) return '';
+      const diff = Date.now() - d.getTime();
+      const minutes = Math.floor(diff / 60000);
+      if (minutes < 60) return `${Math.max(minutes, 1)}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function renderStoryCard(article) {
+      const favicon = faviconUrl(article.link);
+      const desc = (article.description || '').slice(0, 180);
+      return `<article class="ath-story-card">
+        <div class="ath-story-meta">
+          ${favicon ? `<img class="source-ico" src="${esc(favicon)}" alt="" onerror="this.style.display='none'">` : ''}
+          <span class="source-name">${esc(article.source?.name || 'Source')}</span>
+          <span class="article-date">${esc(relativeDate(article.pubDate))}</span>
+        </div>
+        <h2 class="ath-story-title"><a href="${esc(article.link)}" target="_blank" rel="noopener noreferrer">${esc(article.title || 'Untitled')}</a></h2>
+        ${desc ? `<p class="ath-story-desc">${esc(desc)}</p>` : ''}
+      </article>`;
+    }
+
+    let bundles = {};
+    try {
+      bundles = JSON.parse(sessionStorage.getItem(key) || '{}');
+    } catch {
+      bundles = {};
+    }
+
+    const bundle = bundles[slug];
+
+    if (!bundle) {
+      title.textContent = 'Story bundle unavailable';
+      subtitle.textContent = 'Open an Around the Horn card from the homepage first so this page can load the saved related-coverage bundle.';
+      grid.innerHTML = '<div class="feed-msg">No saved Around the Horn bundle was found for this story yet.</div>';
+    } else {
+      title.textContent = bundle.label || 'Around the Horn';
+      subtitle.textContent = `${bundle.sourceCount || 0} sources • ${(bundle.articles || []).length} related articles`;
+      grid.innerHTML = (bundle.articles || []).map(renderStoryCard).join('') || '<div class="feed-msg">No related articles found.</div>';
+    }
+  </script>  </body></html>

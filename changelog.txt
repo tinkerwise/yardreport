@@ -1,6 +1,16 @@
 Yard Report Changelog
 Week of April 4 - April 10, 2026
 
+April 5, 2026
+
+Documentation
+- Trimmed `README.md` into a more standard public-facing project README.
+- Moved maintainer-heavy workflow, deployment, source inventory, and operations detail into `brief.txt`.
+- Documented recommended cron cadence as minimal operational checks: deploy-time smoke tests plus optional daily homepage/proxy health checks, not scheduled content-refresh jobs.
+
+Operations
+- Added scheduled GitHub Actions health checks for daily smoke + homepage verification and daily production proxy/feed verification, while keeping deploy-on-push behavior separate.
+
 April 4, 2026 (afternoon)
 
 Score Bug Enhancements

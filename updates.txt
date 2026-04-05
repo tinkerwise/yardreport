@@ -3,7 +3,7 @@
 #CURRENT SITE
 
 #News Feed
-  - RSS aggregation from 17 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, Eutaw Street Report, MASN Sports, Orioles Hangout, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, CBS Sports MLB, Yahoo Sports MLB, Baseball America, New York Times Baseball, and The Long Game
+  - RSS aggregation from 15 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, Eutaw Street Report, MASN Sports, Orioles Hangout, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, Baseball America, New York Times Baseball, and The Long Game
   - 3-day default article feed with selectable range (3 / 7 / 14 / 30 days)
   - Full article reader (iframe for full RSS content, excerpt + link for others)
   - Off-topic article filter (rejects non-baseball content from general feeds)
@@ -93,6 +93,8 @@
 #Infrastructure
   - GitHub Actions CI/CD is the official deploy path (build + lftp deploy to `public_html/yardreport`)
   - cPanel Git Version Control remains available only as a manual fallback path
+  - Cron guidance: keep scheduled tasks minimal; prefer deploy-time smoke tests and daily health/proxy checks over scheduled content refresh jobs
+  - Scheduled GitHub Actions checks now run daily for smoke + homepage health and for production proxy/feed sanity
   - PHP RSS proxy with domain allowlist (includes youtube.com and megaphone.fm), audio-enclosure extraction, and optional raw text/HTML passthrough for trusted pages
   - MLB Stats API for scores, standings, schedule, roster, transactions, leaders, boxscore
     - Pitcher pitch arsenal: `/people/{playerId}/stats?stats=pitchArsenal&season=YYYY&group=pitching`
@@ -148,16 +150,18 @@
 - ✓ extract shared config and localStorage helpers out of app.js into modules
 - ✓ improve content overload handling with smarter article description clamping and denser score-bug names
 - ✓ add Scout pitch-mix mini section for live Orioles games (top 3 pitches)
+- ✓ Update Around the Horn
+  - redesigned ATH into vertical baseball-card-style story cards with topic text overlay
+  - clicking an ATH card now opens a dedicated Around the Horn story page with related coverage
+  - tightened ATH bundle matching so stories stay more closely grouped around shared team/player/topic anchors
 
 ##Active
 // Add items here for immediate implementation
 
 ##Queued
 // Add items here for the likely next batch of work
-- Add batter matchup context (vs LHP/RHP splits) next to lineup names
-- Scout Notes: surface team tendencies and historical matchup stats for preview games
-- Expand score bug box score with recent team/pitcher form indicators
-- Add video widget refresh interval (currently loads on page load only)
+- Scout Notes: surface team tendencies and historical matchup stats for preview games, add to game preview below lineups
+
 
 ##Parking lot
 - Create a companion mobile app (iOS, Android) based on BIG IDEA #1

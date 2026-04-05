@@ -1358,6 +1358,14 @@ function getFilteredArticles() {
   return arts;
 }
 
+function getAthArticles(articles, windowDays = 3) {
+  const cutoff = Date.now() - windowDays * 864e5;
+  return articles.filter(article => {
+    const d = new Date(article.pubDate);
+    return !isNaN(d) && d.getTime() > cutoff;
+  });
+}
+
 function articleDateGroup(dateStr) {
   if (!dateStr) return 'Older';
   const d = new Date(dateStr);
@@ -1457,51 +1465,141 @@ function renderCard(a, i) {
 
 function tokenize(title) {
   // Remove common filler words, keep meaningful terms
-  const stop = new Set(['a','an','the','of','in','on','to','for','and','is','are','was','at','by','with','from','vs','after','how','what','why','who','this','that','it','its','has','have','had','be','do','does','not','but','or','can','will','may','about','into','over','up','out','no','so','all','just','than','then','also','new','more','first','last','one','two','three','game','games','mlb','baseball','season','team','teams','series']);
+  const stop = new Set(['a','an','the','of','in','on','to','for','and','is','are','was','at','by','with','from','vs','after','how','what','why','who','this','that','it','its','has','have','had','be','do','does','not','but','or','can','will','may','about','into','over','up','out','no','so','all','just','than','then','also','new','more','first','last','one','two','three','game','games','mlb','baseball','season','team','teams','series','win','wins','loss','losses','says','said','gets','get','makes','make','takes','take','latest','report','reports','notes','preview','recap','update','updates','story']);
   return title.toLowerCase()
     .replace(/[^a-z0-9\s'-]/g, '')
     .split(/\s+/)
     .filter(w => w.length > 2 && !stop.has(w));
 }
 
+function bundleSlug(label) {
+  return String(label || 'around-the-horn')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'around-the-horn';
+}
+
+function bundleAnchorTokens(tokens) {
+  return tokens.filter(token =>
+    token.length >= 5 ||
+    ['orioles', 'yankees', 'redsox', 'bluejays', 'rays', 'astros', 'dodgers', 'mets', 'braves', 'cubs', 'padres'].includes(token)
+  );
+}
+
+function bundleCardSummary(bundle) {
+  const topSources = [...new Set(bundle.articles.map(a => a.source.name))].slice(0, 3);
+  return topSources.join(' • ');
+}
+
+function cleanBundleHeadline(title) {
+  return String(title || '')
+    .replace(/^[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){0,3}:\s+/, '')
+    .replace(/\s+\|\s+[^|]+$/, '')
+    .replace(/\s+[—-]\s+(ESPN|MLB\.com|The Athletic|CBS Sports|Yahoo Sports|FOX Sports|Sports Illustrated|Baltimore Banner|PressBox|MASN|Camden Chat)$/i, '')
+    .replace(/\s+[—|-]\s+by\s+[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){0,3}$/i, '')
+    .replace(/\s+\|\s+by\s+[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){0,3}$/i, '')
+    .replace(/\s+\bby\s+[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){0,3}$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function fitBundleHeadline(title, maxLength = 54) {
+  const clean = cleanBundleHeadline(title);
+  if (clean.length <= maxLength) return clean;
+  const words = clean.split(' ');
+  let fitted = '';
+
+  for (const word of words) {
+    const next = fitted ? `${fitted} ${word}` : word;
+    if (next.length > maxLength - 1) break;
+    fitted = next;
+  }
+
+  if (!fitted) return `${clean.slice(0, maxLength - 1).trim()}...`;
+  return `${fitted}...`;
+}
+
+function bundlePhoto(bundle) {
+  return bundle.articles.map(article => extractThumbnail(article)).find(Boolean) || null;
+}
+
+function isOriolesArticle(article) {
+  return article.source?.category === 'orioles' ||
+    /\b(orioles|baltimore|camden|adley|henderson|mullins|o'hearn|westburg|rutschman|mountcastle|holliday|cowser|kjerstad|urias|mateo|bautista|cano|eflin|grayson|kremer|povich)\b/i
+      .test(`${article.title || ''} ${article.description || ''}`);
+}
+
+function bundleVariant(bundle) {
+  const oriolesHits = bundle.articles.filter(isOriolesArticle).length;
+  return oriolesHits >= Math.max(1, Math.ceil(bundle.articles.length / 2)) ? 'orioles' : 'mlb';
+}
+
+function bundleLogoMarkup(bundle, variant) {
+  if (variant === 'orioles') {
+    return `<img class="bundle-logo-mark" src="https://www.mlbstatic.com/team-logos/110.svg" alt="Orioles logo" loading="lazy">`;
+  }
+  const mlbFavicon = faviconUrl('https://www.mlb.com');
+  return mlbFavicon
+    ? `<img class="bundle-logo-mark bundle-logo-mark--mlb" src="${esc(mlbFavicon)}" alt="MLB logo" loading="lazy">`
+    : `<span class="bundle-logo-mark bundle-logo-mark--fallback" aria-hidden="true">MLB</span>`;
+}
+
+function storeAthBundle(bundle) {
+  try {
+    const key = 'yr_ath_bundles';
+    const existing = JSON.parse(sessionStorage.getItem(key) || '{}');
+    existing[bundle.slug] = {
+      label: bundle.label,
+      slug: bundle.slug,
+      sourceCount: bundle.sourceCount,
+      tokens: bundle.tokens,
+      articles: bundle.articles.map(article => ({
+        title: article.title,
+        link: article.link,
+        source: article.source,
+        pubDate: article.pubDate,
+        description: article.description,
+        content: article.content,
+      })),
+      savedAt: Date.now(),
+    };
+    sessionStorage.setItem(key, JSON.stringify(existing));
+  } catch {
+    // Ignore storage failures and let the page show its fallback state.
+  }
+}
+
 function buildTopicLabel(sharedTokens, articles) {
-  if (!sharedTokens.length) {
-    return articles.slice().sort((a, b) => a.title.length - b.title.length)[0].title;
+  const rankedHeadlines = articles
+    .map(article => cleanBundleHeadline(article.title))
+    .filter(Boolean)
+    .map(title => {
+      const titleTokens = new Set(tokenize(title));
+      const overlap = sharedTokens.filter(token => titleTokens.has(token)).length;
+      const hasColon = title.includes(':') ? 1 : 0;
+      return { title, overlap, hasColon, length: title.length };
+    })
+    .sort((a, b) =>
+      b.overlap - a.overlap ||
+      b.hasColon - a.hasColon ||
+      a.length - b.length
+    );
+
+  if (rankedHeadlines.length) {
+    const preferred = rankedHeadlines.find(item => item.length <= 54) ||
+      rankedHeadlines.find(item => item.length <= 64) ||
+      rankedHeadlines[0];
+    return fitBundleHeadline(preferred.title, 54);
   }
 
-  // Try to extract a person name from the shared tokens
-  // Check if any article title starts with a proper name that contains shared tokens
-  const nameRe = /^([A-Z][a-z]+ [A-Z][a-z]+)/;
-  let playerName = '';
-  for (const a of articles) {
-    const m = a.title.match(nameRe);
-    if (m) {
-      const nameParts = m[1].toLowerCase().split(' ');
-      if (nameParts.some(p => sharedTokens.includes(p))) {
-        playerName = m[1];
-        break;
-      }
-    }
-  }
+  if (!sharedTokens.length) return 'Around the Horn';
 
-  // Build a descriptive phrase from shared tokens
   const phrase = sharedTokens
-    .map(t => t.charAt(0).toUpperCase() + t.slice(1))
+    .slice(0, 5)
+    .map(token => token.charAt(0).toUpperCase() + token.slice(1))
     .join(' ');
-
-  // If we found a player name, lead with "Name: topic"
-  let label;
-  if (playerName) {
-    const remaining = sharedTokens
-      .filter(t => !playerName.toLowerCase().includes(t))
-      .map(t => t.charAt(0).toUpperCase() + t.slice(1))
-      .join(' ');
-    label = remaining ? `${playerName}: ${remaining}` : playerName;
-  } else {
-    label = phrase;
-  }
-
-  return label.length > 70 ? label.slice(0, 67) + '…' : label;
+  return fitBundleHeadline(phrase || 'Around the Horn', 54);
 }
 
 function findStoryBundles(articles, minArticles = 3) {
@@ -1523,7 +1621,8 @@ function findStoryBundles(articles, minArticles = 3) {
       if (assigned.has(j)) continue;
       const overlap = [...artTokens[j].tokens].filter(t => sharedTokens.has(t));
       // Need at least 2 meaningful words in common
-      if (overlap.length >= 2) {
+      const anchorOverlap = bundleAnchorTokens(overlap);
+      if (overlap.length >= 2 && anchorOverlap.length >= 1) {
         cluster.add(j);
         // Narrow shared tokens to the intersection
         for (const t of sharedTokens) {
@@ -1539,18 +1638,22 @@ function findStoryBundles(articles, minArticles = 3) {
       for (let j = 0; j < artTokens.length; j++) {
         if (refined.has(j)) continue;
         const overlap = [...artTokens[j].tokens].filter(t => sharedTokens.has(t));
-        if (overlap.length >= 2) refined.add(j);
+        if (overlap.length >= 2 && bundleAnchorTokens(overlap).length >= 1) refined.add(j);
       }
 
       const clusterArticles = [...refined].map(idx => articles[idx]);
       // Build a generalized topic label from the shared tokens
       const label = buildTopicLabel([...sharedTokens], clusterArticles);
 
+      const sourceCount = new Set(clusterArticles.map(a => a.source.id)).size;
+      if (sourceCount < 2) continue;
+
       clusters.push({
         label,
+        slug: bundleSlug(label),
         tokens: [...sharedTokens],
         articles: clusterArticles,
-        sourceCount: new Set(clusterArticles.map(a => a.source.id)).size,
+        sourceCount,
       });
       for (const idx of refined) assigned.add(idx);
     }
@@ -1562,10 +1665,9 @@ function findStoryBundles(articles, minArticles = 3) {
 }
 
 function renderBundle(bundle, allArticles) {
-  const thumb = bundle.articles.map(a => extractThumbnail(a)).find(Boolean);
-  const thumbHtml = thumb
-    ? `<img class="bundle-thumb" src="${esc(thumb)}" alt="" loading="lazy">`
-    : `<div class="bundle-thumb-placeholder"><img class="placeholder-logo" src="${PLACEHOLDER_IMG}" alt=""></div>`;
+  const thumb = bundlePhoto(bundle);
+  const variant = bundleVariant(bundle);
+  const thumbHtml = `<img class="bundle-thumb" src="${esc(thumb)}" alt="" loading="lazy">`;
 
   const sourceIcons = [...new Set(bundle.articles.map(a => a.source.name))].slice(0, 5)
     .map(name => {
@@ -1573,28 +1675,87 @@ function renderBundle(bundle, allArticles) {
       return `<img class="source-ico" src="${esc(faviconUrl(a.link))}" alt="" title="${esc(name)}" onerror="this.style.display='none'">`;
     }).join('');
 
-  const cards = bundle.articles
-    .map(a => {
-      const idx = allArticles.indexOf(a);
-      return renderCard(a, idx);
-    }).join('');
+  const href = `${import.meta.env.BASE_URL}around-the-horn/?topic=${encodeURIComponent(bundle.slug)}`;
 
-  return `<div class="ath-bundle">
-    <div class="bundle-header" role="button" tabindex="0">
+  return `<a class="ath-bundle ath-card-link ath-card-link--${variant}" href="${href}" data-bundle-slug="${esc(bundle.slug)}" role="button">
+    <div class="bundle-card-media bundle-card-media--${variant}">
       ${thumbHtml}
-      <div class="bundle-info">
-        <span class="bundle-tag">🔥 Around the Horn</span>
+      <div class="bundle-card-overlay"></div>
+      ${bundleLogoMarkup(bundle, variant)}
+      <div class="bundle-card-copy">
         <div class="bundle-title">${esc(bundle.label)}</div>
-        <div class="bundle-meta">
-          <span class="bundle-sources">${sourceIcons} <span class="bundle-count">${bundle.sourceCount} source${bundle.sourceCount !== 1 ? 's' : ''} · ${bundle.articles.length} articles</span></span>
-        </div>
       </div>
-      <svg class="bundle-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
     </div>
-    <div class="bundle-articles hidden">
-      <div class="article-grid list-layout">${cards}</div>
+    <div class="bundle-card-footer">
+      <div class="bundle-meta">
+        <span class="bundle-sources">${sourceIcons}</span>
+      </div>
     </div>
-  </div>`;
+  </a>`;
+}
+
+function selectAthBundles(articles) {
+  const primaryBundles = findStoryBundles(articles, 3)
+    .map(bundle => ({ ...bundle, photo: bundlePhoto(bundle) }))
+    .filter(bundle => bundle.photo);
+  const secondaryBundles = findStoryBundles(articles, 2)
+    .map(bundle => ({ ...bundle, photo: bundlePhoto(bundle) }))
+    .filter(bundle => bundle.photo);
+  const allBundles = [...primaryBundles];
+  for (const bundle of secondaryBundles) {
+    if (allBundles.some(item => item.slug === bundle.slug)) continue;
+    allBundles.push(bundle);
+  }
+  const oriolesBundle = allBundles.find(bundle => bundleVariant(bundle) === 'orioles') || null;
+  const nonOriolesPrimary = primaryBundles.filter(bundle => bundleVariant(bundle) !== 'orioles');
+  const nonOriolesSecondary = secondaryBundles.filter(bundle => bundleVariant(bundle) !== 'orioles');
+  const oriolesPrimary = primaryBundles.filter(bundle => bundleVariant(bundle) === 'orioles');
+  const oriolesSecondary = secondaryBundles.filter(bundle => bundleVariant(bundle) === 'orioles');
+  const picks = [];
+  const usedLinks = new Set();
+
+  function addBundle(bundle) {
+    if (!bundle) return;
+    if (picks.some(item => item.slug === bundle.slug)) return;
+    picks.push(bundle);
+    bundle.articles.forEach(article => {
+      if (article?.link) usedLinks.add(article.link);
+    });
+  }
+
+  addBundle(oriolesBundle);
+
+  for (const bundle of nonOriolesPrimary) {
+    if (bundle.articles.every(article => article?.link && usedLinks.has(article.link))) continue;
+    addBundle(bundle);
+    if (picks.length === 3) break;
+  }
+
+  if (picks.length < 3) {
+    for (const bundle of nonOriolesSecondary) {
+      if (bundle.articles.every(article => article?.link && usedLinks.has(article.link))) continue;
+      addBundle(bundle);
+      if (picks.length === 3) break;
+    }
+  }
+
+  if (picks.length < 3) {
+    for (const bundle of oriolesPrimary) {
+      if (bundle.articles.every(article => article?.link && usedLinks.has(article.link))) continue;
+      addBundle(bundle);
+      if (picks.length === 3) break;
+    }
+  }
+
+  if (picks.length < 3) {
+    for (const bundle of oriolesSecondary) {
+      if (bundle.articles.every(article => article?.link && usedLinks.has(article.link))) continue;
+      addBundle(bundle);
+      if (picks.length === 3) break;
+    }
+  }
+
+  return picks.slice(0, 3);
 }
 
 function groupArticles(arts, keyFn) {
@@ -1623,12 +1784,18 @@ function renderArticles() {
 
   // Hot Stove bundles (only in default date sort, no search)
   const bundles = (!state.searchQuery && state.sortBy === 'date')
-    ? findStoryBundles(arts, 3).slice(0, 3) : [];
+    ? selectAthBundles(getAthArticles(arts, 3)) : [];
   const bundledSet = new Set(bundles.flatMap(b => b.articles));
   const unbundled = arts.filter(a => !bundledSet.has(a));
 
   if (bundles.length) {
-    html += bundles.map(b => renderBundle(b, arts)).join('');
+    html += `<section class="ath-section">
+      <div class="ath-section-head">
+        <span class="ath-section-kicker">Featured Stories</span>
+        <h2 class="ath-section-title">Around the Horn</h2>
+      </div>
+      <div class="ath-bundle-grid">${bundles.map(b => renderBundle(b, arts)).join('')}</div>
+    </section>`;
   }
 
   const displayArts = bundles.length ? unbundled : arts;
@@ -1656,14 +1823,11 @@ function renderArticles() {
 
   list.innerHTML = html;
 
-  // Bundle expand/collapse
-  list.querySelectorAll('.bundle-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const bundle = header.closest('.ath-bundle');
-      const articles = bundle.querySelector('.bundle-articles');
-      const chevron = header.querySelector('.bundle-chevron');
-      articles.classList.toggle('hidden');
-      chevron.classList.toggle('expanded');
+  list.querySelectorAll('.ath-card-link').forEach(link => {
+    link.addEventListener('click', () => {
+      const slug = link.dataset.bundleSlug;
+      const bundle = bundles.find(item => item.slug === slug);
+      if (bundle) storeAthBundle(bundle);
     });
   });
 
