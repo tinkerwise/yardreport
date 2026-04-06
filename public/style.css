@@ -1107,6 +1107,10 @@ img { display: block; max-width: 100%; }
 .sidebar-section.collapsed .section-body { display: none; }
 .pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
 .pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   padding: 4px 11px;
   border: 1px solid var(--border-light);
   border-radius: 20px;
@@ -1118,6 +1122,25 @@ img { display: block; max-width: 100%; }
 }
 .pill:hover { border-color: var(--orange); color: var(--orange); }
 .pill.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+.pill--category { min-height: 28px; }
+.pill-logo {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.pill-logo--orioles {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+.pill-logo--league {
+  border-radius: 3px;
+}
+.pill.active .pill-logo--league {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1px;
+  box-sizing: border-box;
+}
 
 /* ── Standings ─────────────────────────────────────────────────── */
 .standings-section { display: flex; flex-direction: column; gap: 10px; }

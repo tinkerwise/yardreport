@@ -7,13 +7,14 @@
 - Be aware of content overload, always suggest condensing content in some way
 - Anticipate visual cues for visitors to types of media content (text, audio, video, graphics)
 - Minimize load on browser cache, memory, etc.
-- Work through ##Active then prompt for ##Queued, prompt for help with ##Ideas
-- Update this file after tasks are completed
+- Work through ##Active then prompt for ##Queued, then prompt for help with ##Ideas
+- Update this file after tasks are completed, remove '-' and leave checkmark
 
 ##Active
-// Add items here for immediate implementation
+- in feed section, use the orioles logo, MLB logo, and MiLB logos in the pill
+
 ##Queued
-// Add items here for the likely next batch of work
+
 
 ##Parking lot
 - Create a companion mobile app (iOS)
