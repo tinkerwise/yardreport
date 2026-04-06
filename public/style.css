@@ -702,8 +702,6 @@ img { display: block; max-width: 100%; }
   gap: 8px;
 }
 .probable-pitchers--preview .scout-notes {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--border) 90%, var(--orange) 10%);
   padding: 6px 8px;
 }
 .probable-pitchers-title {
