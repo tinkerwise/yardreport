@@ -11,9 +11,20 @@
 - Update this file after tasks are completed, remove '-' and leave checkmark
 
 ##Active
+<<<<<<< HEAD
+=======
+- in feed section, use the orioles logo, MLB logo, and MiLB logos in the pill
+- IL widget: add day IL stint started, some dates are retroactive, list under IL designation inline with injury, but right-justified ; move position to after name; as best as possible list players on expected return date
+- mobile: improve thumbnail on feed article frame to fill left side of frame, it is top-aligned, center-aligned may be better, if the Yard Report logo is used expand it as much as other images 
+- pull feeds of last 7 days, latest first
+>>>>>>> 00d271a704d2ef4ea8cb26bc6489b4d3047e44dd
 
 
 ##Queued
+- cache read articles (incl ATH), replace with new articles. 
+- display 10 articles, shuffle sources
+
+- 
 
 
 ##Parking lot
