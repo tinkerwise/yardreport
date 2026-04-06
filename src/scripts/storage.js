@@ -1,5 +1,6 @@
 const PREFS_KEY = 'yr_prefs';
 const READ_KEY = 'yr_read';
+const READ_ATH_KEY = 'yr_read_ath';
 
 export function loadPrefs() {
   try {
@@ -34,4 +35,19 @@ export function unmarkRead(url) {
   const read = getReadArticles();
   read.delete(url);
   localStorage.setItem(READ_KEY, JSON.stringify([...read]));
+}
+
+export function getReadAthBundles() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(READ_ATH_KEY)) || []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function markReadAthBundle(slug) {
+  const read = getReadAthBundles();
+  read.add(slug);
+  const arr = [...read].slice(-100);
+  localStorage.setItem(READ_ATH_KEY, JSON.stringify(arr));
 }

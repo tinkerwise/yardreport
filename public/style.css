@@ -945,6 +945,21 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
   margin-left: auto;
 }
+.score-lineup-row--preview-header {
+  margin-bottom: 3px;
+}
+.score-lineup-box-cols--preview {
+  grid-template-columns: repeat(3, minmax(34px, 1fr));
+  gap: 10px;
+  text-align: center;
+  justify-items: center;
+}
+.score-lineup-preview-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+}
 .score-lineup-slash--live {
   font-weight: 500;
   color: var(--text-2);
@@ -1373,9 +1388,23 @@ a.roster-name:hover { color: var(--orange); }
 .il-topline { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .il-name { flex: 1; min-width: 0; color: var(--text); font-weight: 500; transition: color 0.15s; }
 a.il-name:hover { color: var(--orange); }
-.il-pos { color: var(--text-3); font-size: 0.68rem; }
 .il-status { font-size: 0.65rem; padding: 1px 6px; border-radius: 3px; background: rgba(239,68,68,0.15); color: #ef4444; white-space: nowrap; }
-.il-note { font-size: 0.69rem; line-height: 1.45; color: var(--text-3); }
+.il-subline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.il-note { flex: 1; min-width: 0; font-size: 0.69rem; line-height: 1.45; color: var(--text-3); }
+.il-meta {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 /* ── Podcast Widget ──────────────────────────────────────────── */
 .podcast-card {
@@ -1586,6 +1615,11 @@ a.il-name:hover { color: var(--orange); }
   transition: border-color 0.15s, color 0.15s;
 }
 .btn-source-filter:hover { border-color: var(--orange); color: var(--orange); }
+.btn-feed-toggle[aria-pressed="true"] {
+  border-color: var(--orange);
+  background: var(--orange-dim);
+  color: var(--orange);
+}
 .source-popover {
   position: absolute; top: calc(100% + 6px); right: 0;
   background: var(--surface); border: 1px solid var(--border);
@@ -1648,6 +1682,9 @@ a.il-name:hover { color: var(--orange); }
   outline: none;
   cursor: pointer;
 }
+.btn-feed-toggle {
+  white-space: nowrap;
+}
 
 .article-list { display: flex; flex-direction: column; gap: 16px; }
 .article-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -1697,6 +1734,7 @@ a.il-name:hover { color: var(--orange); }
   max-height: 200px;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  object-position: center center;
   flex-shrink: 0;
   overflow: hidden;
   background: var(--border);
@@ -1713,7 +1751,7 @@ a.il-name:hover { color: var(--orange); }
   justify-content: center;
 }
 .placeholder-logo {
-  width: 50%; max-width: 100px; height: 50%; max-height: 100px;
+  width: 72%; max-width: 132px; height: 72%; max-height: 132px;
   object-fit: contain; opacity: 0.85; border-radius: 4px;
 }
 
@@ -1787,9 +1825,9 @@ a.il-name:hover { color: var(--orange); }
 .article-card.list-view .article-thumb,
 .article-card.list-view .article-thumb-placeholder {
   width: 160px; max-width: 160px; height: 100px; max-height: 100px;
-  border-radius: 0; aspect-ratio: auto; object-fit: cover; overflow: hidden;
+  border-radius: 0; aspect-ratio: auto; object-fit: cover; object-position: center center; overflow: hidden;
 }
-.article-card.list-view .placeholder-logo { width: 60%; max-width: 80px; height: 60%; max-height: 80px; }
+.article-card.list-view .placeholder-logo { width: 78%; max-width: 108px; height: 78%; max-height: 108px; }
 
 /* Compact view */
 .article-card.compact {
@@ -2624,9 +2662,9 @@ a.il-name:hover { color: var(--orange); }
     width: 90px !important; max-width: 90px !important;
     height: 72px !important; min-height: 72px !important;
     flex-shrink: 0; border-radius: 0 !important;
-    aspect-ratio: auto !important; object-fit: cover;
+    aspect-ratio: auto !important; object-fit: cover; object-position: center center !important;
   }
-  .placeholder-logo { width: 60% !important; height: 60% !important; max-width: 50px !important; max-height: 50px !important; }
+  .placeholder-logo { width: 84% !important; height: 84% !important; max-width: 76px !important; max-height: 76px !important; }
   .article-body { padding: 8px 10px 10px; gap: 4px; }
   .article-title {
     font-size: 0.85rem; -webkit-line-clamp: 2;

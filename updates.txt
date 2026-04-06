@@ -11,20 +11,10 @@
 - Update this file after tasks are completed, remove '-' and leave checkmark
 
 ##Active
-<<<<<<< HEAD
-=======
-- in feed section, use the orioles logo, MLB logo, and MiLB logos in the pill
-- IL widget: add day IL stint started, some dates are retroactive, list under IL designation inline with injury, but right-justified ; move position to after name; as best as possible list players on expected return date
-- mobile: improve thumbnail on feed article frame to fill left side of frame, it is top-aligned, center-aligned may be better, if the Yard Report logo is used expand it as much as other images 
-- pull feeds of last 7 days, latest first
->>>>>>> 00d271a704d2ef4ea8cb26bc6489b4d3047e44dd
 
 
 ##Queued
-- cache read articles (incl ATH), replace with new articles. 
-- display 10 articles, shuffle sources
 
-- 
 
 
 ##Parking lot
@@ -44,6 +34,11 @@
 - ✓ removed Orioles Hangout from the source mix
 - ✓ removed The Long Game from the source mix
 - ✓ updated category pills to use Orioles, MLB, and MiLB logos instead of emoji labels
+- ✓ default feed window now loads the last 7 days, newest first
+- ✓ article feed now targets 10 visible stories
+- ✓ date-sorted feed rotates sources more evenly instead of clustering one source too heavily
+- ✓ read articles are replaced with fresher unread ones when available
+- ✓ added a Show read / Hide read feed toggle
 
 # ON DECK
 - ✓ featured game now appears in schedule boxes with orange highlight; previously it was excluded
@@ -55,6 +50,8 @@
 - ✓ added click-to-open behavior and moved MLB preview/results links into the popover
 - ✓ delayed hover open to reduce accidental triggers
 - ✓ lineups now place pinch-hit substitutions inline in batting order for live/final popovers
+- ✓ preview popovers now restore the Team Leader and MLB Top 10 legend only for preview state
+- ✓ preview lineups now show explicit AVG / OBP / OPS column headings with more spacing
 
 # SCOUT NOTES: PREVIEW MATCHUP CONTEXT
 - ✓ Orioles probable pitcher career line vs opponent (G, opp BA, K) — from /stats?stats=vsTeamTotal
@@ -64,6 +61,22 @@
 # PODCAST AUDIO
 - ✓ show podcast title and description on hover (hover panel with title + description)
 - ✓ fix audio playback on deployed site — fetch RSS directly from feeds.megaphone.fm in browser (CORS open), bypassing PHP proxy's broken SimpleXML enclosure parsing
+
+# IL WIDGET
+- ✓ moved position inline after player name
+- ✓ added IL start date / retroactive note and earliest eligible return when transaction data is available
+- ✓ sort IL players by expected return date when that can be inferred
+
+# MOBILE FEED
+- ✓ centered mobile feed thumbnails within the card frame
+- ✓ enlarged the Yard Report placeholder logo so it fills the thumbnail frame more like article art
+
+# ATH / READ STATE
+- ✓ added read-state caching for Around the Horn cards
+- ✓ read ATH bundles are deprioritized in favor of fresher unread bundles when alternatives exist
+
+# REFACTORING
+- ✓ extracted feed-display selection logic into `src/scripts/feedDisplay.js` as a first modular split from `app.js`
 
 # SCORE BUG
 - ✓ switch to today's games at 09:00 EDT (was noon)

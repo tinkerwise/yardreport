@@ -11,8 +11,15 @@ import {
   VENUE_COORDS,
 } from './config.js';
 import {
+  MAX_VISIBLE_ARTICLES,
+  selectDisplayArticles,
+  selectDisplayBundles,
+} from './feedDisplay.js';
+import {
   getReadArticles,
+  getReadAthBundles,
   loadPrefs,
+  markReadAthBundle,
   markRead,
   savePrefs,
   unmarkRead,
@@ -38,7 +45,8 @@ const state = {
   activeSource: 'all',
   searchQuery: '',
   sortBy: 'date',
-  dateRange: 3,
+  dateRange: 7,
+  showRead: Boolean(prefs.showRead),
   viewMode: window.innerWidth <= 600 ? 'list' : defaultView,
   standings: [],
   activeDiv: null,
@@ -558,6 +566,16 @@ function renderSlashSegment(value, isLeader, isTopTenProxy = false) {
   return `<span class="${classes.join(' ')}">${esc(formatSlashStat(value))}</span>`;
 }
 
+function renderPreviewSlashHeader() {
+  return `<div class="score-lineup-row score-lineup-row--header score-lineup-row--preview-header">
+    <span class="score-lineup-pos"></span>
+    <span class="score-lineup-name"></span>
+    <span class="score-lineup-box-cols score-lineup-box-cols--preview">
+      <span>AVG</span><span>OBP</span><span>OPS</span>
+    </span>
+  </div>`;
+}
+
 function getInGameLineupEntries(team) {
   const order = team?.battingOrder ?? [];
   const batters = team?.batters ?? [];
@@ -646,7 +664,7 @@ function renderLineupRows(team, gameState = 'preview') {
 
   // ── Preview: season slashlines (AVG/OBP/OPS) ──────────────────
   const leaders = lineupLeaders(players, roster);
-  return players.map(id => {
+  const rows = players.map(id => {
     const p = roster[`ID${id}`] ?? {};
     const name = compactBoxName(p.person?.fullName ?? 'TBD');
     const pos = p.position?.abbreviation ?? '';
@@ -660,13 +678,14 @@ function renderLineupRows(team, gameState = 'preview') {
       renderSlashSegment(rates.avg, avgValue > 0 && avgValue === leaders.avg, avgValue >= MLB_TOP_TEN_PROXY_RATES.avg),
       renderSlashSegment(rates.obp, obpValue > 0 && obpValue === leaders.obp, obpValue >= MLB_TOP_TEN_PROXY_RATES.obp),
       renderSlashSegment(rates.ops, opsValue > 0 && opsValue === leaders.ops, opsValue >= MLB_TOP_TEN_PROXY_RATES.ops),
-    ].join('<span class="score-lineup-rate-sep">/</span>');
+    ].map((segment, idx) => `<span class="score-lineup-preview-stat score-lineup-preview-stat--${idx}">${segment}</span>`).join('');
     return `<div class="score-lineup-row">
       <span class="score-lineup-pos">${esc(pos)}</span>
       <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}${batSideDisplay}</span>
-      <span class="score-lineup-slash">${slashLine}</span>
+      <span class="score-lineup-box-cols score-lineup-box-cols--preview">${slashLine}</span>
     </div>`;
   }).join('');
+  return renderPreviewSlashHeader() + rows;
 }
 
 function renderLineupPopover(boxData) {
@@ -1144,7 +1163,7 @@ function renderPopoverGameLink(g) {
 function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
-    return `${renderPreviewMatchup(g, boxData, arsenals, matchupCtx)}${renderPopoverGameLink(g)}`;
+    return `${renderPreviewMatchup(g, boxData, arsenals, matchupCtx)}${renderPopoverLegend()}${renderPopoverGameLink(g)}`;
   }
 
   const ls = g.linescore;
@@ -1559,6 +1578,13 @@ function renderSourceFilters(sources) {
       renderArticles();
     });
   });
+}
+
+function syncShowReadButton() {
+  const btn = $('showReadBtn');
+  if (!btn) return;
+  btn.setAttribute('aria-pressed', state.showRead ? 'true' : 'false');
+  btn.textContent = state.showRead ? 'Hide read' : 'Show read';
 }
 
 function getFilteredArticles() {
@@ -2076,9 +2102,20 @@ function renderArticles() {
 
   // Hot Stove bundles (only in default date sort, no search)
   const bundles = (!state.searchQuery && state.sortBy === 'date')
-    ? selectAdaptiveAthBundles(getAthCandidateArticles()) : [];
+    ? selectDisplayBundles(selectAdaptiveAthBundles(getAthCandidateArticles()), {
+      showRead: state.showRead,
+      readBundles: getReadAthBundles(),
+      readArticles: getReadArticles(),
+      limit: 3,
+    }) : [];
   const bundledSet = new Set(bundles.flatMap(b => b.articles));
   const unbundled = arts.filter(a => !bundledSet.has(a));
+  const displayArts = selectDisplayArticles(bundles.length ? unbundled : arts, {
+    sortBy: state.sortBy,
+    showRead: state.showRead,
+    readArticles: getReadArticles(),
+    limit: MAX_VISIBLE_ARTICLES,
+  });
 
   if (bundles.length) {
     html += `<section class="ath-section">
@@ -2089,8 +2126,6 @@ function renderArticles() {
       <div class="ath-bundle-grid">${bundles.map(b => renderBundle(b, arts)).join('')}</div>
     </section>`;
   }
-
-  const displayArts = bundles.length ? unbundled : arts;
 
   const useGroups = state.sortBy === 'dateGroup' || state.sortBy === 'source';
 
@@ -2119,7 +2154,10 @@ function renderArticles() {
     link.addEventListener('click', () => {
       const slug = link.dataset.bundleSlug;
       const bundle = bundles.find(item => item.slug === slug);
-      if (bundle) storeAthBundle(bundle);
+      if (bundle) {
+        storeAthBundle(bundle);
+        markReadAthBundle(bundle.slug);
+      }
     });
   });
 
@@ -2144,56 +2182,20 @@ function renderArticles() {
       if (dx < -60) {
         // Swipe left → mark read
         markRead(a.link);
-        el.classList.add('read');
-        el.style.transition = 'opacity 0.3s, transform 0.3s';
-        el.style.transform = 'translateX(-30px)';
-        setTimeout(() => { el.style.transform = ''; }, 300);
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-          el.style.opacity = '0';
-          el.style.maxHeight = '0';
-          el.style.overflow = 'hidden';
-          el.style.margin = '0';
-          el.style.padding = '0';
-          el.style.border = 'none';
-          el.style.transition = 'all 0.4s ease-out';
-        }, 5000);
+        renderArticles();
       } else if (dx > 60) {
         // Swipe right → unmark read
         unmarkRead(a.link);
-        el.classList.remove('read');
-        el.style.transition = 'transform 0.3s';
-        el.style.transform = 'translateX(30px)';
-        setTimeout(() => { el.style.transform = ''; }, 300);
+        renderArticles();
       }
     }, { passive: true });
-
-    // Auto-hide already-read articles after 5 seconds
-    if (el.classList.contains('read')) {
-      setTimeout(() => {
-        if (!el.matches(':hover')) {
-          el.style.opacity = '0';
-          el.style.maxHeight = '0';
-          el.style.overflow = 'hidden';
-          el.style.margin = '0';
-          el.style.padding = '0';
-          el.style.border = 'none';
-          el.style.transition = 'all 0.4s ease-out';
-        }
-      }, 5000);
-    }
   });
 }
 
 // ── Reader View ───────────────────────────────────────────────────
 function openReader(article) {
   markRead(article.link);
-  // Update the card visually
-  document.querySelectorAll('.article-card').forEach(el => {
-    const idx = Number(el.dataset.idx);
-    const a = getFilteredArticles()[idx];
-    if (a && a.link === article.link) el.classList.add('read');
-  });
+  renderArticles();
 
   $('readerTitle').textContent = article.title;
   $('readerDate').textContent = relativeDate(article.pubDate);
@@ -2445,9 +2447,10 @@ async function loadTransactions() {
 async function loadInjuryReport() {
   const wrap = $('ilWrap');
   try {
-    const data = await fetch(
-      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man`
-    ).then(r => r.json());
+    const [data, txData] = await Promise.all([
+      fetch(`${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man`).then(r => r.json()),
+      fetch(`${MLB}/transactions?teamId=${ORIOLES_ID}&startDate=${SEASON}-01-01&endDate=${localDateStr(0)}`).then(r => r.json()).catch(() => ({ transactions: [] })),
+    ]);
 
     const injured = (data.roster ?? []).filter(p =>
       p.status?.description?.toLowerCase().includes('injured')
@@ -2463,19 +2466,74 @@ async function loadInjuryReport() {
       const m = p.status.description.match(/(\d+)-day/i);
       return m ? parseInt(m[1]) : 99;
     };
-    injured.sort((a, b) => getILDays(a) - getILDays(b));
+    const transactions = txData.transactions ?? [];
+    const parseDate = value => {
+      if (!value) return null;
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
+    const prettyDate = value => {
+      const d = parseDate(value);
+      return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+    };
+    const findIlTimeline = player => {
+      const playerId = player.person?.id;
+      const statusDays = getILDays(player);
+      const related = transactions
+        .filter(tx => tx.person?.id === playerId)
+        .filter(tx => /injured list/i.test(tx.description || '') || /status change/i.test(tx.typeDesc || ''))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    wrap.innerHTML = `<div class="il-list">${injured.map(p => {
+      const placements = related.filter(tx => /placed .*injured list/i.test(tx.description || ''));
+      const currentPlacement = placements.length ? placements[placements.length - 1] : null;
+      const earliestPlacement = placements.length ? placements[0] : null;
+      const sourceTx = currentPlacement || earliestPlacement || related[related.length - 1] || null;
+      if (!sourceTx) return { startedLabel: '', expectedLabel: '', sortTime: Number.MAX_SAFE_INTEGER };
+
+      const desc = sourceTx.description || '';
+      const retroMatch = desc.match(/retroactive to ([A-Za-z]+ \d{1,2}, \d{4})/i);
+      const startDate = parseDate(retroMatch?.[1] || sourceTx.date);
+      const isRetro = Boolean(retroMatch);
+      const startedLabel = startDate
+        ? `Started ${prettyDate(startDate)}${isRetro ? ' (retro)' : ''}`
+        : '';
+
+      let expectedLabel = '';
+      let sortTime = Number.MAX_SAFE_INTEGER;
+      if (startDate && Number.isFinite(statusDays) && statusDays < 60) {
+        const eligible = new Date(startDate);
+        eligible.setDate(eligible.getDate() + statusDays);
+        expectedLabel = `Earliest ${prettyDate(eligible)}`;
+        sortTime = eligible.getTime();
+      } else if (startDate) {
+        sortTime = startDate.getTime() + statusDays * 864e5;
+      }
+
+      return { startedLabel, expectedLabel, sortTime };
+    };
+
+    const enriched = injured.map(player => ({ player, timeline: findIlTimeline(player) }));
+    enriched.sort((a, b) =>
+      a.timeline.sortTime - b.timeline.sortTime ||
+      getILDays(a.player) - getILDays(b.player) ||
+      a.player.person.fullName.localeCompare(b.player.person.fullName)
+    );
+
+    wrap.innerHTML = `<div class="il-list">${enriched.map(({ player: p, timeline }) => {
       const status = p.status.description.replace('Injured ', '');
       const playerUrl = `https://www.mlb.com/player/${p.person.id}`;
       const note = normalizeText(p.note || '');
+      const position = p.position?.abbreviation ? ` · ${p.position.abbreviation}` : '';
+      const meta = [timeline.startedLabel, timeline.expectedLabel].filter(Boolean).join(' · ');
       return `<div class="il-item">
         <div class="il-topline">
-          <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
-          <span class="il-pos">${esc(p.position?.abbreviation ?? '')}</span>
+          <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}${esc(position)}</a>
           <span class="il-status">${esc(status)}</span>
         </div>
-        ${note ? `<div class="il-note">${esc(note)}</div>` : ''}
+        ${(note || meta) ? `<div class="il-subline">
+          ${note ? `<span class="il-note">${esc(note)}</span>` : '<span></span>'}
+          ${meta ? `<span class="il-meta">${esc(meta)}</span>` : ''}
+        </div>` : ''}
       </div>`;
     }).join('')}</div>`;
   } catch {
@@ -2994,6 +3052,13 @@ function setupEvents() {
     renderArticles();
   });
 
+  $('showReadBtn').addEventListener('click', () => {
+    state.showRead = !state.showRead;
+    savePrefs({ showRead: state.showRead });
+    syncShowReadButton();
+    renderArticles();
+  });
+
   // Date range filter
   $('dateRangeSelect').addEventListener('change', e => {
     state.dateRange = Number(e.target.value);
@@ -3003,6 +3068,8 @@ function setupEvents() {
   // Set initial active view button
   $('viewToggle').querySelectorAll('.view-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.view === state.viewMode));
+  $('dateRangeSelect').value = String(state.dateRange);
+  syncShowReadButton();
 
   // View toggle
   $('viewToggle').addEventListener('click', e => {
