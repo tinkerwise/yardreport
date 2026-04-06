@@ -1238,7 +1238,10 @@ async function loadScores() {
       boxPopover.className = 'box-score-popover hidden';
       document.body.appendChild(boxPopover);
     }
-    let boxTimer = null;
+    let boxShowTimer = null;
+    let boxHideTimer = null;
+    const BOX_POPOVER_SHOW_DELAY = 140;
+    const BOX_POPOVER_HIDE_DELAY = 250;
     function positionPopover(chip) {
       const r = chip.getBoundingClientRect();
       const pw = boxPopover.offsetWidth;
@@ -1255,7 +1258,8 @@ async function loadScores() {
       const pk = chip.dataset.gamepk;
       const g = state.gamesMap[pk];
       if (!g) return;
-      clearTimeout(boxTimer);
+      clearTimeout(boxShowTimer);
+      clearTimeout(boxHideTimer);
 
       const isPreview = g.status?.abstractGameState === 'Preview';
       const isLive = g.status?.abstractGameState === 'Live';
@@ -1323,14 +1327,24 @@ async function loadScores() {
         });
       }
     }
+    function scheduleShowBoxScore(chip) {
+      clearTimeout(boxShowTimer);
+      clearTimeout(boxHideTimer);
+      boxShowTimer = setTimeout(() => showBoxScore(chip), BOX_POPOVER_SHOW_DELAY);
+    }
     function hideBoxScore() {
-      boxTimer = setTimeout(() => boxPopover.classList.add('hidden'), 250);
+      clearTimeout(boxShowTimer);
+      clearTimeout(boxHideTimer);
+      boxHideTimer = setTimeout(() => boxPopover.classList.add('hidden'), BOX_POPOVER_HIDE_DELAY);
     }
     track.querySelectorAll('.score-chip').forEach(chip => {
-      chip.addEventListener('mouseenter', () => showBoxScore(chip));
+      chip.addEventListener('mouseenter', () => scheduleShowBoxScore(chip));
       chip.addEventListener('mouseleave', hideBoxScore);
     });
-    boxPopover.addEventListener('mouseenter', () => clearTimeout(boxTimer));
+    boxPopover.addEventListener('mouseenter', () => {
+      clearTimeout(boxShowTimer);
+      clearTimeout(boxHideTimer);
+    });
     boxPopover.addEventListener('mouseleave', hideBoxScore);
 
     // Before 09:00 EDT, keep yesterday's scores front-and-center
