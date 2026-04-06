@@ -615,9 +615,9 @@ img { display: block; max-width: 100%; }
 .scout-notes {
   gap: 6px;
   padding: 8px 9px;
-  border: 1px solid color-mix(in srgb, var(--orange) 26%, var(--border) 74%);
+  border: 1px solid color-mix(in srgb, var(--orange) 40%, var(--border) 60%);
   border-radius: 8px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 6%, #f3f6fb 94%), color-mix(in srgb, var(--card) 90%, #eef3f9 10%));
+  background: color-mix(in srgb, var(--card) 86%, var(--orange) 14%);
 }
 .scout-notes-head {
   display: flex;
@@ -631,7 +631,7 @@ img { display: block; max-width: 100%; }
   justify-content: center;
   padding: 2px 6px;
   border-radius: 999px;
-  background: rgba(223, 70, 1, 0.18);
+  background: color-mix(in srgb, var(--orange) 28%, var(--card) 72%);
   color: var(--orange);
   font-size: calc(var(--popover-meta-size) - 0.02rem);
   font-weight: 800;
@@ -640,7 +640,7 @@ img { display: block; max-width: 100%; }
 }
 .scout-context {
   font-size: calc(var(--popover-meta-size) - 0.02rem);
-  color: var(--text-3);
+  color: var(--text-2);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -654,14 +654,14 @@ img { display: block; max-width: 100%; }
   flex-direction: column;
   gap: 4px;
   padding: 4px 0 2px;
-  border-top: 1px solid color-mix(in srgb, var(--orange) 16%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--orange) 32%, var(--border) 68%);
 }
 .scout-pitch-head {
   font-size: calc(var(--popover-meta-size) - 0.03rem);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-3);
+  color: var(--text-2);
 }
 .scout-pitch-list {
   display: flex;
@@ -674,24 +674,24 @@ img { display: block; max-width: 100%; }
   gap: 4px;
   padding: 2px 6px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 78%, var(--orange) 22%);
+  border: 1px solid color-mix(in srgb, var(--orange) 38%, var(--border) 62%);
   white-space: nowrap;
 }
 .scout-pitch-type {
   font-size: var(--popover-meta-size);
   font-weight: 700;
-  color: var(--text-1);
+  color: var(--text);
 }
 .scout-pitch-meta {
-  font-size: calc(var(--popover-meta-size) - 0.04rem);
-  color: var(--text-3);
+  font-size: var(--popover-meta-size);
+  color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
 .scout-note-row {
   font-size: var(--popover-stat-size);
   line-height: 1.35;
-  color: var(--text-2);
+  color: var(--text);
 }
 .probable-pitchers {
   display: flex;
