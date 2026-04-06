@@ -819,11 +819,11 @@ function renderPreviewTeamCard(game, boxData, side, arsenalData) {
 function renderPreviewMatchup(game, boxData, arsenals, matchupCtx = null) {
   const scoutNotes = renderScoutNotes(game, arsenals, matchupCtx);
   return `<div class="probable-pitchers probable-pitchers--preview">
-    ${scoutNotes}
     <div class="score-lineups-grid">
       ${renderPreviewTeamCard(game, boxData, 'away', arsenals?.away ?? null)}
       ${renderPreviewTeamCard(game, boxData, 'home', arsenals?.home ?? null)}
     </div>
+    ${scoutNotes}
   </div>`;
 }
 
@@ -1052,9 +1052,6 @@ function renderScoutNotes(game, arsenals, matchupCtx = null) {
     badge = 'Matchup';
     const awayPitcher = game.teams?.away?.probablePitcher?.fullName;
     const homePitcher = game.teams?.home?.probablePitcher?.fullName;
-    if (awayPitcher || homePitcher) {
-      notes.push(`${awayPitcher || 'TBD'} vs ${homePitcher || 'TBD'}`);
-    }
 
     const mc = matchupCtx;
     if (mc) {
