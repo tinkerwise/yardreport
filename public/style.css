@@ -918,11 +918,11 @@ img { display: block; max-width: 100%; }
 }
 .score-lineup-row--dnp { opacity: 0.4; }
 .score-lineup-row--sub .score-lineup-pos {
-  color: var(--orange);
-  font-weight: 700;
+  color: var(--text-3);
+  font-weight: 600;
 }
 .score-lineup-row--sub .score-lineup-name {
-  padding-left: 10px;
+  padding-left: 14px;
 }
 .score-lineup-box-cols {
   display: grid;
@@ -1199,15 +1199,8 @@ img { display: block; max-width: 100%; }
   align-items: center;
   gap: 8px;
   min-height: 28px;
-  padding-right: 68px;
+  padding-right: 74px;
   min-width: 0;
-}
-.on-deck-at {
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 .on-deck-logo { width: 28px; height: 28px; }
 .on-deck-opp {
@@ -1227,7 +1220,9 @@ img { display: block; max-width: 100%; }
   right: 12px;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 5px;
+  min-width: 62px;
   text-align: right;
   line-height: 1;
 }

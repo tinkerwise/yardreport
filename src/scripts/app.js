@@ -617,7 +617,7 @@ function renderLineupRows(team, gameState = 'preview') {
     </div>`;
     const rows = entries.map(({ player: p, isSubstitution }) => {
       const name = compactBoxName(p.person?.fullName ?? 'TBD');
-      const pos = isSubstitution ? 'PH' : (p.position?.abbreviation ?? '');
+      const pos = isSubstitution ? 'ph' : (p.position?.abbreviation ?? '');
       const bs = p.stats?.batting ?? {};
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
@@ -636,7 +636,7 @@ function renderLineupRows(team, gameState = 'preview') {
     const entries = getInGameLineupEntries(team);
     return entries.map(({ player: p, isSubstitution }) => {
       const name = compactBoxName(p.person?.fullName ?? 'TBD');
-      const pos = isSubstitution ? 'PH' : (p.position?.abbreviation ?? '');
+      const pos = isSubstitution ? 'ph' : (p.position?.abbreviation ?? '');
       const bs = p.stats?.batting ?? {};
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
@@ -2260,7 +2260,6 @@ async function loadOnDeck() {
         <a class="on-deck-card" href="${gdUrl}" target="_blank" rel="noopener">
           ${wxHtml}
           <div class="on-deck-matchup">
-            <span class="on-deck-at">${isHome ? 'vs' : '@'}</span>
             <img class="on-deck-logo" src="https://www.mlbstatic.com/team-logos/${opponent.team.id}.svg" alt="" width="28" height="28">
             <span class="on-deck-opp">${esc(onDeckOpponentLabel)}</span>
           </div>

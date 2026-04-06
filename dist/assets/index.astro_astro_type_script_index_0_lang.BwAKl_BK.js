@@ -32,11 +32,11 @@ const Le="/yardreport/rss-proxy.php",Tt={200:"AL West",201:"AL East",202:"AL Cen
       <span class="score-lineup-box-cols">
         <span>AB</span><span>R</span><span>H</span><span>HR</span><span>RBI</span><span>SB</span>
       </span>
-    </div>`,l=o.map(({player:c,isSubstitution:i})=>{const u=U(c.person?.fullName??"TBD"),d=i?"PH":c.position?.abbreviation??"",h=c.stats?.batting??{},p=[h.atBats??0,h.runs??0,h.hits??0,h.homeRuns??0,h.rbi??0,h.stolenBases??0].map(b=>`<span>${b}</span>`).join("");return`<div class="score-lineup-row${(h.atBats??0)>0||(h.baseOnBalls??0)>0?"":" score-lineup-row--dnp"}${i?" score-lineup-row--sub":""}">
+    </div>`,l=o.map(({player:c,isSubstitution:i})=>{const u=U(c.person?.fullName??"TBD"),d=i?"ph":c.position?.abbreviation??"",h=c.stats?.batting??{},p=[h.atBats??0,h.runs??0,h.hits??0,h.homeRuns??0,h.rbi??0,h.stolenBases??0].map(b=>`<span>${b}</span>`).join("");return`<div class="score-lineup-row${(h.atBats??0)>0||(h.baseOnBalls??0)>0?"":" score-lineup-row--dnp"}${i?" score-lineup-row--sub":""}">
         <span class="score-lineup-pos">${m(d)}</span>
         <span class="score-lineup-name">${Q(u,c.person?.id??null)}</span>
         <span class="score-lineup-box-cols">${p}</span>
-      </div>`}).join("");return r+l}if(t==="live")return Oe(e).map(({player:r,isSubstitution:l})=>{const c=U(r.person?.fullName??"TBD"),i=l?"PH":r.position?.abbreviation??"",u=r.stats?.batting??{},d=[u.atBats??0,u.runs??0,u.hits??0,u.homeRuns??0,u.rbi??0,u.stolenBases??0].map(p=>`<span>${p}</span>`).join("");return`<div class="score-lineup-row${r.gameStatus?.isCurrentBatter?" score-lineup-row--current":""}${l?" score-lineup-row--sub":""}">
+      </div>`}).join("");return r+l}if(t==="live")return Oe(e).map(({player:r,isSubstitution:l})=>{const c=U(r.person?.fullName??"TBD"),i=l?"ph":r.position?.abbreviation??"",u=r.stats?.batting??{},d=[u.atBats??0,u.runs??0,u.hits??0,u.homeRuns??0,u.rbi??0,u.stolenBases??0].map(p=>`<span>${p}</span>`).join("");return`<div class="score-lineup-row${r.gameStatus?.isCurrentBatter?" score-lineup-row--current":""}${l?" score-lineup-row--sub":""}">
         <span class="score-lineup-pos">${m(i)}</span>
         <span class="score-lineup-name">${Q(c,r.person?.id??null)}</span>
         <span class="score-lineup-box-cols">${d}</span>
@@ -195,7 +195,6 @@ const Le="/yardreport/rss-proxy.php",Tt={200:"AL West",201:"AL East",202:"AL Cen
         <a class="on-deck-card" href="${B}" target="_blank" rel="noopener">
           ${D}
           <div class="on-deck-matchup">
-            <span class="on-deck-at">${d?"vs":"@"}</span>
             <img class="on-deck-logo" src="https://www.mlbstatic.com/team-logos/${h.team.id}.svg" alt="" width="28" height="28">
             <span class="on-deck-opp">${m(f)}</span>
           </div>
