@@ -1240,7 +1240,7 @@ async function loadScores() {
     }
     let boxShowTimer = null;
     let boxHideTimer = null;
-    const BOX_POPOVER_SHOW_DELAY = 140;
+    const BOX_POPOVER_SHOW_DELAY = 220;
     const BOX_POPOVER_HIDE_DELAY = 250;
     function positionPopover(chip) {
       const r = chip.getBoundingClientRect();
