@@ -570,64 +570,46 @@ function renderLineupRows(team, gameState = 'preview') {
     return '<div class="score-lineups-empty">Lineup not yet posted</div>';
   }
 
-  // Helper: build notable-event badges (HR, 2B, 3B, SB) — only when they happened
-  const notableBadges = bs => {
-    const tags = [];
-    if ((bs.homeRuns ?? 0) > 0) tags.push(`${bs.homeRuns}HR`);
-    if ((bs.doubles ?? 0) > 0) tags.push(`${bs.doubles}2B`);
-    if ((bs.triples ?? 0) > 0) tags.push(`${bs.triples}3B`);
-    if ((bs.stolenBases ?? 0) > 0) tags.push(`${bs.stolenBases}SB`);
-    return tags.map(t => `<span class="box-notable">${t}</span>`).join('');
-  };
-
-  // ── Final: 4-column newspaper layout + notable badges ─────────
+  // ── Final: 6-column newspaper layout (AB R H HR RBI SB) ──────
   if (gameState === 'final') {
     const header = `<div class="score-lineup-row score-lineup-row--header">
       <span class="score-lineup-pos"></span>
       <span class="score-lineup-name"></span>
       <span class="score-lineup-box-cols">
-        <span>AB</span><span>R</span><span>H</span><span>RBI</span>
+        <span>AB</span><span>R</span><span>H</span><span>HR</span><span>RBI</span><span>SB</span>
       </span>
-      <span class="score-lineup-notes"></span>
     </div>`;
     const rows = players.map(id => {
       const p = roster[`ID${id}`] ?? {};
       const name = compactBoxName(p.person?.fullName ?? 'TBD');
       const pos = p.position?.abbreviation ?? '';
       const bs = p.stats?.batting ?? {};
-      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.rbi ?? 0]
+      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
-      const notes = notableBadges(bs);
       const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
       return `<div class="score-lineup-row${hasActivity ? '' : ' score-lineup-row--dnp'}">
         <span class="score-lineup-pos">${esc(pos)}</span>
         <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}</span>
         <span class="score-lineup-box-cols">${cols}</span>
-        <span class="score-lineup-notes">${notes}</span>
       </div>`;
     }).join('');
     return header + rows;
   }
 
-  // ── Live: 4-column in-progress + notable badges ────────────────
+  // ── Live: 6-column in-progress (AB R H HR RBI SB) ─────────────
   if (gameState === 'live') {
     return players.map(id => {
       const p = roster[`ID${id}`] ?? {};
       const name = compactBoxName(p.person?.fullName ?? 'TBD');
       const pos = p.position?.abbreviation ?? '';
       const bs = p.stats?.batting ?? {};
-      const ab = bs.atBats ?? 0;
-      const r  = bs.runs ?? 0;
-      const h  = bs.hits ?? 0;
-      const rbi = bs.rbi ?? 0;
-      const cols = [ab, r, h, rbi].map(v => `<span>${v}</span>`).join('');
-      const notes = notableBadges(bs);
+      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.stolenBases ?? 0]
+        .map(v => `<span>${v}</span>`).join('');
       const isCurrentBatter = p.gameStatus?.isCurrentBatter;
       return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
         <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}</span>
         <span class="score-lineup-box-cols">${cols}</span>
-        <span class="score-lineup-notes">${notes}</span>
       </div>`;
     }).join('');
   }
@@ -836,12 +818,12 @@ function renderPitchingLines(boxData, gameState = 'final') {
     </div>`;
 
     const rows = pitchers.map((p, i) => {
-      const pitchHandDisplay = p.pitchHand ? `<span class="box-perf-hand">${p.pitchHand}</span>` : '';
-      const spBadge = i === spIndex ? '<span class="pitcher-role-badge">SP</span>' : '';
+      const role = i === spIndex ? 'SP' : 'RP';
+      const handDisplay = p.pitchHand ? `<span class="score-lineup-hand">(${p.pitchHand})</span>` : '';
       const cols = [p.ip, p.h, p.er, p.k].map(v => `<span>${v}</span>`).join('');
       return `<div class="score-lineup-row">
-        <span class="score-lineup-pos"></span>
-        <span class="score-lineup-name">${renderPlayerNameLink(compactBoxName(p.name), p.playerId)}${pitchHandDisplay}${spBadge}</span>
+        <span class="score-lineup-pos">${role}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(compactBoxName(p.name), p.playerId)}${handDisplay}</span>
         <span class="score-lineup-box-cols score-lineup-box-cols--pitch">${cols}</span>
       </div>`;
     }).join('');
