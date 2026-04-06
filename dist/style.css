@@ -1409,19 +1409,23 @@ a.roster-name:hover { color: var(--orange); }
 .txn-player:hover { color: var(--orange); }
 
 /* ── Injury Report ────────────────────────────────────────────── */
-.il-list { display: flex; flex-direction: column; gap: 2px; }
-.il-item { display: flex; flex-direction: column; gap: 5px; font-size: 0.75rem; padding: 6px 0; border-bottom: 1px solid #1e1e1e; }
-.il-topline { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.il-name { flex: 1; min-width: 0; color: var(--text); font-weight: 500; transition: color 0.15s; }
-a.il-name:hover { color: var(--orange); }
-.il-status { font-size: 0.65rem; padding: 1px 6px; border-radius: 3px; background: rgba(239,68,68,0.15); color: #ef4444; white-space: nowrap; }
-.il-subline {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
+.il-list { display: flex; flex-direction: column; }
+.il-group { display: flex; flex-direction: column; }
+.il-group + .il-group { margin-top: 6px; }
+.il-group-label {
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-3); padding: 4px 0 3px;
+  border-top: 1px solid var(--border);
 }
-.il-note { flex: 1; min-width: 0; font-size: 0.69rem; line-height: 1.4; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.il-group:first-child .il-group-label { border-top: none; padding-top: 0; }
+.il-item { display: flex; flex-direction: column; gap: 2px; padding: 5px 0; border-bottom: 1px solid #1e1e1e; }
+.il-item:last-child { border-bottom: none; }
+.il-topline { display: flex; align-items: baseline; gap: 5px; min-width: 0; }
+.il-name { min-width: 0; color: var(--text); font-weight: 600; font-size: 0.74rem; transition: color 0.15s; }
+a.il-name:hover { color: var(--orange); }
+.il-pos { font-size: 0.62rem; color: var(--text-3); flex-shrink: 0; }
+.il-eta { margin-left: auto; font-size: 0.62rem; color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; }
+.il-note { font-size: 0.67rem; line-height: 1.3; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .il-meta {
   flex-shrink: 0;
   text-align: right;

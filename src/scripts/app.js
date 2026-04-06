@@ -2516,22 +2516,29 @@ async function loadInjuryReport() {
       a.player.person.fullName.localeCompare(b.player.person.fullName)
     );
 
-    wrap.innerHTML = `<div class="il-list">${enriched.map(({ player: p, timeline }) => {
-      const status = p.status.description.replace('Injured ', '');
-      const playerUrl = `https://www.mlb.com/player/${p.person.id}`;
-      const note = normalizeText(p.note || '');
-      const position = p.position?.abbreviation ? ` · ${p.position.abbreviation}` : '';
-      const meta = [timeline.startedLabel, timeline.expectedLabel].filter(Boolean).join(' · ');
-      return `<div class="il-item">
-        <div class="il-topline">
-          <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}${esc(position)}</a>
-          <span class="il-status">${esc(status)}</span>
-        </div>
-        ${(note || meta) ? `<div class="il-subline">
-          ${note ? `<span class="il-note">${esc(note)}</span>` : '<span></span>'}
-          ${meta ? `<span class="il-meta">${esc(meta)}</span>` : ''}
-        </div>` : ''}
-      </div>`;
+    const groups = {};
+    for (const item of enriched) {
+      const days = getILDays(item.player);
+      const key = [10, 15, 60].includes(days) ? `${days}-Day IL` : 'IL';
+      (groups[key] ??= []).push(item);
+    }
+    const groupOrder = ['10-Day IL', '15-Day IL', '60-Day IL', 'IL'];
+    wrap.innerHTML = `<div class="il-list">${groupOrder.filter(k => groups[k]?.length).map(groupName => {
+      const rows = groups[groupName].map(({ player: p, timeline }) => {
+        const playerUrl = `https://www.mlb.com/player/${p.person.id}`;
+        const note = normalizeText(p.note || '');
+        const pos = p.position?.abbreviation ?? '';
+        const eta = timeline.expectedLabel.replace('Earliest ', '') || timeline.startedLabel || '';
+        return `<div class="il-item">
+          <div class="il-topline">
+            <a class="il-name" href="${playerUrl}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+            ${pos ? `<span class="il-pos">${esc(pos)}</span>` : ''}
+            ${eta ? `<span class="il-eta">${esc(eta)}</span>` : ''}
+          </div>
+          ${note ? `<div class="il-note">${esc(note)}</div>` : ''}
+        </div>`;
+      }).join('');
+      return `<div class="il-group"><div class="il-group-label">${esc(groupName)}</div>${rows}</div>`;
     }).join('')}</div>`;
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
