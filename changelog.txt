@@ -8,6 +8,7 @@ Documentation
 - Moved maintainer-heavy workflow, deployment, source inventory, and operations detail into `brief.txt`.
 - Documented recommended cron cadence as minimal operational checks: deploy-time smoke tests plus optional daily homepage/proxy health checks, not scheduled content-refresh jobs.
 - Removed Orioles Hangout and The Long Game from the feed source mix and maintainer source inventory.
+- Refreshed `README.md`, `brief.txt`, and `updates.txt` so the docs match the current site: Orioles/MLB/MiLB feed categories, Around the Horn story cards, score-bug popovers, On Deck weather behavior, and current sidebar/widget structure.
 
 Operations
 - Added scheduled GitHub Actions health checks for daily smoke + homepage verification and daily production proxy/feed verification, while keeping deploy-on-push behavior separate.

@@ -11,7 +11,7 @@
 - Update this file after tasks are completed, remove '-' and leave checkmark
 
 ##Active
-- in feed section, use the orioles logo, MLB logo, and MiLB logos in the pill
+
 
 ##Queued
 
@@ -32,12 +32,18 @@
 # FEEDS
 - ✓ removed Orioles Hangout from the source mix
 - ✓ removed The Long Game from the source mix
+- ✓ updated category pills to use Orioles, MLB, and MiLB logos instead of emoji labels
 
 # ON DECK
 - ✓ featured game now appears in schedule boxes with orange highlight; previously it was excluded
+- ✓ fixed On Deck weather logic so tomorrow's featured game can show forecast weather
+- ✓ removed the main-card @ / vs marker and cleaned up weather placement
 
 # SCORE BUG POPOVER
 - ✓ slashline font size bumped 0.66 → 0.72rem
+- ✓ added click-to-open behavior and moved MLB preview/results links into the popover
+- ✓ delayed hover open to reduce accidental triggers
+- ✓ lineups now place pinch-hit substitutions inline in batting order for live/final popovers
 
 # SCOUT NOTES: PREVIEW MATCHUP CONTEXT
 - ✓ Orioles probable pitcher career line vs opponent (G, opp BA, K) — from /stats?stats=vsTeamTotal

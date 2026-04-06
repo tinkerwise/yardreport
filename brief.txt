@@ -1,6 +1,6 @@
 **Maintainer Brief**
 
-Yard Report is a single-page Astro site with a thin static shell and a very thick client script. The core implementation lives in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js), which owns state, data fetching, rendering, event wiring, settings, Easter eggs, and sidebar widgets like video and podcast. The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is now intentionally public-facing and brief; this file is the home for maintainer detail.
+Yard Report is a single-page Astro site with a thin static shell and a very thick client script. The core implementation lives in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js), which owns state, data fetching, rendering, event wiring, settings, Easter eggs, feed logic, score-bug popovers, Around the Horn, and sidebar widgets like video and podcast. The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is intentionally public-facing and brief; this file is the home for maintainer detail.
 
 **What’s Fragile**
 
@@ -8,6 +8,8 @@ The biggest risk is the “all roads lead to one file” setup in [app.js](/User
 - `renderArticles()` and `renderCard()` drive most feed UX; changes here can break reader opening, read/unread state, bundles, or swipe behavior.
 - `getFilteredArticles()` is the source of truth for what appears; filter bugs will ripple everywhere.
 - `setupEvents()` is large and centralized; new controls should be added carefully to avoid duplicated listeners or state drift.
+- `loadScores()` is now both a rendering surface and an interaction surface; it owns score-chip triggers, popover timing, click-to-open behavior, and async boxscore refreshes.
+- `loadOnDeck()` is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
 - Score/on-deck/transactions/leaders/video/podcast all depend on third-party APIs or feeds with no formal abstraction layer, so breakage from upstream response changes is a real risk.
 - There is both a dev-time JS proxy in [astro.config.mjs](/Users/briancsmith/Documents/GitHub/yardreport/astro.config.mjs) and a production PHP proxy in [rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php); feed issues may differ between local and deployed environments, especially now that the proxy also supports trusted raw HTML/text passthrough for widget enrichment and audio-enclosure extraction for the podcast widget.
 
@@ -24,6 +26,8 @@ For safety, I’d usually preserve:
 - Orioles-first prioritization in scores, schedule, and sidebar widgets
 - the lightweight sidebar pattern: a single compact podcast card above the video stack, rather than a dense multi-episode media rail
 - the current feed-toolbar alignment pattern: category pills left, source/view controls right
+- the current score-chip pattern: chips act as popover triggers first, with external MLB preview/results links living inside the popover
+- the current category-pill pattern: Orioles, MLB, and MiLB use logo-backed pills rather than emoji labels
 
 **Best Next Refactors**
 
@@ -32,6 +36,7 @@ If we want the repo easier to maintain without changing behavior, the highest-va
 - separate pure render helpers from fetch/state logic
 - centralize API wrappers and response shaping
 - add a small smoke-test checklist for feed load, filters, reader, scores, and settings persistence
+- split score-bug popover rendering/timing into a dedicated module before adding much more behavior there
 
 **Project Structure**
 
@@ -156,3 +161,12 @@ The prompts that will work best with this repo are specific and scoped, like:
 - “Refactor just the leaders widget into a separate module without changing output”
 
 The prompts most likely to cause churn are broad redesigns or “clean this all up” requests, because the codebase is functional but tightly intertwined.
+
+**Current Site Snapshot**
+
+- Feed supports Orioles, MLB, and MiLB categories
+- Around the Horn surfaces three featured baseball story cards with a dedicated follow-through page
+- Score bugs support preview, live, and final popovers with scouting, lineups, pitching, box score, and MLB-link actions
+- On Deck surfaces the next Orioles game, compact schedule boxes, and forecast weather for today or tomorrow when available
+- Left sidebar carries the podcast card above the video widget
+- Right sidebar carries standings, leaders, roster, injury report, and transactions
