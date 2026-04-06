@@ -528,6 +528,7 @@ img { display: block; max-width: 100%; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 5px 9px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--orange) 34%, var(--border) 66%);
@@ -539,6 +540,14 @@ img { display: block; max-width: 100%; }
   text-transform: uppercase;
   text-decoration: none;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.box-popover-link-logo {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 2px;
 }
 .box-popover-link:hover,
 .box-popover-link:focus-visible {

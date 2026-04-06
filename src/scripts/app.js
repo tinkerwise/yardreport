@@ -1132,9 +1132,12 @@ function getGamedayUrl(g) {
 
 function renderPopoverGameLink(g) {
   const isPreview = g.status?.abstractGameState === 'Preview';
-  const label = isPreview ? 'MLB Game Preview' : 'MLB Game Results';
+  const label = isPreview ? 'Open Game Preview' : 'Open Game Results';
   return `<div class="box-popover-actions">
-    <a class="box-popover-link" href="${getGamedayUrl(g)}" target="_blank" rel="noopener">Open ${label}</a>
+    <a class="box-popover-link" href="${getGamedayUrl(g)}" target="_blank" rel="noopener">
+      <img class="box-popover-link-logo" src="https://www.mlbstatic.com/team-logos/apple-touch-icons-180x180/mlb.png" alt="" width="14" height="14" loading="lazy" decoding="async">
+      <span>${label}</span>
+    </a>
   </div>`;
 }
 
