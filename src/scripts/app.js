@@ -53,8 +53,6 @@ const state = {
   gamesMap: {},
 };
 
-let heritageTimer = null;
-let heritagePreviousView = null;
 const venueCache = {};
 
 // ── Utilities ─────────────────────────────────────────────────────
@@ -967,10 +965,9 @@ function renderScoutNotes(game, arsenals, matchupCtx = null) {
   const awayId = game.teams?.away?.team?.id;
   const homeId = game.teams?.home?.team?.id;
   const isOriolesGame = awayId === ORIOLES_ID || homeId === ORIOLES_ID;
-  if (!isOriolesGame) return '';
 
   const notes = [];
-  let badge = 'Scout';
+  let badge = 'Scouting Report';
   let context = '';
   let pitchMix = '';
 
@@ -986,75 +983,67 @@ function renderScoutNotes(game, arsenals, matchupCtx = null) {
     const runnersOn = [offense.first, offense.second, offense.third].filter(Boolean).length;
     const risp = [offense.second, offense.third].filter(Boolean).length;
     const basesLoaded = Boolean(offense.first && offense.second && offense.third);
-    const oriolesBatting = offense.team?.id === ORIOLES_ID;
-    const oriolesPitching = defense.team?.id === ORIOLES_ID;
-    const oriolesScore = awayId === ORIOLES_ID ? (game.teams?.away?.score ?? 0) : (game.teams?.home?.score ?? 0);
-    const oppScore = awayId === ORIOLES_ID ? (game.teams?.home?.score ?? 0) : (game.teams?.away?.score ?? 0);
-    const diff = oriolesScore - oppScore;
-    const batter = offense.batter;    // always on offensive side
+    const batter = offense.batter;
     const onDeck = offense.onDeck;
     const inHole = offense.inHole;
-    const pitcher = defense.pitcher;  // always on defensive side
-    const opposingBatter = offense.batter;
+    const pitcher = defense.pitcher;
+    const offTeamId = offense.team?.id;
+    const offScore = awayId === offTeamId ? (game.teams?.away?.score ?? 0) : (game.teams?.home?.score ?? 0);
+    const defScore = awayId === offTeamId ? (game.teams?.home?.score ?? 0) : (game.teams?.away?.score ?? 0);
+    const diff = offScore - defScore;
     pitchMix = renderScoutPitchMix(arsenals?.current ?? null, pitcher?.fullName ?? pitcher?.lastInitName ?? '');
 
-    if (oriolesBatting) {
-      if (basesLoaded) {
-        notes.push(`${playerLabel(batter)} steps in with the bases loaded in the ${half} of the ${inning}${ordinalSuffix(inning)}.`);
-      } else if (risp > 0) {
-        notes.push(`${playerLabel(batter)} is up with ${risp} in scoring position and ${outs} out${outs === 1 ? '' : 's'}.`);
-      } else if (offense.first && outs === 0) {
-        notes.push(`${playerLabel(batter)} comes up with early traffic and nobody out.`);
-      }
-
-      if (diff < 0) {
-        if (diff === -1) notes.push(`${playerLabel(batter)} is the tying run at the plate.`);
-        else if (diff === -2 && runnersOn >= 1) notes.push(`The tying run is aboard with ${playerLabel(batter)} up.`);
-        else if (diff === -3 && runnersOn >= 2) notes.push(`${playerLabel(batter)} hits with a real tying rally brewing.`);
-      } else if (diff >= 0 && inning >= 7 && runnersOn > 0) {
-        notes.push(`${playerLabel(batter)} has a late chance to add breathing room with traffic aboard.`);
-      }
-
-      if (balls === 3 && strikes !== 2) {
-        notes.push(`Count leans ${playerLabel(batter)} at ${balls}-${strikes} against ${playerLabel(pitcher)}.`);
-      } else if (strikes === 2 && balls != null && balls <= 1) {
-        notes.push(`${playerLabel(pitcher)} has ${playerLabel(batter)} in a two-strike spot.`);
-      }
-
-      if (onDeck?.fullName && inHole?.fullName) {
-        notes.push(`Next up: ${playerLabel(onDeck)}, then ${playerLabel(inHole)}.`);
-      }
+    // Situation at the plate
+    if (basesLoaded) {
+      notes.push(`${playerLabel(batter)} steps in with the bases loaded, ${half} of the ${inning}${ordinalSuffix(inning)}.`);
+    } else if (risp > 0) {
+      notes.push(`${playerLabel(batter)} up with ${risp} in scoring position and ${outs} out${outs === 1 ? '' : 's'}.`);
+    } else if (offense.first && outs === 0) {
+      notes.push(`${playerLabel(batter)} comes up with a runner on and nobody out.`);
     }
 
-    if (oriolesPitching) {
-      if (diff > 0 && inning >= 8 && diff <= 3) {
-        notes.push(`${playerLabel(defense.pitcher)} is in a save-pressure spot.`);
-      }
-      if (offense.first && outs < 2) {
-        notes.push(`${playerLabel(defense.pitcher)} has a double-play chance with ${playerLabel(opposingBatter)} up.`);
-      }
-      if (risp > 0) {
-        notes.push(`${playerLabel(defense.pitcher)} is working through traffic with ${risp} in scoring position.`);
-      }
-      if (strikes === 2 && balls != null && balls <= 1) {
-        notes.push(`${playerLabel(defense.pitcher)} is ahead ${balls}-${strikes} to ${playerLabel(opposingBatter)}.`);
-      } else if (balls === 3 && strikes !== 2) {
-        notes.push(`${playerLabel(opposingBatter)} has the count edge at ${balls}-${strikes} against ${playerLabel(defense.pitcher)}.`);
-      }
+    // Score leverage
+    if (diff === -1) {
+      notes.push(`${playerLabel(batter)} is the tying run at the plate.`);
+    } else if (diff === -2 && runnersOn >= 1) {
+      notes.push(`The tying run is aboard with ${playerLabel(batter)} up.`);
+    } else if (diff === -3 && runnersOn >= 2) {
+      notes.push(`${playerLabel(batter)} hits with a rally brewing — tying run in scoring position.`);
+    } else if (diff > 0 && diff <= 3 && inning >= 8) {
+      notes.push(`${playerLabel(pitcher)} is protecting a ${diff}-run lead in the ${inning}${ordinalSuffix(inning)}.`);
+    } else if (diff >= 0 && inning >= 7 && runnersOn > 0) {
+      notes.push(`${playerLabel(batter)} hits with a chance to add insurance.`);
     }
 
-    if (Math.abs(oriolesScore - oppScore) <= 2 && inning >= 7) {
-      notes.push(`Late leverage: a ${Math.abs(oriolesScore - oppScore)}-run game in the ${inning}${ordinalSuffix(inning)}.`);
+    // Double-play opportunity
+    if (offense.first && !offense.second && !offense.third && outs < 2 && runnersOn === 1) {
+      notes.push(`${playerLabel(pitcher)} has a double-play chance with ${playerLabel(batter)} up.`);
+    }
+
+    // Count leverage
+    if (balls === 3 && strikes !== 2) {
+      notes.push(`Count favors ${playerLabel(batter)} at ${balls}-${strikes} against ${playerLabel(pitcher)}.`);
+    } else if (strikes === 2 && balls != null && balls <= 1) {
+      notes.push(`${playerLabel(pitcher)} is ahead ${balls}-${strikes} to ${playerLabel(batter)}.`);
+    }
+
+    // Next batters
+    if (onDeck?.fullName && inHole?.fullName) {
+      notes.push(`Next up: ${playerLabel(onDeck)}, then ${playerLabel(inHole)}.`);
+    }
+
+    // Late leverage summary
+    if (Math.abs(offScore - defScore) <= 2 && inning >= 7) {
+      notes.push(`Late leverage: a ${Math.abs(offScore - defScore)}-run game in the ${inning}${ordinalSuffix(inning)}.`);
     }
 
     context = `${ls.inningHalf || ''} ${String(inning || '')}`;
   } else if (isPreview) {
-    badge = 'Matchup';
     const awayPitcher = game.teams?.away?.probablePitcher?.fullName;
     const homePitcher = game.teams?.home?.probablePitcher?.fullName;
 
     const mc = matchupCtx;
-    if (mc) {
+    if (mc && isOriolesGame) {
       // Orioles pitcher career stats vs today's opponent
       const oriolesPitcherVs = awayId === ORIOLES_ID ? mc.awayPitcherVs : mc.homePitcherVs;
       const oppAbbr = TEAM_ABBREV[awayId === ORIOLES_ID ? game.teams?.home?.team?.id : game.teams?.away?.team?.id] ?? '';
@@ -1082,6 +1071,12 @@ function renderScoutNotes(game, arsenals, matchupCtx = null) {
         if (rpg) parts.push(`${rpg} R/G`);
         notes.push(`BAL offense: ${parts.join(', ')}`);
       }
+    } else if (!isOriolesGame) {
+      // For non-Orioles games, add probable pitcher names if available
+      const awayAbbr = TEAM_ABBREV[awayId] ?? 'Away';
+      const homeAbbr = TEAM_ABBREV[homeId] ?? 'Home';
+      if (awayPitcher) notes.push(`${awayAbbr}: ${compactBoxName(awayPitcher)}`);
+      if (homePitcher) notes.push(`${homeAbbr}: ${compactBoxName(homePitcher)}`);
     }
   } else if (isFinal) {
     return '';
@@ -3184,9 +3179,6 @@ function setupEvents() {
     if (trigger === 'magic') {
       e.preventDefault();
       triggerOriolesMagic();
-    } else if (trigger === 'heritage') {
-      e.preventDefault();
-      triggerHeritageMode();
     }
   });
 
@@ -3322,53 +3314,6 @@ function toggleOpacyTheme() {
   }
 }
 
-function dismissHeritageMode() {
-  clearTimeout(heritageTimer);
-  heritageTimer = null;
-
-  const html = document.documentElement;
-  html.classList.remove('heritage-mode');
-
-  const badge = document.getElementById('heritageBadge');
-  if (badge) {
-    badge.classList.add('heritage-badge-exit');
-    setTimeout(() => badge.remove(), 350);
-  }
-
-  if (heritagePreviousView) {
-    setViewMode(heritagePreviousView);
-    heritagePreviousView = null;
-  }
-}
-
-function triggerHeritageMode() {
-  const html = document.documentElement;
-  const alreadyActive = html.classList.contains('heritage-mode');
-
-  if (!alreadyActive) {
-    heritagePreviousView = state.viewMode;
-  }
-
-  html.classList.add('heritage-mode');
-  setViewMode('grid');
-
-  let badge = document.getElementById('heritageBadge');
-  if (!badge) {
-    badge = document.createElement('div');
-    badge.id = 'heritageBadge';
-    badge.className = 'heritage-badge';
-    badge.innerHTML = `
-      <span class="heritage-badge-top">Yard Report</span>
-      <span class="heritage-badge-main">Heritage Edition</span>
-      <span class="heritage-badge-sub">Baseball card mode</span>`;
-    document.body.appendChild(badge);
-  } else {
-    badge.classList.remove('heritage-badge-exit');
-  }
-
-  clearTimeout(heritageTimer);
-  heritageTimer = setTimeout(dismissHeritageMode, 15000);
-}
 
 async function init() {
   setupEvents();

@@ -11,16 +11,10 @@
 - Update this file after tasks are completed, remove '-' and leave checkmark
 
 ##Active
-- include code that uses the favicon as an ocon on ios home screens
-- add The Athletic to sources
-- more flexible display in windows and widescreen displays; 
-- when a top stat is both team and MLB Top 10; apply both treatments
-- add scout notes to all score bugs for all teams in previews and live-game stats; label scout notes as "Scouting Report"
-- update team logo dropshadow from dark to light color
-- check search icon placement in search field
-- remove Heritage Easter Egg
 - add Game Day widget to mlb.tv video (MASN) and audio (BAL radio call) links; include with appropriate icons
 - in-game pitcher's pitches by inning stat line (somewhere)
+- Improve accuracy and quality of Scout Notes (see screenshot)
+- verify The Athletic feed URL works (added as https://theathletic.com/mlb/baltimore-orioles/feed/)
 
 ##Queued
 
@@ -31,6 +25,34 @@
 - Refactor app.js into modules by domain (feeds, scores, sidebars, reader, settings, easter eggs)
 
 ---
+
+##Recently Completed (April 7, 2026)
+
+# LAYOUT & DISPLAY
+- ✓ added widescreen breakpoints — sidebar widens to 290px at 1400px+, 310px at 1700px+; max layout expands to 1840px
+
+# IOS HOME SCREEN
+- ✓ added apple-touch-icon link in <head> so favicon appears on iOS home screens
+
+# FEEDS
+- ✓ added The Athletic (Orioles feed) to the source mix
+
+# LOGOS
+- ✓ updated all team/league logo drop-shadows from dark rgba(0,0,0) to light rgba(255,255,255)
+
+# SCOUT NOTES
+- ✓ extended scout notes to all score bugs (not just Orioles games); live notes now use neutral offense/defense framing
+- ✓ relabeled scout badge from "Scout"/"Matchup" to "Scouting Report"
+- ✓ fixed double-play and save-pressure notes to show for any game, not just Orioles
+
+# LINEUP STATS
+- ✓ when a stat is both team leader and MLB Top 10 proxy, it now renders bold + orange (combined treatment)
+
+# EASTER EGGS
+- ✓ removed Heritage Easter Egg (JS functions + CSS — heritage mode, badge, responsive overrides)
+
+# SEARCH
+- ✓ fixed search icon vertical alignment — was bottom-biased (top: calc(100% - 18px)) → top: 50%
 
 ##Recently Completed (April 5, 2026)
 
