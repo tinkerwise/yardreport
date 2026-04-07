@@ -2359,19 +2359,30 @@ async function loadOnDeck() {
 
     // Game Day media links — only when today's game is upcoming or live
     const todayIsNotFinal = todayGame && todayGame.status?.abstractGameState !== 'Final';
-    const gamedayMediaHtml = todayIsNotFinal ? `
+    let gamedayMediaHtml = '';
+    if (todayIsNotFinal) {
+      const tAway = todayGame.teams.away;
+      const tHome = todayGame.teams.home;
+      const tAwaySlug = TEAM_SLUG[tAway.team.id] ?? '';
+      const tHomeSlug = TEAM_SLUG[tHome.team.id] ?? '';
+      const tGdDate = todayGame.gameDate.slice(0, 10).replace(/-/g, '/');
+      const tIsLive = todayGame.status?.abstractGameState === 'Live';
+      const tSuffix = tIsLive ? 'live' : 'preview';
+      const todayGamedayUrl = `https://www.mlb.com/gameday/${tAwaySlug}-vs-${tHomeSlug}/${tGdDate}/${todayGame.gamePk}/${tSuffix}`;
+      gamedayMediaHtml = `
       <div class="gameday-media-strip">
-        <a class="gameday-media-link" href="https://www.masnvideo.com/" target="_blank" rel="noopener" aria-label="Watch on MASN">
+        <a class="gameday-media-link" href="${todayGamedayUrl}" target="_blank" rel="noopener" aria-label="Watch on MLB.com">
           <svg class="gameday-media-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           <span class="gameday-media-label">Watch</span>
-          <span class="gameday-media-network">MASN</span>
+          <span class="gameday-media-network">MLB.tv</span>
         </a>
-        <a class="gameday-media-link" href="https://www.mlb.com/orioles/audio" target="_blank" rel="noopener" aria-label="Listen on radio">
+        <a class="gameday-media-link" href="${todayGamedayUrl}" target="_blank" rel="noopener" aria-label="Listen on MLB.com">
           <svg class="gameday-media-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
           <span class="gameday-media-label">Listen</span>
-          <span class="gameday-media-network">WBAL · 98 Rock</span>
+          <span class="gameday-media-network">MLB Audio</span>
         </a>
-      </div>` : '';
+      </div>`;
+    }
 
     wrap.innerHTML = `
       <div class="on-deck-card-wrap">
