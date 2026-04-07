@@ -11,6 +11,7 @@
 - Update this file after tasks are completed, remove '-' and leave checkmark
 
 ##Active
+- include code that uses the favicon as an ocon on ios home screens
 
 ##Queued
 
