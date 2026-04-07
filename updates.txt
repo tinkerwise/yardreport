@@ -17,6 +17,8 @@
 - when a top stat is both team and MLB Top 10; apply both treatments
 - add scout notes to all score bugs for all teams in previews and live-game stats; label scout notes as "Scouting Report"
 - update team logo dropshadow from dark to light color
+- check search icon placement in search field
+- remove Heritage Easter Egg
 
 ##Queued
 
