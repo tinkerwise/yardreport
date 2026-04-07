@@ -20,6 +20,7 @@
 - check search icon placement in search field
 - remove Heritage Easter Egg
 - add Game Day widget to mlb.tv video (MASN) and audio (BAL radio call) links; include with appropriate icons
+- in-game pitcher's pitches by inning stat line (somewhere)
 
 ##Queued
 
