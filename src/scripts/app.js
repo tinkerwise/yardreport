@@ -2313,7 +2313,8 @@ async function loadOnDeck() {
       const gGdDate = g.gameDate.slice(0, 10).replace(/-/g, '/');
       const gUrl = `https://www.mlb.com/gameday/${gAwaySlug}-vs-${gHomeSlug}/${gGdDate}/${g.gamePk}/preview`;
       const isLive = g.status?.abstractGameState === 'Live';
-      return `<a class="sched-box${isLive ? ' sched-box--live' : ''}" href="${gUrl}" target="_blank" rel="noopener">
+      const isToday = g.gamePk === next.gamePk;
+      return `<a class="sched-box${isLive ? ' sched-box--live' : isToday ? ' sched-box--today' : ''}" href="${gUrl}" target="_blank" rel="noopener">
         <span class="sched-box-day">${esc(gDay)}</span>
         <div class="sched-box-logo-wrap">
           <span class="sched-box-at">${gIsHome ? 'vs' : '@'}</span>

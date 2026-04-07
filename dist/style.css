@@ -1322,6 +1322,11 @@ img { display: block; max-width: 100%; }
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .sched-box:hover { background: var(--orange-dim); border-color: var(--accent); }
+.sched-box--today {
+  border-color: color-mix(in srgb, var(--orange) 70%, var(--border) 30%);
+  background: color-mix(in srgb, var(--orange) 10%, var(--card) 90%);
+}
+.sched-box--today .sched-box-day { color: var(--orange); }
 .sched-box--live {
   border-color: rgba(34, 197, 94, 0.7);
   box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.16);
