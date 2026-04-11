@@ -24,6 +24,7 @@ import {
   triggerOriolesMagic,
   triggerSevenNationArmy,
   toggleOpacyTheme,
+  toggleCityConnectTheme,
 } from './easter-eggs.js';
 
 // ── Refresh ───────────────────────────────────────────────────────
@@ -180,6 +181,9 @@ function setupEvents() {
     if (trigger === 'magic') {
       e.preventDefault();
       triggerOriolesMagic();
+    } else if (trigger === 'bmore' || trigger === '410') {
+      e.preventDefault();
+      toggleCityConnectTheme();
     }
   });
 
