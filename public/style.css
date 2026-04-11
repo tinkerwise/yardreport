@@ -60,6 +60,144 @@
 [data-theme="light"] .source-popover { background: #fff; }
 [data-theme="light"] .settings-panel { background: #fff; color: #1a1a1a; }
 
+/* ── City Connect Theme (Easter Egg — "From The Stoop to The Yard") ── */
+[data-theme="city-connect"] {
+  --bg: #ffffff;
+  --surface: #f0f7f3;
+  --card: #e1f0e8;
+  --border: #aacbb8;
+  --border-light: #c2ddd0;
+  --text: #0e2118;
+  --text-2: #2D5A3D;
+  --text-3: #4A7A59;
+  --orange: #C84B11;
+  --orange-dim: rgba(200, 75, 17, 0.12);
+}
+/* Jersey pinstripes */
+[data-theme="city-connect"] body {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 18px,
+    rgba(45, 90, 61, 0.045) 18px, rgba(45, 90, 61, 0.045) 19px
+  );
+}
+/* Header: white with green collar + brick orange shadow line */
+[data-theme="city-connect"] .site-header {
+  background: #ffffff;
+  border-bottom: 3px solid #2D5A3D;
+  box-shadow: 0 3px 0 0 #C84B11;
+}
+/* Scores bar: Camden Yards green with brick mortar grid texture */
+[data-theme="city-connect"] .scores-bar {
+  background-color: #1E3D29;
+  background-image:
+    repeating-linear-gradient(
+      0deg, transparent 0px, transparent 18px,
+      rgba(0,0,0,0.14) 18px, rgba(0,0,0,0.14) 19px
+    ),
+    repeating-linear-gradient(
+      90deg, transparent 0px, transparent 36px,
+      rgba(0,0,0,0.09) 36px, rgba(0,0,0,0.09) 37px
+    );
+  background-size: 37px 19px;
+  border-bottom: 2px solid #C84B11;
+}
+/* Score chips pop white against the dark green bar */
+[data-theme="city-connect"] .score-chip {
+  background: rgba(255,255,255,0.93);
+  border-color: rgba(255,255,255,0.22);
+  color: #0e2118;
+}
+[data-theme="city-connect"] .score-chip:hover { border-color: #C84B11; transform: translateY(-1px); }
+[data-theme="city-connect"] .score-chip[aria-expanded="true"] { border-color: #C84B11; }
+[data-theme="city-connect"] .score-chip.orioles {
+  border-left: 3px solid #2D5A3D;
+  background: rgba(255,255,255,0.97);
+}
+[data-theme="city-connect"] .chip-status.final { color: #4A7A59; }
+[data-theme="city-connect"] .chip-status.preview { color: #2D5A3D; }
+/* Article cards: jersey piping left stripe */
+[data-theme="city-connect"] .article-card {
+  background: #ffffff;
+  border-left: 3px solid rgba(45, 90, 61, 0.28);
+}
+[data-theme="city-connect"] .article-card:hover {
+  border-color: #2D5A3D;
+  border-left-color: #2D5A3D;
+  box-shadow: 0 8px 24px rgba(45,90,61,0.16);
+}
+/* Article thumb placeholder: rich Camden green */
+[data-theme="city-connect"] .article-thumb-placeholder {
+  background: linear-gradient(135deg, #2D5A3D 0%, #1E3D29 100%);
+}
+/* Section labels: Graduate font — like jersey chest lettering */
+[data-theme="city-connect"] .section-label {
+  font-family: 'Graduate', serif;
+  color: #2D5A3D;
+  letter-spacing: 0.04em;
+}
+/* Search: green focus ring */
+[data-theme="city-connect"] .search-wrap {
+  background: linear-gradient(180deg, rgba(45,90,61,0.07), rgba(45,90,61,0.02));
+  border-color: rgba(45,90,61,0.18);
+}
+[data-theme="city-connect"] .search-input:focus {
+  border-color: #2D5A3D;
+  box-shadow: 0 0 0 3px rgba(45,90,61,0.18);
+}
+[data-theme="city-connect"] .search-wrap:focus-within .search-icon { color: #2D5A3D; }
+/* Pills & tabs: Camden green active state */
+[data-theme="city-connect"] .pill:hover { border-color: #2D5A3D; color: #2D5A3D; }
+[data-theme="city-connect"] .pill.active { background: #2D5A3D; border-color: #2D5A3D; color: #fff; }
+[data-theme="city-connect"] .div-tab:hover { border-color: #2D5A3D; color: #2D5A3D; }
+[data-theme="city-connect"] .div-tab.active { background: #2D5A3D; border-color: #2D5A3D; color: #fff; }
+[data-theme="city-connect"] .leaders-scope-btn:hover { border-color: #2D5A3D; color: #2D5A3D; }
+[data-theme="city-connect"] .leaders-scope-btn.active { background: #2D5A3D; border-color: #2D5A3D; }
+/* Buttons */
+[data-theme="city-connect"] .btn-settings:hover { color: #2D5A3D; border-color: #2D5A3D; }
+[data-theme="city-connect"] .theme-btn:hover { border-color: #2D5A3D; color: #2D5A3D; }
+[data-theme="city-connect"] .theme-btn.active { background: #2D5A3D; border-color: #2D5A3D; }
+/* Standings */
+[data-theme="city-connect"] .standings-table tr.orioles-row td { color: #2D5A3D; font-weight: 700; }
+[data-theme="city-connect"] .standings-table td { border-bottom-color: rgba(45,90,61,0.12); }
+[data-theme="city-connect"] .team-abbrev a:hover { color: #2D5A3D; }
+/* Leaders */
+[data-theme="city-connect"] .leader-cat { color: #2D5A3D; }
+[data-theme="city-connect"] a.leader-name:hover { color: #2D5A3D; }
+/* Roster */
+[data-theme="city-connect"] .roster-group-label { color: #2D5A3D; }
+[data-theme="city-connect"] a.roster-name:hover { color: #2D5A3D; }
+/* On Deck */
+[data-theme="city-connect"] .on-deck-card { background: #e1f0e8; border-color: #aacbb8; }
+[data-theme="city-connect"] .on-deck-card:hover { border-color: #2D5A3D; }
+/* Podcast: green-tinted */
+[data-theme="city-connect"] .podcast-card {
+  background:
+    linear-gradient(180deg, rgba(45,90,61,0.14), rgba(45,90,61,0.04)),
+    var(--card);
+  border-color: rgba(45,90,61,0.30);
+}
+/* Box score popover */
+[data-theme="city-connect"] .box-score-popover {
+  background: linear-gradient(180deg, #f0f7f3, #e8f2ed);
+  border-color: rgba(45,90,61,0.22);
+}
+/* Arsenal pills: subtle green */
+[data-theme="city-connect"] .arsenal-pill {
+  background: rgba(45,90,61,0.08);
+  border-color: rgba(45,90,61,0.24);
+}
+/* Links & misc */
+[data-theme="city-connect"] .widget-link:hover { color: #2D5A3D; }
+[data-theme="city-connect"] .txn-player:hover { color: #2D5A3D; }
+[data-theme="city-connect"] a.il-name:hover { color: #2D5A3D; }
+[data-theme="city-connect"] .share-btn:hover { color: #2D5A3D; background: rgba(45,90,61,0.08); }
+/* Logo */
+[data-theme="city-connect"] .logo strong { color: #2D5A3D; }
+[data-theme="city-connect"] .logo::after { background: rgba(45, 90, 61, 0.25); }
+[data-theme="city-connect"] .logo-word { color: #0e2118; text-shadow: none; }
+[data-theme="city-connect"] .logo-word-accent { color: #C84B11; }
+
 /* ── OPACY Theme (Easter Egg) ─────────────────────────────────── */
 [data-theme="opacy"] {
   --bg: #1a0a00;
@@ -80,6 +218,79 @@
 [data-theme="opacy"] .logo strong { color: #ff6b1a; }
 [data-theme="opacy"] .on-deck-card { background: #301808; }
 [data-theme="opacy"] .box-score-popover { background: #301808; }
+
+/* ── City Connect Banner Animation ──────────────────────────────── */
+.city-connect-banner {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(14, 33, 24, 0.92);
+  backdrop-filter: blur(6px);
+  animation: cc-fade-in 0.35s ease;
+  cursor: pointer;
+  /* Brick mortar grid on the overlay */
+  background-image:
+    rgba(14,33,24,0.92),
+    repeating-linear-gradient(0deg, transparent 0px, transparent 22px, rgba(255,255,255,0.03) 22px, rgba(255,255,255,0.03) 23px),
+    repeating-linear-gradient(90deg, transparent 0px, transparent 44px, rgba(255,255,255,0.03) 44px, rgba(255,255,255,0.03) 45px);
+}
+.city-connect-banner-out { animation: cc-fade-out 0.5s ease forwards; }
+.city-connect-banner-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  text-align: center; padding: 44px 64px;
+  background: #ffffff;
+  border: 4px solid #2D5A3D;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 8px #C84B11, 0 0 0 10px #2D5A3D, 0 28px 72px rgba(0,0,0,0.65);
+  animation: cc-scale-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+/* Green pinstripes on banner card */
+.city-connect-banner-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 16px,
+    rgba(45, 90, 61, 0.055) 16px, rgba(45, 90, 61, 0.055) 17px
+  );
+  pointer-events: none;
+  border-radius: 0;
+}
+.city-connect-stoop, .city-connect-yard {
+  font-family: 'Graduate', serif;
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  font-weight: 700;
+  color: #1E3D29;
+  letter-spacing: 0.06em;
+  text-shadow: 3px 3px 0 #C84B11;
+  position: relative;
+}
+.city-connect-to {
+  font-family: 'Graduate', serif;
+  font-size: clamp(0.85rem, 2vw, 1.1rem);
+  color: #C84B11;
+  letter-spacing: 0.25em;
+  position: relative;
+}
+.city-connect-divider {
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, #2D5A3D, #C84B11, #2D5A3D);
+  border-radius: 2px;
+  position: relative;
+}
+.city-connect-sub {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #4A7A59;
+  text-transform: uppercase;
+  position: relative;
+}
+@keyframes cc-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cc-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes cc-scale-in { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* ── Reset ─────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -205,6 +416,9 @@ img { display: block; max-width: 100%; }
 [data-theme="opacy"] .logo::after {
   background: rgba(255, 107, 26, 0.5);
 }
+[data-theme="city-connect"] .logo::after {
+  background: rgba(45, 90, 61, 0.25);
+}
 [data-theme="light"] .logo-word { color: #3e2415; }
 [data-theme="light"] .logo-word-accent { color: #b84000; }
 [data-theme="opacy"] .logo-word {
@@ -212,6 +426,12 @@ img { display: block; max-width: 100%; }
 }
 [data-theme="opacy"] .logo-word-accent {
   color: #ff8a40;
+}
+[data-theme="city-connect"] .logo-word {
+  color: #152B1C;
+}
+[data-theme="city-connect"] .logo-word-accent {
+  color: #C84B11;
 }
 .btn-settings {
   background: none; border: 1px solid var(--border); color: var(--text-3);
@@ -804,6 +1024,9 @@ img { display: block; max-width: 100%; }
 }
 [data-theme="opacy"] .arsenal-pill {
   background: rgba(223,70,1,0.08); border-color: color-mix(in srgb, var(--orange) 30%, var(--border) 70%);
+}
+[data-theme="city-connect"] .arsenal-pill {
+  background: rgba(45,90,61,0.10); border-color: color-mix(in srgb, var(--text-2) 30%, var(--border) 70%);
 }
 .score-lineups {
   display: flex;
@@ -1634,6 +1857,9 @@ a.il-name:hover { color: var(--orange); }
 [data-theme="light"] .podcast-hover-desc { color: #6b5840; }
 [data-theme="opacy"] .podcast-card {
   border-color: rgba(255, 138, 64, 0.35);
+}
+[data-theme="city-connect"] .podcast-card {
+  border-color: rgba(45, 90, 61, 0.35);
 }
 
 /* ── Video Widget ────────────────────────────────────────────── */

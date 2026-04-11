@@ -99,3 +99,37 @@ export function toggleOpacyTheme() {
     html.setAttribute('data-theme', 'opacy');
   }
 }
+
+export function toggleCityConnectTheme() {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'city-connect') {
+    applyTheme(loadPrefs().theme || 'dark');
+  } else {
+    html.setAttribute('data-theme', 'city-connect');
+    triggerCityConnectBanner();
+  }
+}
+
+function triggerCityConnectBanner() {
+  const banner = document.createElement('div');
+  banner.className = 'city-connect-banner';
+  banner.innerHTML = `
+    <div class="city-connect-banner-inner">
+      <span class="city-connect-stoop">FROM THE STOOP</span>
+      <span class="city-connect-to">to</span>
+      <span class="city-connect-yard">THE YARD</span>
+      <div class="city-connect-divider"></div>
+      <span class="city-connect-sub">410 &middot; BMORE &middot; CITY CONNECT 2026</span>
+    </div>`;
+  document.body.appendChild(banner);
+
+  const dismiss = () => {
+    banner.classList.add('city-connect-banner-out');
+    setTimeout(() => banner.remove(), 500);
+    document.removeEventListener('keydown', onKey);
+  };
+  const onKey = e => { if (e.key === 'Escape') dismiss(); };
+  document.addEventListener('keydown', onKey);
+  banner.addEventListener('click', dismiss);
+  setTimeout(dismiss, 3500);
+}

@@ -60,6 +60,27 @@
 [data-theme="light"] .source-popover { background: #fff; }
 [data-theme="light"] .settings-panel { background: #fff; color: #1a1a1a; }
 
+/* ── City Connect Theme (Easter Egg — "From The Stoop to The Yard") ── */
+[data-theme="city-connect"] {
+  --bg: #F0E6CC;
+  --surface: #E6D8B8;
+  --card: #DCCFA5;
+  --border: #C2B48A;
+  --border-light: #D2C49A;
+  --text: #152B1C;
+  --text-2: #2D5A3D;
+  --text-3: #4A7A59;
+  --orange: #C84B11;
+  --orange-dim: rgba(200, 75, 17, 0.14);
+}
+[data-theme="city-connect"] .site-header { background: #F0E6CC; border-color: #2D5A3D; }
+[data-theme="city-connect"] .scores-bar { background: linear-gradient(180deg, #F0E6CC 0%, #E6D8B8 100%); }
+[data-theme="city-connect"] .score-chip { background: #DCCFA5; }
+[data-theme="city-connect"] .article-thumb-placeholder { background: linear-gradient(135deg, #2D5A3D 0%, #1E3D29 100%); }
+[data-theme="city-connect"] .logo strong { color: #2D5A3D; }
+[data-theme="city-connect"] .on-deck-card { background: #DCCFA5; }
+[data-theme="city-connect"] .box-score-popover { background: #E6D8B8; }
+
 /* ── OPACY Theme (Easter Egg) ─────────────────────────────────── */
 [data-theme="opacy"] {
   --bg: #1a0a00;
@@ -80,6 +101,51 @@
 [data-theme="opacy"] .logo strong { color: #ff6b1a; }
 [data-theme="opacy"] .on-deck-card { background: #301808; }
 [data-theme="opacy"] .box-score-popover { background: #301808; }
+
+/* ── City Connect Banner Animation ──────────────────────────────── */
+.city-connect-banner {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(21, 43, 28, 0.88);
+  backdrop-filter: blur(4px);
+  animation: cc-fade-in 0.35s ease;
+  cursor: pointer;
+}
+.city-connect-banner-out { animation: cc-fade-out 0.5s ease forwards; }
+.city-connect-banner-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center; padding: 40px 56px;
+  background: #F0E6CC;
+  border: 3px solid #2D5A3D;
+  border-radius: 4px;
+  box-shadow: 0 0 0 6px #C84B11, 0 20px 60px rgba(0,0,0,0.5);
+  animation: cc-scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.city-connect-stoop, .city-connect-yard {
+  font-family: 'Graduate', serif;
+  font-size: clamp(1.8rem, 5vw, 3.2rem);
+  font-weight: 700;
+  color: #2D5A3D;
+  letter-spacing: 0.06em;
+  text-shadow: 2px 2px 0 #C84B11;
+}
+.city-connect-to {
+  font-family: 'Graduate', serif;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: #C84B11;
+  letter-spacing: 0.2em;
+}
+.city-connect-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #4A7A59;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+@keyframes cc-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cc-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes cc-scale-in { from { transform: scale(0.82); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* ── Reset ─────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -205,6 +271,9 @@ img { display: block; max-width: 100%; }
 [data-theme="opacy"] .logo::after {
   background: rgba(255, 107, 26, 0.5);
 }
+[data-theme="city-connect"] .logo::after {
+  background: rgba(45, 90, 61, 0.35);
+}
 [data-theme="light"] .logo-word { color: #3e2415; }
 [data-theme="light"] .logo-word-accent { color: #b84000; }
 [data-theme="opacy"] .logo-word {
@@ -212,6 +281,12 @@ img { display: block; max-width: 100%; }
 }
 [data-theme="opacy"] .logo-word-accent {
   color: #ff8a40;
+}
+[data-theme="city-connect"] .logo-word {
+  color: #152B1C;
+}
+[data-theme="city-connect"] .logo-word-accent {
+  color: #C84B11;
 }
 .btn-settings {
   background: none; border: 1px solid var(--border); color: var(--text-3);
@@ -804,6 +879,9 @@ img { display: block; max-width: 100%; }
 }
 [data-theme="opacy"] .arsenal-pill {
   background: rgba(223,70,1,0.08); border-color: color-mix(in srgb, var(--orange) 30%, var(--border) 70%);
+}
+[data-theme="city-connect"] .arsenal-pill {
+  background: rgba(45,90,61,0.10); border-color: color-mix(in srgb, var(--text-2) 30%, var(--border) 70%);
 }
 .score-lineups {
   display: flex;
@@ -1634,6 +1712,9 @@ a.il-name:hover { color: var(--orange); }
 [data-theme="light"] .podcast-hover-desc { color: #6b5840; }
 [data-theme="opacy"] .podcast-card {
   border-color: rgba(255, 138, 64, 0.35);
+}
+[data-theme="city-connect"] .podcast-card {
+  border-color: rgba(45, 90, 61, 0.35);
 }
 
 /* ── Video Widget ────────────────────────────────────────────── */

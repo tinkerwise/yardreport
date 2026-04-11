@@ -1,23 +1,28 @@
 **Maintainer Brief**
 
-Yard Report is a single-page Astro site with a thin static shell and a very thick client script. The core implementation lives in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js), which owns state, data fetching, rendering, event wiring, settings, Easter eggs, feed logic, score-bug popovers, Around the Horn, and sidebar widgets like video and podcast. The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is intentionally public-facing and brief; this file is the home for maintainer detail.
+Yard Report is a single-page Astro site with a thin static shell and a modular client-side script layer. The client is split into domain modules under `src/scripts/`: [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) is now a slim orchestrator (~175 lines) that imports from [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js), [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js), [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js), [state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js), [theme.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/theme.js), [utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js), [weather.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/weather.js), and [easter-eggs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/easter-eggs.js). The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is intentionally public-facing and brief; this file is the home for maintainer detail.
 
 **What’s Fragile**
 
-The biggest risk is the “all roads lead to one file” setup in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js). Rendering and behavior are tightly coupled, so small UI changes can easily break event handlers, indexing, or filter state. A few especially sensitive areas:
-- `renderArticles()` and `renderCard()` drive most feed UX; changes here can break reader opening, read/unread state, bundles, or swipe behavior.
-- `getFilteredArticles()` is the source of truth for what appears; filter bugs will ripple everywhere.
-- `setupEvents()` is large and centralized; new controls should be added carefully to avoid duplicated listeners or state drift.
-- `loadScores()` is now both a rendering surface and an interaction surface; it owns score-chip triggers, popover timing, click-to-open behavior, and async boxscore refreshes.
-- `loadOnDeck()` is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
+The client is now split into domain modules, so changes to one area are less likely to cascade. That said, several sensitive areas remain:
+- `renderArticles()` and `renderCard()` in [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js) drive most feed UX; changes here can break reader opening, read/unread state, bundles, or swipe behavior.
+- `getFilteredArticles()` in [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js) is the source of truth for what appears; filter bugs ripple everywhere.
+- `setupEvents()` in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) is the central event wiring point; new controls should be added carefully to avoid duplicated listeners or state drift.
+- `loadScores()` in [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js) is both a rendering surface and an interaction surface; it owns score-chip triggers, popover timing, click-to-open behavior, and async boxscore refreshes.
+- `loadOnDeck()` in [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js) is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
 - Score/on-deck/transactions/leaders/video/podcast all depend on third-party APIs or feeds with no formal abstraction layer, so breakage from upstream response changes is a real risk.
 - There is both a dev-time JS proxy in [astro.config.mjs](/Users/briancsmith/Documents/GitHub/yardreport/astro.config.mjs) and a production PHP proxy in [rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php); feed issues may differ between local and deployed environments, especially now that the proxy also supports trusted raw HTML/text passthrough for widget enrichment and audio-enclosure extraction for the podcast widget.
 
 **How I’d Approach Future Prompts**
 
-For feature work, I’d first check whether it’s already described in [updates.txt](/Users/briancsmith/Documents/GitHub/yardreport/updates.txt), then map it to one of three surfaces:
+For feature work, I’d first check whether it’s already described in [updates.txt](/Users/briancsmith/Documents/GitHub/yardreport/updates.txt), then map it to the right surface:
 - structure change: [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro)
-- behavior/data change: [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js)
+- feed/reader/article behavior: [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js)
+- score chips/popovers/lineups/scout notes: [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js)
+- sidebar widgets (standings, on deck, roster, IL, transactions, leaders, video, podcast): [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js)
+- shared state: [state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js)
+- shared pure utilities: [utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js)
+- event wiring / settings / refresh / init: [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js)
 - visual/responsive change: [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css)
 
 For safety, I’d usually preserve:
@@ -31,19 +36,26 @@ For safety, I’d usually preserve:
 
 **Best Next Refactors**
 
-If we want the repo easier to maintain without changing behavior, the highest-value cleanup would be:
-- split [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) into modules by domain: feeds, scores, sidebars, reader, settings
-- separate pure render helpers from fetch/state logic
-- centralize API wrappers and response shaping
+The domain module split is done. If we want the repo even easier to maintain, the remaining high-value cleanup would be:
+- centralize MLB Stats API wrappers and response shaping (currently scattered across scores.js and sidebars.js)
 - add a small smoke-test checklist for feed load, filters, reader, scores, and settings persistence
-- split score-bug popover rendering/timing into a dedicated module before adding much more behavior there
+- extract `state.js` mutations behind setter functions to make state changes traceable
 
 **Project Structure**
 
 - [src/pages/index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro): page shell and widget layout
-- [src/scripts/app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js): main client-side app logic
+- [src/scripts/app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js): slim orchestrator — event wiring, refresh, init
+- [src/scripts/feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js): feed fetching, article rendering, reader, ATH bundling, view mode
+- [src/scripts/scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js): score chips, box score popover, lineup, pitching, scout notes
+- [src/scripts/sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js): standings, on deck, roster, IL, transactions, leaders, video, podcast
+- [src/scripts/state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js): shared mutable app state
+- [src/scripts/theme.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/theme.js): theme application (runs on import)
+- [src/scripts/utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js): shared pure utilities
+- [src/scripts/weather.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/weather.js): Open-Meteo fetch and cache
+- [src/scripts/easter-eggs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/easter-eggs.js): Orioles Magic, Seven Nation Army, Opacy theme
 - [src/scripts/config.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/config.js): shared config/constants
 - [src/scripts/storage.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/storage.js): localStorage helpers
+- [src/scripts/feedDisplay.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feedDisplay.js): feed display selection logic
 - [public/style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css): global styling
 - [public/feeds.json](/Users/briancsmith/Documents/GitHub/yardreport/public/feeds.json): news/video source definitions
 - [public/rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php): production proxy for trusted feeds/pages
