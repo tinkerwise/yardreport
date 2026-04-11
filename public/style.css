@@ -47,9 +47,28 @@
   --orange-dim: rgba(223, 70, 1, 0.08);
 }
 [data-theme="light"] .site-header { background: #fff; border-bottom-color: #e0e0e0; }
-[data-theme="light"] .scores-bar { background: #fafafa; }
-[data-theme="light"] .score-chip { background: #fff; }
-[data-theme="light"] .score-chip.orioles { background: rgba(223,70,1,0.06); }
+[data-theme="light"] .scores-bar {
+  background: linear-gradient(180deg, #d6dde6 0%, #cdd5df 100%);
+  border-bottom-color: #b8c4d0;
+}
+[data-theme="light"] .score-chip {
+  background: #fff;
+  border-color: #b8c4d0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+}
+[data-theme="light"] .score-chip:hover {
+  box-shadow: 0 3px 8px rgba(0,0,0,0.14);
+}
+[data-theme="light"] .score-chip.orioles {
+  background: rgba(223,70,1,0.07);
+  border-color: rgba(223,70,1,0.28);
+}
+[data-theme="light"] .chip-row.winner { color: #111827; }
+[data-theme="light"] .chip-row:not(.winner) .chip-score { color: #374151; }
+[data-theme="light"] .chip-team { color: #111827; }
+[data-theme="light"] .chip-status.live { color: #15803d; }
+[data-theme="light"] .chip-status.delay { color: #1d4ed8; }
+[data-theme="light"] .chip-status.postponed { color: #dc2626; }
 [data-theme="light"] .article-card { box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 [data-theme="light"] .article-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 [data-theme="light"] .on-deck-card { background: #fff; }
@@ -486,8 +505,21 @@ img { display: block; max-width: 100%; }
 .source-setting-row:hover { background: rgba(255,255,255,0.04); }
 [data-theme="light"] .source-setting-row:hover,
 [data-theme="city-connect"] .source-setting-row:hover { background: rgba(0,0,0,0.04); }
-.source-setting-cb { cursor: pointer; accent-color: var(--orange); flex-shrink: 0; }
-.source-setting-name { flex: 1; }
+.source-setting-cb { position: absolute; opacity: 0; width: 0; height: 0; }
+.source-toggle-track {
+  flex-shrink: 0; width: 28px; height: 16px; border-radius: 8px;
+  background: var(--border); position: relative; transition: background 0.15s;
+}
+.source-toggle-track::after {
+  content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%;
+  background: #fff; top: 2px; left: 2px; transition: transform 0.15s;
+}
+.source-setting-cb:checked + .source-toggle-track { background: var(--orange); }
+.source-setting-cb:checked + .source-toggle-track::after { transform: translateX(12px); }
+.source-setting-name { flex: 1; transition: color 0.15s; }
+.source-setting-row:has(.source-setting-cb:not(:checked)) .source-setting-name {
+  color: var(--text-3);
+}
 .source-setting-warning {
   font-size: 0.76rem; color: #f59e0b;
   background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);

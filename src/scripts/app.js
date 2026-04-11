@@ -62,6 +62,7 @@ function renderSourceSettings() {
       ${srcs.map(s => `
         <label class="source-setting-row">
           <input type="checkbox" class="source-setting-cb" data-source-id="${s.id}"${disabled.has(s.id) ? '' : ' checked'}>
+          <span class="source-toggle-track"></span>
           <span class="source-setting-name">${s.name}</span>
         </label>`).join('')}
     </div>`;
