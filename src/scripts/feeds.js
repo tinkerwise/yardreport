@@ -112,6 +112,22 @@ export async function loadFeeds() {
 }
 
 // ── Source filters ────────────────────────────────────────────────
+function syncSourceFilterBtn(sources) {
+  const btn = $('sourceFilterBtn');
+  if (!btn) return;
+  const isFiltered = state.activeSource !== 'all';
+  btn.setAttribute('aria-pressed', String(isFiltered));
+  const label = btn.querySelector('.source-filter-label');
+  if (label) {
+    if (isFiltered) {
+      const src = sources.find(s => s.id === state.activeSource);
+      label.textContent = src?.name ?? 'Source';
+    } else {
+      label.textContent = 'Sources';
+    }
+  }
+}
+
 export function renderSourceFilters(sources) {
   const container = $('sourceFilters');
   container.innerHTML =
@@ -120,11 +136,14 @@ export function renderSourceFilters(sources) {
       `<button class="pill${state.activeSource === s.id ? ' active' : ''}" data-source="${esc(s.id)}">${esc(s.name)}</button>`
     ).join('');
 
+  syncSourceFilterBtn(sources);
+
   container.querySelectorAll('.pill').forEach(btn => {
     btn.addEventListener('click', () => {
       state.activeSource = btn.dataset.source;
       container.querySelectorAll('.pill').forEach(p =>
         p.classList.toggle('active', p.dataset.source === state.activeSource));
+      syncSourceFilterBtn(sources);
       renderArticles();
     });
   });

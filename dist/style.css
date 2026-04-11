@@ -1984,6 +1984,11 @@ a.il-name:hover { color: var(--orange); }
   transition: border-color 0.15s, color 0.15s;
 }
 .btn-source-filter:hover { border-color: var(--orange); color: var(--orange); }
+.btn-source-filter[aria-pressed="true"] {
+  border-color: var(--orange);
+  background: rgba(251,146,60,0.12);
+  color: var(--orange);
+}
 .btn-feed-toggle[aria-pressed="true"] {
   border-color: var(--orange);
   background: var(--orange-dim);

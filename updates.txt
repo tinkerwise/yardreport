@@ -10,9 +10,21 @@
 - Work through ##Active then prompt for ##Queued, then prompt for help with ##Ideas
 - Update this file after tasks are completed, remove '-' and leave checkmark
 
+---
+
 ##Active
 
-##Recently Completed (April 11, 2026)
+##Queued
+
+##Ideas
+
+##Parking Lot
+- Create a companion mobile app (iOS)
+- Refactor app.js into modules by domain (feeds, scores, sidebars, reader, settings, easter eggs)
+
+---
+
+##Completed
 
 # CONTRACTS & SALARIES
 ✓ Added Contracts widget to right sidebar between Roster and Injury Report
@@ -22,20 +34,7 @@
 ✓ Total payroll row at bottom; "Full contracts on FanGraphs ↗" link
 ✓ Graceful fallback to FanGraphs link if MLB endpoint returns empty or fails
 
-# IMAGES
-✓ Added referrerpolicy="no-referrer" to article thumbnails — bypasses most hotlink-protection redirects so the real image loads instead of an error image
-✓ Raised onload dimension guard from 20px to 80×60px — catches small default thumbnails that slipped through previously
-
-# THE ATHLETIC
-✓ Verified feed URL (https://theathletic.com/mlb/baltimore-orioles/feed/) is present in feeds.json
-✓ Added 🔒 Subscriber badge to all Athletic article cards
-✓ Athletic cards now open The Athletic directly in a new tab on click instead of the reader overlay (content requires a subscription)
-
-##Table
-
-##Recently Completed (April 11, 2026 — sources)
-
-# SETTINGS — SOURCE SELECTION
+# SETTINGS
 ✓ Added Sources section to the Settings panel — per-source checkboxes grouped by category (Orioles / MLB / MiLB)
 ✓ Disabled sources persisted in localStorage under yr_prefs.disabledSources; survives page reloads
 ✓ Only enabled sources are fetched on load and refresh — disabled sources are skipped entirely
@@ -44,162 +43,119 @@
 ✓ Reset to defaults button restores all sources and reloads
 ✓ Settings panel note: "Saved locally. Clearing browser data resets to defaults."
 
-##Queued
-
-
-
-##Parking lot
-- Create a companion mobile app (iOS)
-- Refactor app.js into modules by domain (feeds, scores, sidebars, reader, settings, easter eggs)
-
----
-
-##Recently Completed (April 7, 2026)
-
-# SCOUT NOTES
-- ✓ rewrote live-game note logic with 5-category priority system (situation, leverage, count, next batters, summary)
-- ✓ each category contributes at most one note — eliminates "tying run" + "late leverage" redundancy
-- ✓ count notes now cover notable extremes only: 3-0, 3-1, 0-2, 1-2
-- ✓ next-batter note degrades gracefully (shows on-deck even if in-hole is unknown)
-- ✓ late-game summary only fires when leverage category hasn't already captured the tension
-- ✓ Orioles perspective restored for Orioles games (pitcher protecting an Orioles lead, etc.)
-
-# GAME DAY WIDGET
-- ✓ added Watch (MASN) + Listen (WBAL · 98 Rock) media strip inside On Deck card; only visible when today's game is upcoming or live
-
-##Recently Completed (April 7, 2026 — earlier)
-
-# LAYOUT & DISPLAY
-- ✓ added widescreen breakpoints — sidebar widens to 290px at 1400px+, 310px at 1700px+; max layout expands to 1840px
-
-# IOS HOME SCREEN
-- ✓ added apple-touch-icon link in <head> so favicon appears on iOS home screens
-
 # FEEDS
-- ✓ added The Athletic (Orioles feed) to the source mix
-
-# LOGOS
-- ✓ updated all team/league logo drop-shadows from dark rgba(0,0,0) to light rgba(255,255,255)
-
-# SCOUT NOTES
-- ✓ extended scout notes to all score bugs (not just Orioles games); live notes now use neutral offense/defense framing
-- ✓ relabeled scout badge from "Scout"/"Matchup" to "Scouting Report"
-- ✓ fixed double-play and save-pressure notes to show for any game, not just Orioles
-
-# LINEUP STATS
-- ✓ when a stat is both team leader and MLB Top 10 proxy, it now renders bold + orange (combined treatment)
-
-# EASTER EGGS
-- ✓ removed Heritage Easter Egg (JS functions + CSS — heritage mode, badge, responsive overrides)
-
-# SEARCH
-- ✓ fixed search icon vertical alignment — was bottom-biased (top: calc(100% - 18px)) → top: 50%
-
-##Recently Completed (April 5, 2026)
-
-# LOGOS & VISUAL POLISH
-- ✓ added drop-shadow filter to all team/MLB/MiLB logos (.score-lineup-logo, .sched-box-logo, .on-deck-logo, .pill-logo, .standings-team-logo, .leaders-scope-logo)
-- ✓ added team logo before abbrev in Standings rows
-- ✓ added logos to Yard Leaders scope pills (O's → Orioles, AL/NL → league logos, MLB → MLB logo)
-
-# INJURY CARDS
-- ✓ clamped injury note to single line with ellipsis — cards now always render as exactly two lines
-
-# PODCAST
-- ✓ confirmed feed logic is correct: findIndex on newest-first RSS = latest playable audio episode
-
-# SCORE BUG POPOVER LAYOUT
-- ✓ aligned pitching and lineup details by team in side-by-side columns for live/final popovers
-- ✓ widened the popover so pitching order and lineup slash lines fit more cleanly
-- ✓ grouped each team's pitching and lineup info together for easier scanning
-
-# FEEDS
-- ✓ removed Orioles Hangout from the source mix
-- ✓ removed The Long Game from the source mix
-- ✓ updated category pills to use Orioles, MLB, and MiLB logos instead of emoji labels
-- ✓ default feed window now loads the last 7 days, newest first
-- ✓ article feed now targets 10 visible stories
-- ✓ date-sorted feed rotates sources more evenly instead of clustering one source too heavily
-- ✓ read articles are replaced with fresher unread ones when available
-- ✓ added a Show read / Hide read feed toggle
-
-# ON DECK
-- ✓ featured game now appears in schedule boxes with orange highlight; previously it was excluded
-- ✓ fixed On Deck weather logic so tomorrow's featured game can show forecast weather
-- ✓ removed the main-card @ / vs marker and cleaned up weather placement
-
-# SCORE BUG POPOVER
-- ✓ slashline font size bumped 0.66 → 0.72rem
-- ✓ added click-to-open behavior and moved MLB preview/results links into the popover
-- ✓ delayed hover open to reduce accidental triggers
-- ✓ lineups now place pinch-hit substitutions inline in batting order for live/final popovers
-- ✓ preview popovers now restore the Team Leader and MLB Top 10 legend only for preview state
-- ✓ preview lineups now show explicit AVG / OBP / OPS column headings with more spacing
-
-# SCOUT NOTES: PREVIEW MATCHUP CONTEXT
-- ✓ Orioles probable pitcher career line vs opponent (G, opp BA, K) — from /stats?stats=vsTeamTotal
-- ✓ Orioles season batting line (AVG/OBP, R/G) — from /teams/{id}/stats?stats=season
-- ✓ Both follow two-phase async pattern; notes cap raised 3→4 for preview state
-
-# PODCAST AUDIO
-- ✓ show podcast title and description on hover (hover panel with title + description)
-- ✓ fix audio playback on deployed site — fetch RSS directly from feeds.megaphone.fm in browser (CORS open), bypassing PHP proxy's broken SimpleXML enclosure parsing
-
-# IL WIDGET
-- ✓ moved position inline after player name
-- ✓ added IL start date / retroactive note and earliest eligible return when transaction data is available
-- ✓ sort IL players by expected return date when that can be inferred
-
-# MOBILE FEED
-- ✓ centered mobile feed thumbnails within the card frame
-- ✓ enlarged the Yard Report placeholder logo so it fills the thumbnail frame more like article art
-
-# ATH / READ STATE
-- ✓ added read-state caching for Around the Horn cards
-- ✓ read ATH bundles are deprioritized in favor of fresher unread bundles when alternatives exist
-
-# REFACTORING
-- ✓ extracted feed-display selection logic into `src/scripts/feedDisplay.js` as a first modular split from `app.js`
+✓ Source filter button highlights orange and shows active source name when a specific source is selected
+✓ Added The Athletic (Orioles feed) to the source mix
+✓ Added 🔒 Subscriber badge to all Athletic article cards
+✓ Athletic cards now open The Athletic directly in a new tab (content requires a subscription)
+✓ Added referrerpolicy="no-referrer" to article thumbnails — bypasses hotlink-protection redirects
+✓ Raised onload dimension guard from 20px to 80×60px — catches small default thumbnails
+✓ Removed Orioles Hangout from the source mix
+✓ Removed The Long Game from the source mix
+✓ Updated category pills to use Orioles, MLB, and MiLB logos instead of emoji labels
+✓ Default feed window now loads the last 7 days, newest first
+✓ Article feed now targets 10 visible stories
+✓ Date-sorted feed rotates sources more evenly instead of clustering one source too heavily
+✓ Read articles are replaced with fresher unread ones when available
+✓ Added a Show read / Hide read feed toggle
 
 # SCORE BUG
-- ✓ switch to today's games at 09:00 EDT (was noon)
-- ✓ rain delay chip border color changed from yellow to blue
+✓ Switch to today's games at 09:00 EDT (was noon)
+✓ Rain delay chip border color changed from yellow to blue
+✓ Added click-to-open behavior and moved MLB preview/results links into the popover
+✓ Delayed hover open to reduce accidental triggers
+✓ Slashline font size bumped 0.66 → 0.72rem
+✓ Lineups now place pinch-hit substitutions inline in batting order for live/final popovers
+✓ Preview popovers restore the Team Leader and MLB Top 10 legend only for preview state
+✓ Preview lineups now show explicit AVG / OBP / OPS column headings with more spacing
+✓ Aligned pitching and lineup details by team in side-by-side columns for live/final popovers
+✓ Widened the popover so pitching order and lineup slash lines fit more cleanly
+✓ Grouped each team's pitching and lineup info together for easier scanning
+✓ Added team logo inline leading to Key Hitters names (removed abbr, replaced with logo)
+✓ Added logo to lineup title followed by full team name in Score Bug popover
+✓ Listed pitchers based on appearance: starters first, relievers as they enter game
+✓ Added batter/pitcher handedness and batting-order pocket notes for matchup context
+✓ Removed the Story link at the bottom of the final Score Bug
 
-# ATH MOBILE
-- ✓ smaller cards (3:4 aspect ratio), reduced logo (32px), tighter title text, scaled-down source icons
-- ✓ single-column layout on screens ≤400px
+# SCOUT NOTES
+✓ Rewrote live-game note logic with 5-category priority system (situation, leverage, count, next batters, summary)
+✓ Each category contributes at most one note — eliminates "tying run" + "late leverage" redundancy
+✓ Count notes now cover notable extremes only: 3-0, 3-1, 0-2, 1-2
+✓ Next-batter note degrades gracefully (shows on-deck even if in-hole is unknown)
+✓ Late-game summary only fires when leverage category hasn't already captured the tension
+✓ Orioles perspective restored for Orioles games (pitcher protecting an Orioles lead, etc.)
+✓ Extended scout notes to all score bugs (not just Orioles games); live notes use neutral framing
+✓ Relabeled scout badge from "Scout"/"Matchup" to "Scouting Report"
+✓ Fixed double-play and save-pressure notes to show for any game, not just Orioles
+✓ Fixed pitcher facing own teammate — linescore always uses offense.batter / defense.pitcher
+✓ Added Scout Notes to each game popover
+✓ Added Scout pitch-mix mini section for live Orioles games (top 3 pitches)
+✓ Pitcher scouting notes: show pitch arsenal (type, %, velo) for Preview games — top 5 by usage %
+✓ Pitch names use league abbreviations: 4SF, 2SF, Sinker, Slider, Curve, Changeup, Cutter, Splitter, Sweeper
+✓ Two-phase async load: "Loading…" → full arsenal once API responds
+✓ Orioles probable pitcher career line vs opponent (G, opp BA, K) — from /stats?stats=vsTeamTotal
+✓ Orioles season batting line (AVG/OBP, R/G) — from /teams/{id}/stats?stats=season
+✓ Notes cap raised 3→4 for preview state
 
-# SCOUT NOTES BUG FIX
-- ✓ fixed pitcher facing own teammate — linescore always uses offense.batter / defense.pitcher; the ternary expressions were inverted
+# ON DECK / GAME DAY WIDGET
+✓ Updated On Deck to switch to next day's game when today's game starts
+✓ Featured game now appears in schedule boxes with orange highlight; previously it was excluded
+✓ Fixed On Deck weather logic so tomorrow's featured game can show forecast weather
+✓ Removed the main-card @ / vs marker and cleaned up weather placement
+✓ Added Watch (MASN) + Listen (WBAL · 98 Rock) media strip inside On Deck card; only visible when today's game is upcoming or live
 
-##Recently Completed (April 4, 2026)
+# STANDINGS & LEADERS
+✓ Added team logo before abbrev in Standings rows
+✓ Added logos to Yard Leaders scope pills (O's → Orioles, AL/NL → league logos, MLB → MLB logo)
+✓ When a stat is both team leader and MLB Top 10 proxy, it now renders bold + orange (combined treatment)
 
-# TEAM LOGO WORK (Score Bug popover)
-- ✓ add team logo inline leading to Key Hitters names (remove abbr, replace with logo)
-- ✓ add logo to lineup title followed by full team name (Baltimore Orioles) in Score Bug popover
+# LINEUP STATS
+✓ When a stat is both team leader and MLB Top 10 proxy, it now renders bold + orange (combined treatment)
 
-# PITCHER WORK (Score Bug popover)
-- ✓ list pitchers based on appearance in game starters first, relievers as they enter game
-- ✓ Add batter/pitcher handedness or batting-order pocket notes for more matchup context
+# IL / INJURY WIDGET
+✓ Clamped injury note to single line with ellipsis — cards now always render as exactly two lines
+✓ Moved position inline after player name
+✓ Added IL start date / retroactive note and earliest eligible return when transaction data is available
+✓ Sort IL players by expected return date when that can be inferred
 
-# GAME STATE & CONTENT
-- ✓ update On Deck to switch to next day's game when today's game starts
-- ✓ Add Scout Notes to each game popover
-- ✓ remove the Story link at the bottom of the final Score Bug
+# PODCAST
+✓ Confirmed feed logic is correct: findIndex on newest-first RSS = latest playable audio episode
+✓ Show podcast title and description on hover (hover panel with title + description)
+✓ Fixed audio playback on deployed site — fetch RSS directly from feeds.megaphone.fm in browser (CORS open)
 
-# SCOUT FEATURES (MLB Scout Integration)
-- ✓ Pitcher scouting notes: show pitch arsenal (type, %, velo) for Preview games
-  - Displays as pill badges below each probable pitcher (top 5 by usage %)
-  - Pitch names use league abbreviations: 4SF, 2SF, Sinker, Slider, Curve, Changeup, Cutter, Splitter, Sweeper, etc.
-  - Two-phase async load: "Loading…" → full arsenal once API responds
-  - Live games: Scout Notes unchanged (content-dense, no arsenal display)
+# AROUND THE HORN
+✓ Redesigned ATH into vertical baseball-card-style story cards with topic text overlay
+✓ Clicking an ATH card now opens a dedicated Around the Horn story page with related coverage
+✓ Tightened ATH bundle matching so stories stay more closely grouped around shared team/player/topic anchors
+✓ Added read-state caching for Around the Horn cards
+✓ Read ATH bundles are deprioritized in favor of fresher unread bundles when alternatives exist
+✓ Smaller cards on mobile (3:4 aspect ratio), reduced logo (32px), tighter title text
+✓ Single-column layout on screens ≤400px
 
-# WIDGETS & INFRASTRUCTURE
-- ✓ fix audio widget to feed and play podcast audio
-- ✓ scroll left sidebar similar to right sidebar
-- ✓ Both sidebars independently scrollable with sticky positioning
-- ✓ add Scout pitch-mix mini section for live Orioles games (top 3 pitches)
-- ✓ Update Around the Horn
-  - redesigned ATH into vertical baseball-card-style story cards with topic text overlay
-  - clicking an ATH card now opens a dedicated Around the Horn story page with related coverage
-  - tightened ATH bundle matching so stories stay more closely grouped around shared team/player/topic anchors
+# LOGOS & VISUAL POLISH
+✓ Added drop-shadow filter to all team/MLB/MiLB logos (.score-lineup-logo, .sched-box-logo, .on-deck-logo, .pill-logo, .standings-team-logo, .leaders-scope-logo)
+✓ Updated all team/league logo drop-shadows from dark rgba(0,0,0) to light rgba(255,255,255)
+
+# LAYOUT & DISPLAY
+✓ Added widescreen breakpoints — sidebar widens to 290px at 1400px+, 310px at 1700px+; max layout expands to 1840px
+✓ Fixed search icon vertical alignment — was bottom-biased (top: calc(100% - 18px)) → top: 50%
+✓ Both sidebars independently scrollable with sticky positioning
+
+# MOBILE
+✓ Centered mobile feed thumbnails within the card frame
+✓ Enlarged the Yard Report placeholder logo so it fills the thumbnail frame more like article art
+
+# EASTER EGGS
+✓ Added City Connect Easter Egg — triggers on search "bmore" or "410"; applies Camden green/white palette with pinstripe and brick textures
+✓ Removed Heritage Easter Egg (JS functions + CSS — heritage mode, badge, responsive overrides)
+
+# IOS / PWA
+✓ Added apple-touch-icon link in <head> so favicon appears on iOS home screens
+
+# REFACTORING
+✓ Extracted feed-display selection logic into src/scripts/feedDisplay.js as a first modular split from app.js
+✓ Refactored app.js into domain modules: feeds, scores, sidebars, state, storage, theme, utils, easter-eggs
+
+# INFRASTRUCTURE
+✓ Fixed audio widget to feed and play podcast audio
+✓ Upgraded Astro from 6.1.1 → 6.1.5
