@@ -935,10 +935,11 @@ export async function loadContracts() {
   if (!wrap) return;
   contractsData = [];
   try {
-    const data = await fetch(
-      `${MLB}/salaries?teamId=${ORIOLES_ID}&season=${SEASON}`
-    ).then(r => r.json());
-    contractsData = (data.salaries ?? []).filter(s => s.team?.id === ORIOLES_ID);
+    const data = await fetch('/contracts.json').then(r => {
+      if (!r.ok) throw new Error('missing');
+      return r.json();
+    });
+    contractsData = data.salaries ?? [];
     if (!contractsData.length) throw new Error('empty');
     renderContracts(wrap);
   } catch {
