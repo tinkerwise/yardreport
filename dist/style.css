@@ -1691,7 +1691,13 @@ img { display: block; max-width: 100%; }
 
 /* ── Yard Leaders ─────────────────────────────────────────────── */
 .leaders-controls { display: flex; gap: 3px; align-items: center; margin-bottom: 6px; }
-.leaders-scope { display: flex; gap: 2px; }
+.leaders-controls-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+.leaders-scope { display: flex; gap: 2px; flex-wrap: wrap; }
+.leaders-roy-league {
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--orange); padding: 6px 0 2px; border-top: 1px solid var(--border); margin-top: 2px;
+}
+.leaders-roy-league:first-child { border-top: none; margin-top: 0; padding-top: 2px; }
 .leaders-scope-btn {
   display: inline-flex; align-items: center; gap: 3px;
   padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px;
@@ -1739,59 +1745,27 @@ a.leader-name:hover { color: var(--orange); }
 .roster-list { display: flex; flex-direction: column; gap: 1px; max-height: none; overflow: visible; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .roster-group-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); padding: 6px 0 2px; }
 .roster-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; padding: 3px 0; border-bottom: 1px solid #1e1e1e; }
+.roster-item--muted .roster-name { color: var(--text-3); }
+.roster-item--muted .roster-num, .roster-item--muted .roster-pos { opacity: 0.6; }
 .roster-num { width: 20px; text-align: right; color: var(--text-3); font-size: 0.68rem; font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .roster-name { flex: 1; color: var(--text); font-weight: 500; transition: color 0.15s; }
 a.roster-name:hover { color: var(--orange); }
 .roster-pos { color: var(--text-3); font-size: 0.68rem; flex-shrink: 0; }
+.roster-badge { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+.roster-badge--il { background: rgba(239,68,68,0.15); color: #ef4444; }
 
 /* ── Contracts ────────────────────────────────────────────────── */
-.contract-controls { display: flex; gap: 4px; margin-bottom: 8px; }
-.contract-sort-btn { font-size: 0.62rem; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-3); cursor: pointer; transition: background 0.15s, color 0.15s; }
-.contract-sort-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
-.contracts-list { display: flex; flex-direction: column; gap: 0; }
-.contract-row { padding: 5px 0 3px; border-bottom: 1px solid var(--border); }
-.contract-row-main { display: grid; grid-template-columns: 26px 1fr auto; align-items: baseline; gap: 4px; }
-.contract-bar-wrap { display: flex; align-items: center; gap: 6px; margin-top: 3px; height: 4px; position: relative; }
-.contract-bar {
-  height: 4px; border-radius: 2px; min-width: 2px;
-  transition: width 0.3s ease;
+.contracts-blurb { font-size: 0.72rem; color: var(--text-3); margin: 0 0 10px; line-height: 1.4; }
+.widget-link-card {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 9px 11px; margin-bottom: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
 }
-/* Bar colors by contract type */
-.ct--ext  .contract-bar { background: var(--orange); }
-.ct--fa   .contract-bar { background: #22c55e; }
-.ct--arb  .contract-bar { background: #60a5fa; }
-.ct--prearb .contract-bar { background: var(--border-light); }
-.ct--other  .contract-bar { background: var(--border-light); }
-.contract-type-tag {
-  font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.05em;
-  color: var(--text-3); white-space: nowrap; line-height: 1;
-  position: absolute; right: 0; bottom: -1px;
-}
-.contract-pos { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-3); text-align: right; padding-top: 1px; }
-.contract-pos--p { color: #6c8fc4; }
-.contract-name { color: var(--text); font-weight: 500; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.contract-salary { font-variant-numeric: tabular-nums; color: var(--text-2); font-size: 0.71rem; font-weight: 600; text-align: right; white-space: nowrap; }
-/* Payroll total bar */
-.contracts-payroll-bar-wrap {
-  height: 5px; background: var(--border); border-radius: 3px;
-  margin: 10px 0 4px; overflow: hidden;
-}
-.contracts-payroll-bar {
-  height: 100%; border-radius: 3px; background: var(--orange);
-  transition: width 0.4s ease;
-}
-.contracts-payroll-bar.near { background: #f59e0b; }
-.contracts-payroll-bar.over { background: #ef4444; }
-.contracts-total { display: flex; justify-content: space-between; align-items: center; padding: 2px 0 6px; font-size: 0.72rem; }
-.contracts-total-label { color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.62rem; }
-.contracts-total-val { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
-.contracts-legend { display: flex; gap: 8px; flex-wrap: wrap; padding: 2px 0 4px; border-top: 1px solid var(--border); margin-top: 2px; }
-.cl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); display: flex; align-items: center; gap: 3px; }
-.cl::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-.ct--ext.cl::before  { background: var(--orange); }
-.ct--fa.cl::before   { background: #22c55e; }
-.ct--arb.cl::before  { background: #60a5fa; }
-.ct--prearb.cl::before { background: var(--border-light); }
+.widget-link-card:hover { border-color: var(--orange); background: var(--card); }
+.widget-link-card-label { font-size: 0.75rem; font-weight: 600; color: var(--text); }
+.widget-link-card-sub { font-size: 0.65rem; color: var(--orange); }
 
 /* ── Widget Link ──────────────────────────────────────────────── */
 .widget-link {

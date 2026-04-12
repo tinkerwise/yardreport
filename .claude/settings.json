@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://www.fangraphs.com/api/roster-resource/payroll?teamid=2&season=2026\" -A \"Mozilla/5.0\" -H \"Accept: application/json\")",
+      "Bash(curl -s \"https://statsapi.mlb.com/api/v1/salaries?teamId=110&season=2026&fields=salaries,player,fullName,salary,position,abbreviation\")",
+      "Bash(curl -s \"https://statsapi.mlb.com/api/v1/teams/110/roster/40Man?season=2026&hydrate=person\\(salary\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); r=d.get\\('roster',[]\\); print\\(json.dumps\\(r[0] if r else {}, indent=2\\)\\)\" echo \"=== MLB contract endpoint ===\" curl -s \"https://statsapi.mlb.com/api/v1/contracts?teamId=110&season=2026\")",
+      "Bash(curl -s \"https://www.baseball-reference.com/teams/BAL/2026.shtml\" -A \"Mozilla/5.0\" --compressed)",
+      "Bash(python3 -c \" import sys,re c=sys.stdin.read\\(\\) comments = re.findall\\(r'<!--\\(.*?\\)-->', c, re.DOTALL\\) for i, cm in enumerate\\(comments\\): if 'Rutschman' in cm or 'Henderson' in cm: print\\(f'Comment {i}, length {len\\(cm\\)}'\\) print\\(cm[:3000]\\) \")",
+      "Bash(curl -s -A \"Mozilla/5.0\" \"https://www.mlbtraderumors.com/contract-tracker\")",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\" -L \"https://www.mlbtraderumors.com/contract-tracker\")",
+      "Bash(curl -s -A \"Mozilla/5.0\" \"https://www.mlbtraderumors.com/contracttracker\")",
+      "Bash(python3 -c ':*)",
+      "Bash(python3 -c \" import json,sys; d=json.load\\(sys.stdin\\) for c in d.get\\('leagueLeaders', []\\): for l in c.get\\('leaders', []\\)[:1]: print\\(l.get\\('person',{}\\).get\\('fullName'\\), l.get\\('value'\\)\\) \")",
+      "Bash(python3 -c \" import json,sys; d=json.load\\(sys.stdin\\) for c in d.get\\('leagueLeaders', []\\): print\\('Group:', c.get\\('statGroup'\\), c.get\\('leaderCategory'\\)\\) for l in c.get\\('leaders', []\\)[:3]: print\\(' ', l.get\\('person',{}\\).get\\('fullName'\\), l.get\\('value'\\), 'rank:', l.get\\('rank'\\)\\) \")",
+      "Bash(python3 -c \" import json,sys; d=json.load\\(sys.stdin\\) for c in d.get\\('teamLeaders', []\\): for l in c.get\\('leaders', []\\)[:3]: print\\(l.get\\('person',{}\\).get\\('fullName'\\), l.get\\('value'\\), 'rank:', l.get\\('rank'\\)\\) \")",
+      "Bash(python3 -c \" import json,sys; d=json.load\\(sys.stdin\\) for c in d.get\\('teamLeaders', []\\): l = c.get\\('leaders', [{}]\\)[0] print\\(c.get\\('leaderCategory'\\), c.get\\('statGroup'\\), '->', l.get\\('person',{}\\).get\\('fullName'\\), l.get\\('value'\\)\\) \" curl -s \"https://statsapi.mlb.com/api/v1/teams/110/leaders?leaderCategories=earnedRunAverage,strikeouts&season=2026&leaderGameTypes=R&playerPool=Qualified&statGroup=pitching&limit=1\")",
+      "Bash(python3 -c \" import json,sys; d=json.load\\(sys.stdin\\) for c in d.get\\('teamLeaders', []\\): l = c.get\\('leaders', [{}]\\)[0] print\\(c.get\\('leaderCategory'\\), c.get\\('statGroup'\\), '->', l.get\\('person',{}\\).get\\('fullName'\\), l.get\\('value'\\)\\) \")",
+      "Bash(python3 -c \" import json,sys; d=json.load\\(sys.stdin\\) for c in d.get\\('leagueLeaders', []\\): l = c.get\\('leaders', [{}]\\)[0] print\\(c.get\\('leaderCategory'\\), '|', c.get\\('statGroup'\\), '->', l.get\\('person',{}\\).get\\('fullName'\\), l.get\\('value'\\)\\) \")",
+      "Bash(python3 -)"
+    ]
+  }
+}

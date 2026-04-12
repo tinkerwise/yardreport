@@ -391,8 +391,9 @@ function fitBundleHeadline(title, maxLength = 54) {
   return `${fitted}...`;
 }
 
-function bundlePhoto(bundle) {
-  return bundle.articles.map(article => extractThumbnail(article)).find(Boolean) || null;
+function bundlePhoto(bundle, usedImages = new Set()) {
+  return bundle.articles.map(article => extractThumbnail(article))
+    .find(url => url && !usedImages.has(url)) || null;
 }
 
 function isOriolesArticle(article) {
@@ -530,9 +531,10 @@ function findStoryBundles(articles, minArticles = 3) {
   return clusters;
 }
 
-function renderBundle(bundle, allArticles) {
-  const thumb = bundlePhoto(bundle);
+function renderBundle(bundle, allArticles, usedImages = new Set()) {
+  const thumb = bundlePhoto(bundle, usedImages);
   if (!thumb) return '';
+  usedImages.add(thumb);
   const variant = bundleVariant(bundle);
   const thumbHtml = `<img class="bundle-thumb" src="${esc(thumb)}" alt="" loading="lazy">`;
 
@@ -699,7 +701,7 @@ export function renderArticles() {
         <span class="ath-section-kicker">Featured Stories</span>
         <h2 class="ath-section-title">Around the Horn</h2>
       </div>
-      <div class="ath-bundle-grid">${bundles.map(b => renderBundle(b, arts)).join('')}</div>
+      <div class="ath-bundle-grid">${(() => { const used = new Set(); return bundles.map(b => renderBundle(b, arts, used)).join(''); })()}</div>
     </section>`;
   }
 

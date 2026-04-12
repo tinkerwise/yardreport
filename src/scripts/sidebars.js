@@ -226,49 +226,80 @@ function savantUrl(playerId) {
   return `https://baseballsavant.mlb.com/savant-player/${playerId}`;
 }
 
+const IL_BADGE = { D10: '10-Day IL', D15: '15-Day IL', D60: '60-Day IL' };
+
 export async function loadRoster() {
   const wrap = $('rosterWrap');
   try {
     const data = await fetch(
-      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=active`
+      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man&season=${SEASON}`
     ).then(r => r.json());
 
-    const players = (data.roster ?? []).sort((a, b) => {
-      const posOrder = { P: 3, C: 0, '1B': 0, '2B': 0, '3B': 0, SS: 0, LF: 1, CF: 1, RF: 1, OF: 1, DH: 1 };
-      const aGroup = posOrder[a.position?.abbreviation] ?? 2;
-      const bGroup = posOrder[b.position?.abbreviation] ?? 2;
-      return aGroup - bGroup || a.person.fullName.localeCompare(b.person.fullName);
-    });
-
-    if (!players.length) {
+    const all = data.roster ?? [];
+    if (!all.length) {
       wrap.innerHTML = '<span class="sidebar-msg">Roster unavailable</span>';
       return;
     }
 
-    const groups = { 'Position Players': [], 'Outfielders': [], 'Pitchers': [] };
-    for (const p of players) {
+    // Separate by status
+    const active = all.filter(p => p.status?.code === 'A');
+    const il     = all.filter(p => ['D10', 'D15', 'D60'].includes(p.status?.code));
+    const minors = all.filter(p => p.status?.code === 'RM');
+
+    const posOrder = { C: 0, '1B': 1, '2B': 2, '3B': 3, SS: 4, LF: 5, CF: 5, RF: 5, OF: 5, DH: 6 };
+    const sortByPos = list => list.slice().sort((a, b) => {
+      const pa = a.position?.abbreviation ?? '';
+      const pb = b.position?.abbreviation ?? '';
+      const isPitA = !Object.prototype.hasOwnProperty.call(posOrder, pa);
+      const isPitB = !Object.prototype.hasOwnProperty.call(posOrder, pb);
+      if (isPitA !== isPitB) return isPitA ? 1 : -1;
+      return (posOrder[pa] ?? 9) - (posOrder[pb] ?? 9) || a.person.fullName.localeCompare(b.person.fullName);
+    });
+
+    const renderItem = (p, opts = {}) => {
+      const url = savantUrl(p.person.id);
       const pos = p.position?.abbreviation ?? '';
-      if (['SP', 'RP', 'P'].includes(pos)) groups['Pitchers'].push(p);
-      else if (['LF', 'CF', 'RF', 'OF', 'DH'].includes(pos)) groups['Outfielders'].push(p);
-      else groups['Position Players'].push(p);
-    }
+      const badge = opts.badge ? `<span class="roster-badge roster-badge--${opts.badgeType ?? 'il'}">${esc(opts.badge)}</span>` : '';
+      return `<div class="roster-item${opts.muted ? ' roster-item--muted' : ''}">
+        <span class="roster-num">${esc(p.jerseyNumber ?? '')}</span>
+        <a class="roster-name" href="${url}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+        <span class="roster-pos">${esc(pos)}</span>
+        ${badge}
+      </div>`;
+    };
 
     let html = '';
-    for (const [label, list] of Object.entries(groups)) {
-      if (!list.length) continue;
-      html += `<div class="roster-group-label">${esc(label)}</div>`;
-      html += list.map(p => {
-        const url = savantUrl(p.person.id);
-        return `<div class="roster-item">
-          <span class="roster-num">${esc(p.jerseyNumber ?? '')}</span>
-          <a class="roster-name" href="${url}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
-          <span class="roster-pos">${esc(p.position?.abbreviation ?? '')}</span>
-        </div>`;
+
+    // Active 26-man — split into batters / pitchers
+    const activeBatters  = sortByPos(active.filter(p => !['SP','RP','P'].includes(p.position?.abbreviation ?? '')));
+    const activePitchers = sortByPos(active.filter(p => ['SP','RP','P'].includes(p.position?.abbreviation ?? '')));
+
+    if (activeBatters.length) {
+      html += `<div class="roster-group-label">Position Players</div>`;
+      html += activeBatters.map(p => renderItem(p)).join('');
+    }
+    if (activePitchers.length) {
+      html += `<div class="roster-group-label">Pitchers</div>`;
+      html += activePitchers.map(p => renderItem(p)).join('');
+    }
+
+    // IL
+    if (il.length) {
+      html += `<div class="roster-group-label">Injured List</div>`;
+      html += sortByPos(il).map(p => {
+        const badge = IL_BADGE[p.status?.code] ?? 'IL';
+        return renderItem(p, { badge, badgeType: 'il' });
       }).join('');
     }
 
+    // Minors
+    if (minors.length) {
+      html += `<div class="roster-group-label">Minors</div>`;
+      html += sortByPos(minors).map(p => renderItem(p, { muted: true })).join('');
+    }
+
     wrap.innerHTML = `<div class="roster-list">${html}</div>
-      <a class="widget-link" href="https://www.mlb.com/orioles/roster" target="_blank" rel="noopener">Full roster ↗</a>`;
+      <a class="widget-link" href="https://www.mlb.com/orioles/roster/40-man" target="_blank" rel="noopener">Full 40-man roster ↗</a>`;
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
   }
@@ -759,31 +790,49 @@ function savantStatUrl(statKey) {
   return url.toString();
 }
 
+const ROY_CATS = 'onBasePlusSlugging,homeRuns,battingAverage,earnedRunAverage,strikeouts,walksAndHitsPerInningPitched';
+const ROY_BATTING_ORDER  = ['onBasePlusSlugging', 'homeRuns', 'battingAverage'];
+const ROY_PITCHING_ORDER = ['earnedRunAverage', 'strikeouts', 'walksAndHitsPerInningPitched'];
+
 function leadersFetchUrl(scope) {
   if (scope === 'orioles') {
-    return `${MLB}/teams/${ORIOLES_ID}/leaders?leaderCategories=${TEAM_LEADERS_CATS}&season=${SEASON}&leaderGameTypes=R`;
+    return `${MLB}/teams/${ORIOLES_ID}/leaders?leaderCategories=${TEAM_LEADERS_CATS}&season=${SEASON}&leaderGameTypes=R&playerPool=Qualified`;
   }
   const leagueParam = scope === 'al' ? '&leagueId=103' : scope === 'nl' ? '&leagueId=104' : '';
-  return `${MLB}/stats/leaders?leaderCategories=${LEAGUE_LEADERS_CATS}&season=${SEASON}&leaderGameTypes=R${leagueParam}&limit=1`;
+  return `${MLB}/stats/leaders?leaderCategories=${LEAGUE_LEADERS_CATS}&season=${SEASON}&leaderGameTypes=R${leagueParam}&playerPool=Qualified&limit=1`;
 }
 
-function parseLeadersData(categories) {
+function parseLeadersData(categories, battingOrder = BATTING_ORDER, pitchingOrder = PITCHING_ORDER) {
   const sortBy = (items, order) => items.sort((a, b) =>
     (order.indexOf(a.key) === -1 ? 99 : order.indexOf(a.key)) - (order.indexOf(b.key) === -1 ? 99 : order.indexOf(b.key)));
   const batting = sortBy(
-    categories.filter(c => BATTING_LABELS[c.leaderCategory] && c.statGroup === 'hitting')
+    categories.filter(c => BATTING_LABELS[c.leaderCategory] && c.statGroup === 'hitting' && battingOrder.includes(c.leaderCategory))
       .map(c => ({ key: c.leaderCategory, label: BATTING_LABELS[c.leaderCategory], leaders: c.leaders })),
-    BATTING_ORDER);
+    battingOrder);
   const pitching = sortBy(
-    categories.filter(c => PITCHING_LABELS[c.leaderCategory] && c.statGroup === 'pitching')
+    categories.filter(c => PITCHING_LABELS[c.leaderCategory] && c.statGroup === 'pitching' && pitchingOrder.includes(c.leaderCategory))
       .map(c => ({ key: c.leaderCategory, label: PITCHING_LABELS[c.leaderCategory], leaders: c.leaders })),
-    PITCHING_ORDER);
+    pitchingOrder);
   return { batting, pitching };
 }
 
 export async function loadLeaders() {
   const wrap = $('leadersWrap');
   try {
+    if (leadersScope === 'roy') {
+      if (!leadersCache.roy) {
+        const [alData, nlData] = await Promise.all([
+          fetch(`${MLB}/stats/leaders?leaderCategories=${ROY_CATS}&season=${SEASON}&leaderGameTypes=R&leagueId=103&playerPool=Rookies&limit=1`).then(r => r.json()),
+          fetch(`${MLB}/stats/leaders?leaderCategories=${ROY_CATS}&season=${SEASON}&leaderGameTypes=R&leagueId=104&playerPool=Rookies&limit=1`).then(r => r.json()),
+        ]);
+        leadersCache.roy = {
+          al: parseLeadersData(alData.leagueLeaders ?? [], ROY_BATTING_ORDER, ROY_PITCHING_ORDER),
+          nl: parseLeadersData(nlData.leagueLeaders ?? [], ROY_BATTING_ORDER, ROY_PITCHING_ORDER),
+        };
+      }
+      renderLeaders();
+      return;
+    }
     const url = leadersFetchUrl(leadersScope);
     if (!leadersCache[leadersScope]) {
       const data = await fetch(url).then(r => r.json());
@@ -796,56 +845,59 @@ export async function loadLeaders() {
   }
 }
 
+function renderLeaderRow(cat) {
+  const top = cat.leaders?.[0];
+  if (!top) return '';
+  const name = (top.person?.fullName ?? '').split(' ').pop() ?? '';
+  const pid = top.person?.id;
+  return `<div class="leader-item">
+    <a class="leader-cat" href="${savantStatUrl(cat.key)}" target="_blank" rel="noopener">${esc(cat.label)}</a>
+    <a class="leader-name" href="${pid ? savantUrl(pid) : '#'}" target="_blank" rel="noopener">${esc(name)}</a>
+    <span class="leader-val">${esc(top.value)}</span>
+  </div>`;
+}
+
 function renderLeaders() {
   const wrap = $('leadersWrap');
   const cached = leadersCache[leadersScope];
   if (!cached) { wrap.innerHTML = '<span class="sidebar-msg">Loading…</span>'; return; }
 
-  wrap.innerHTML = `
-    <div class="leaders-controls">
-      <div class="leaders-scope">
-        <button class="leaders-scope-btn${leadersScope === 'orioles' ? ' active' : ''}" data-scope="orioles"><img class="leaders-scope-logo" src="https://www.mlbstatic.com/team-logos/110.svg" alt="" width="12" height="12" loading="eager" decoding="async">O's</button>
-        <button class="leaders-scope-btn${leadersScope === 'al' ? ' active' : ''}" data-scope="al"><img class="leaders-scope-logo leaders-scope-logo--league" src="https://midfield.mlbstatic.com/v1/team/american-league/logo" alt="" width="12" height="12" loading="eager" decoding="async">AL</button>
-        <button class="leaders-scope-btn${leadersScope === 'nl' ? ' active' : ''}" data-scope="nl"><img class="leaders-scope-logo leaders-scope-logo--league" src="https://midfield.mlbstatic.com/v1/team/national-league/logo" alt="" width="12" height="12" loading="eager" decoding="async">NL</button>
-        <button class="leaders-scope-btn${leadersScope === 'mlb' ? ' active' : ''}" data-scope="mlb"><img class="leaders-scope-logo leaders-scope-logo--league" src="https://www.mlbstatic.com/team-logos/apple-touch-icons-180x180/mlb.png" alt="" width="12" height="12" loading="eager" decoding="async">MLB</button>
-      </div>
-    </div>
-    <div class="leaders-stack">
+  const scopeHtml = `<div class="leaders-scope">
+    <button class="leaders-scope-btn${leadersScope === 'orioles' ? ' active' : ''}" data-scope="orioles"><img class="leaders-scope-logo" src="https://www.mlbstatic.com/team-logos/110.svg" alt="" width="12" height="12" loading="eager" decoding="async">O's</button>
+    <button class="leaders-scope-btn${leadersScope === 'al' ? ' active' : ''}" data-scope="al"><img class="leaders-scope-logo leaders-scope-logo--league" src="https://midfield.mlbstatic.com/v1/team/american-league/logo" alt="" width="12" height="12" loading="eager" decoding="async">AL</button>
+    <button class="leaders-scope-btn${leadersScope === 'nl' ? ' active' : ''}" data-scope="nl"><img class="leaders-scope-logo leaders-scope-logo--league" src="https://midfield.mlbstatic.com/v1/team/national-league/logo" alt="" width="12" height="12" loading="eager" decoding="async">NL</button>
+    <button class="leaders-scope-btn${leadersScope === 'mlb' ? ' active' : ''}" data-scope="mlb"><img class="leaders-scope-logo leaders-scope-logo--league" src="https://www.mlbstatic.com/team-logos/apple-touch-icons-180x180/mlb.png" alt="" width="12" height="12" loading="eager" decoding="async">MLB</button>
+    <button class="leaders-scope-btn${leadersScope === 'roy' ? ' active' : ''}" data-scope="roy">ROY</button>
+  </div>`;
+
+  let stackHtml;
+  if (leadersScope === 'roy') {
+    const royGroup = (label, data) => `
+      <div class="leaders-roy-league">${esc(label)} ROY Watch</div>
       <div class="leaders-group">
         <div class="leaders-group-title">Batting</div>
-        <div class="leaders-list">${cached.batting.map(cat => {
-          const top = cat.leaders?.[0];
-          if (!top) return '';
-          const fullName = top.person?.fullName ?? '';
-          const name = fullName.split(' ').pop() ?? '';
-          const pid = top.person?.id;
-          const playerLink = pid ? savantUrl(pid) : '#';
-          const statLink = savantStatUrl(cat.key);
-          return `<div class="leader-item">
-            <a class="leader-cat" href="${statLink}" target="_blank" rel="noopener">${esc(cat.label)}</a>
-            <a class="leader-name" href="${playerLink}" target="_blank" rel="noopener">${esc(name)}</a>
-            <span class="leader-val">${esc(top.value)}</span>
-          </div>`;
-        }).join('')}</div>
+        <div class="leaders-list">${data.batting.map(renderLeaderRow).join('')}</div>
       </div>
       <div class="leaders-group">
         <div class="leaders-group-title">Pitching</div>
-        <div class="leaders-list">${cached.pitching.map(cat => {
-          const top = cat.leaders?.[0];
-          if (!top) return '';
-          const fullName = top.person?.fullName ?? '';
-          const name = fullName.split(' ').pop() ?? '';
-          const pid = top.person?.id;
-          const playerLink = pid ? savantUrl(pid) : '#';
-          const statLink = savantStatUrl(cat.key);
-          return `<div class="leader-item">
-            <a class="leader-cat" href="${statLink}" target="_blank" rel="noopener">${esc(cat.label)}</a>
-            <a class="leader-name" href="${playerLink}" target="_blank" rel="noopener">${esc(name)}</a>
-            <span class="leader-val">${esc(top.value)}</span>
-          </div>`;
-        }).join('')}</div>
+        <div class="leaders-list">${data.pitching.map(renderLeaderRow).join('')}</div>
+      </div>`;
+    stackHtml = royGroup('AL', cached.al) + royGroup('NL', cached.nl);
+  } else {
+    stackHtml = `
+      <div class="leaders-group">
+        <div class="leaders-group-title">Batting</div>
+        <div class="leaders-list">${cached.batting.map(renderLeaderRow).join('')}</div>
       </div>
-    </div>`;
+      <div class="leaders-group">
+        <div class="leaders-group-title">Pitching</div>
+        <div class="leaders-list">${cached.pitching.map(renderLeaderRow).join('')}</div>
+      </div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="leaders-controls"><div class="leaders-controls-row">${scopeHtml}</div></div>
+    <div class="leaders-stack">${stackHtml}</div>`;
 
   wrap.querySelectorAll('.leaders-scope-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -856,119 +908,17 @@ function renderLeaders() {
 }
 
 // ── Contracts & Payroll ───────────────────────────────────────────
-const FG_PAYROLL_PAGE = 'https://www.fangraphs.com/roster-resource/payroll/orioles';
-
-function formatSalary(amount) {
-  if (!amount && amount !== 0) return '—';
-  if (amount >= 1_000_000) {
-    const m = amount / 1_000_000;
-    const str = m.toFixed(2).replace(/\.?0+$/, '');
-    return `$${str}M`;
-  }
-  if (amount >= 1_000) return `$${Math.round(amount / 1_000)}K`;
-  return `$${amount.toLocaleString()}`;
-}
-
-const CONTRACT_POS_ORDER = { C: 0, '1B': 1, '2B': 2, '3B': 3, SS: 4, LF: 5, CF: 6, RF: 7, OF: 8, DH: 9 };
-
-let contractsSort = 'salary';
-let contractsData = [];
-
-const CONTRACT_TYPE_CLASS = {
-  'Extension':  'ct--ext',
-  'Free Agent': 'ct--fa',
-  'Arb':        'ct--arb',
-  'Pre-arb':    'ct--prearb',
-};
-
-function renderContracts(wrap) {
-  let sorted = [...contractsData];
-  if (contractsSort === 'salary') {
-    sorted.sort((a, b) => (b.salary ?? 0) - (a.salary ?? 0));
-  } else {
-    sorted.sort((a, b) => {
-      const posA = a.position?.abbreviation ?? '';
-      const posB = b.position?.abbreviation ?? '';
-      const isPitcherA = !Object.prototype.hasOwnProperty.call(CONTRACT_POS_ORDER, posA);
-      const isPitcherB = !Object.prototype.hasOwnProperty.call(CONTRACT_POS_ORDER, posB);
-      if (isPitcherA !== isPitcherB) return isPitcherA ? 1 : -1;
-      if (!isPitcherA) return (CONTRACT_POS_ORDER[posA] ?? 99) - (CONTRACT_POS_ORDER[posB] ?? 99);
-      return (b.salary ?? 0) - (a.salary ?? 0);
-    });
-  }
-
-  const total = contractsData.reduce((sum, s) => sum + (s.salary ?? 0), 0);
-  const maxSalary = Math.max(...contractsData.map(s => s.salary ?? 0));
-
-  const rows = sorted.map(s => {
-    const name = s.player?.fullName ?? '—';
-    const lastName = name.split(' ').slice(1).join(' ') || name;
-    const pos = s.position?.abbreviation ?? '—';
-    const isPitcher = !Object.prototype.hasOwnProperty.call(CONTRACT_POS_ORDER, pos);
-    const typeLabel = s.type?.description ?? '';
-    const typeClass = CONTRACT_TYPE_CLASS[typeLabel] ?? 'ct--other';
-    const barPct = maxSalary > 0 ? ((s.salary ?? 0) / maxSalary * 100).toFixed(1) : 0;
-    const salaryStr = esc(formatSalary(s.salary));
-    return `<div class="contract-row ${typeClass}">
-      <div class="contract-row-main">
-        <span class="contract-pos${isPitcher ? ' contract-pos--p' : ''}">${esc(pos)}</span>
-        <span class="contract-name">${esc(lastName)}</span>
-        <span class="contract-salary">${salaryStr}</span>
-      </div>
-      <div class="contract-bar-wrap">
-        <div class="contract-bar" style="width:${barPct}%"></div>
-        ${typeLabel ? `<span class="contract-type-tag">${esc(typeLabel)}</span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  const pct = total > 0 ? Math.round(total / 300_000_000 * 100) : 0; // ~$300M luxury tax threshold
-  const luxuryClass = total >= 300_000_000 ? 'over' : total >= 240_000_000 ? 'near' : '';
-
-  wrap.innerHTML = `
-    <div class="contract-controls">
-      <button class="contract-sort-btn${contractsSort === 'salary' ? ' active' : ''}" data-sort="salary">$ Salary</button>
-      <button class="contract-sort-btn${contractsSort === 'position' ? ' active' : ''}" data-sort="position">Position</button>
-    </div>
-    <div class="contracts-list">${rows}</div>
-    <div class="contracts-payroll-bar-wrap">
-      <div class="contracts-payroll-bar ${luxuryClass}" style="width:${Math.min(pct,100)}%"></div>
-    </div>
-    <div class="contracts-total">
-      <span class="contracts-total-label">2026 Payroll</span>
-      <span class="contracts-total-val">${formatSalary(total)}</span>
-    </div>
-    <div class="contracts-legend">
-      <span class="cl ct--ext">Extension</span>
-      <span class="cl ct--fa">Free Agent</span>
-      <span class="cl ct--arb">Arb</span>
-      <span class="cl ct--prearb">Pre-arb</span>
-    </div>
-    <a class="widget-link" href="${FG_PAYROLL_PAGE}" target="_blank" rel="noopener">Full contracts on FanGraphs ↗</a>`;
-
-  wrap.querySelectorAll('.contract-sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      contractsSort = btn.dataset.sort;
-      renderContracts(wrap);
-    });
-  });
-}
-
-export async function loadContracts() {
+export function loadContracts() {
   const wrap = $('contractsWrap');
   if (!wrap) return;
-  contractsData = [];
-  try {
-    const data = await fetch(`${import.meta.env.BASE_URL}contracts.json`).then(r => {
-      if (!r.ok) throw new Error('missing');
-      return r.json();
-    });
-    contractsData = data.salaries ?? [];
-    if (!contractsData.length) throw new Error('empty');
-    renderContracts(wrap);
-  } catch {
-    wrap.innerHTML = `
-      <span class="sidebar-msg">Salary data unavailable</span>
-      <a class="widget-link" href="${FG_PAYROLL_PAGE}" target="_blank" rel="noopener">View payroll on FanGraphs ↗</a>`;
-  }
+  wrap.innerHTML = `
+    <p class="contracts-blurb">Salary, contract type, and payroll data for the 2026 Orioles roster.</p>
+    <a class="widget-link-card" href="https://www.fangraphs.com/roster-resource/payroll/orioles" target="_blank" rel="noopener">
+      <span class="widget-link-card-label">Contracts &amp; Payroll</span>
+      <span class="widget-link-card-sub">FanGraphs Roster Resource ↗</span>
+    </a>
+    <a class="widget-link-card" href="https://www.spotrac.com/mlb/baltimore-orioles/payroll/" target="_blank" rel="noopener">
+      <span class="widget-link-card-label">Spotrac Payroll</span>
+      <span class="widget-link-card-sub">Salaries, options &amp; totals ↗</span>
+    </a>`;
 }

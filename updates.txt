@@ -15,27 +15,34 @@
 ##Active
 
 ##Queued
-- update Roster to list the 40-man roster, identify players not on the 26-man roster somehow, if on the IL, label as such
+
 
 ##Ideas
 
 ##Parking Lot
 - Create a companion mobile app (iOS)
-- Refactor app.js into modules by domain (feeds, scores, sidebars, reader, settings, easter eggs)
 
 ---
 
 ##Completed
 
+# YARD LEADERS
+✓ Added ROY scope to Yard Leaders widget — shows AL and NL rookie stat leaders (OPS, HR, AVG / ERA, SO, WHIP) via playerPool=Rookies
+✓ Added playerPool=Qualified to all leader fetch URLs — only shows players who meet MLB qualifying minimums (3.1 PA/game for batting, 1 IP/game for ERA, etc.)
+
+# ROSTER
+✓ Updated Roster widget to fetch the full 40-man roster (was active 26-man only)
+✓ Active 26-man players grouped by Position Players and Pitchers (unchanged)
+✓ IL players shown in a separate Injured List group with 10-Day IL / 15-Day IL / 60-Day IL badges
+✓ Players on option to minors shown in a Minors group with muted styling
+✓ Footer link updated to full 40-man roster page
+
+# AROUND THE HORN
+✓ Each ATH card now uses a unique image — shared Set tracks used image URLs across bundle renders, skipping duplicates
+
 # CONTRACTS & SALARIES
 ✓ Added Contracts widget to right sidebar between Roster and Injury Report
-✓ Pulls salary data from local static contracts.json (MLB Stats API has no public salary endpoint)
-✓ Sortable by salary (default) or position (C/1B/2B/3B/SS/OF/DH order, pitchers last)
-✓ Salary bars per row, proportional to team's highest earner; color-coded by contract type
-✓ Contract type color key: orange = Extension, green = Free Agent, blue = Arb, gray = Pre-arb
-✓ Total payroll bar shows % of $300M luxury tax threshold; turns yellow when near, red if over
-✓ Color legend at bottom; "Full contracts on FanGraphs ↗" link
-✓ Graceful fallback to FanGraphs link if data is unavailable
+✓ No free public salary API available — widget shows curated links to FanGraphs and Spotrac
 
 # FEEDS
 ✓ MASN RSS feed provides no article images (only their web app manifest icon) — added web-app-manifest to filler pattern list so MASN cards correctly show placeholder instead of site logo
