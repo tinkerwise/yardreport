@@ -15,6 +15,7 @@
 ##Active
 
 ##Queued
+- update Roster to list the 40-man roster, identify players not on the 26-man roster somehow, if on the IL, label as such
 
 ##Ideas
 
@@ -30,9 +31,17 @@
 ✓ Added Contracts widget to right sidebar between Roster and Injury Report
 ✓ Pulls salary data from local static contracts.json (MLB Stats API has no public salary endpoint)
 ✓ Sortable by salary (default) or position (C/1B/2B/3B/SS/OF/DH order, pitchers last)
-✓ Shows formatted salary ($X.XXM / $XXXK), position tag, player last name, contract type badge
-✓ Total payroll row at bottom; "Full contracts on FanGraphs ↗" link
-✓ Graceful fallback to FanGraphs link if MLB endpoint returns empty or fails
+✓ Salary bars per row, proportional to team's highest earner; color-coded by contract type
+✓ Contract type color key: orange = Extension, green = Free Agent, blue = Arb, gray = Pre-arb
+✓ Total payroll bar shows % of $300M luxury tax threshold; turns yellow when near, red if over
+✓ Color legend at bottom; "Full contracts on FanGraphs ↗" link
+✓ Graceful fallback to FanGraphs link if data is unavailable
+
+# FEEDS
+✓ MASN RSS feed provides no article images (only their web app manifest icon) — added web-app-manifest to filler pattern list so MASN cards correctly show placeholder instead of site logo
+
+# YARD LEADERS
+✓ Removed GS (Games Started) stat from pitching leaders — stat is not meaningful mid-season
 
 # SETTINGS
 ✓ Added Sources section to the Settings panel — per-source checkboxes grouped by category (Orioles / MLB / MiLB)

@@ -23,6 +23,7 @@ const FILLER_PATTERNS = [
   /default[-_]?(thumb|image|logo)/i,
   /placeholder/i,
   /no[-_]?image/i,
+  /web-app-manifest/i,   // MASN / WP manifest icons used as feed images
 ];
 
 // Non-baseball / gambling content filter

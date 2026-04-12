@@ -711,11 +711,11 @@ const leadersCache = {};
 let leadersScope = 'orioles';
 
 const BATTING_ORDER = ['onBasePlusSlugging', 'sluggingPercentage', 'onBasePercentage', 'battingAverage', 'homeRuns', 'runsBattedIn', 'hits', 'baseOnBalls', 'walks'];
-const PITCHING_ORDER = ['earnedRunAverage', 'walksAndHitsPerInningPitched', 'strikeoutsPer9Inn', 'strikeouts', 'walksPer9Inn', 'qualityStarts', 'wins', 'gamesStarted'];
-const TEAM_LEADERS_CATS = 'onBasePlusSlugging,sluggingPercentage,onBasePercentage,battingAverage,homeRuns,runsBattedIn,hits,baseOnBalls,earnedRunAverage,walksAndHitsPerInningPitched,strikeoutsPer9Inn,strikeouts,walksPer9Inn,qualityStarts,wins,gamesStarted';
-const LEAGUE_LEADERS_CATS = 'onBasePlusSlugging,sluggingPercentage,onBasePercentage,battingAverage,homeRuns,runsBattedIn,hits,walks,earnedRunAverage,walksAndHitsPerInningPitched,strikeoutsPer9Inn,strikeouts,walksPer9Inn,wins,gamesStarted';
+const PITCHING_ORDER = ['earnedRunAverage', 'walksAndHitsPerInningPitched', 'strikeoutsPer9Inn', 'strikeouts', 'walksPer9Inn', 'qualityStarts', 'wins'];
+const TEAM_LEADERS_CATS = 'onBasePlusSlugging,sluggingPercentage,onBasePercentage,battingAverage,homeRuns,runsBattedIn,hits,baseOnBalls,earnedRunAverage,walksAndHitsPerInningPitched,strikeoutsPer9Inn,strikeouts,walksPer9Inn,qualityStarts,wins';
+const LEAGUE_LEADERS_CATS = 'onBasePlusSlugging,sluggingPercentage,onBasePercentage,battingAverage,homeRuns,runsBattedIn,hits,walks,earnedRunAverage,walksAndHitsPerInningPitched,strikeoutsPer9Inn,strikeouts,walksPer9Inn,wins';
 const BATTING_LABELS = { battingAverage: 'AVG', onBasePercentage: 'OBP', onBasePlusSlugging: 'OPS', homeRuns: 'HR', hits: 'H', baseOnBalls: 'BB', walks: 'BB', sluggingPercentage: 'SLG', runsBattedIn: 'RBI' };
-const PITCHING_LABELS = { earnedRunAverage: 'ERA', strikeouts: 'SO', gamesStarted: 'GS', qualityStarts: 'QS', walksAndHitsPerInningPitched: 'WHIP', wins: 'W', strikeoutsPer9Inn: 'K/9', walksPer9Inn: 'BB/9' };
+const PITCHING_LABELS = { earnedRunAverage: 'ERA', strikeouts: 'SO', qualityStarts: 'QS', walksAndHitsPerInningPitched: 'WHIP', wins: 'W', strikeoutsPer9Inn: 'K/9', walksPer9Inn: 'BB/9' };
 const SAVANT_STAT_CONFIG = {
   onBasePlusSlugging: { stat: 'on_base_plus_slg', type: 'batter', sortDir: 'desc' },
   sluggingPercentage: { stat: 'slg_percent', type: 'batter', sortDir: 'desc' },
@@ -733,7 +733,6 @@ const SAVANT_STAT_CONFIG = {
   walksPer9Inn: { type: 'pitcher', sort: 'p_walk', sortDir: 'asc', selections: ['p_walk', 'p_formatted_ip'], x: 'p_walk', y: 'p_walk' },
   qualityStarts: { stat: 'p_quality_start', type: 'pitcher', sortDir: 'desc' },
   wins: { stat: 'p_win', type: 'pitcher', sortDir: 'desc' },
-  gamesStarted: { stat: 'p_starting_p', type: 'pitcher', sortDir: 'desc' },
 };
 
 function savantStatUrl(statKey) {
@@ -875,6 +874,13 @@ const CONTRACT_POS_ORDER = { C: 0, '1B': 1, '2B': 2, '3B': 3, SS: 4, LF: 5, CF: 
 let contractsSort = 'salary';
 let contractsData = [];
 
+const CONTRACT_TYPE_CLASS = {
+  'Extension':  'ct--ext',
+  'Free Agent': 'ct--fa',
+  'Arb':        'ct--arb',
+  'Pre-arb':    'ct--prearb',
+};
+
 function renderContracts(wrap) {
   let sorted = [...contractsData];
   if (contractsSort === 'salary') {
@@ -892,6 +898,7 @@ function renderContracts(wrap) {
   }
 
   const total = contractsData.reduce((sum, s) => sum + (s.salary ?? 0), 0);
+  const maxSalary = Math.max(...contractsData.map(s => s.salary ?? 0));
 
   const rows = sorted.map(s => {
     const name = s.player?.fullName ?? '—';
@@ -899,16 +906,24 @@ function renderContracts(wrap) {
     const pos = s.position?.abbreviation ?? '—';
     const isPitcher = !Object.prototype.hasOwnProperty.call(CONTRACT_POS_ORDER, pos);
     const typeLabel = s.type?.description ?? '';
-    const statusHtml = typeLabel
-      ? `<span class="contract-status">${esc(typeLabel)}</span>`
-      : '<span></span>';
-    return `<div class="contract-row">
-      <span class="contract-pos${isPitcher ? ' contract-pos--p' : ''}">${esc(pos)}</span>
-      <span class="contract-name">${esc(lastName)}</span>
-      ${statusHtml}
-      <span class="contract-salary">${esc(formatSalary(s.salary))}</span>
+    const typeClass = CONTRACT_TYPE_CLASS[typeLabel] ?? 'ct--other';
+    const barPct = maxSalary > 0 ? ((s.salary ?? 0) / maxSalary * 100).toFixed(1) : 0;
+    const salaryStr = esc(formatSalary(s.salary));
+    return `<div class="contract-row ${typeClass}">
+      <div class="contract-row-main">
+        <span class="contract-pos${isPitcher ? ' contract-pos--p' : ''}">${esc(pos)}</span>
+        <span class="contract-name">${esc(lastName)}</span>
+        <span class="contract-salary">${salaryStr}</span>
+      </div>
+      <div class="contract-bar-wrap">
+        <div class="contract-bar" style="width:${barPct}%"></div>
+        ${typeLabel ? `<span class="contract-type-tag">${esc(typeLabel)}</span>` : ''}
+      </div>
     </div>`;
   }).join('');
+
+  const pct = total > 0 ? Math.round(total / 300_000_000 * 100) : 0; // ~$300M luxury tax threshold
+  const luxuryClass = total >= 300_000_000 ? 'over' : total >= 240_000_000 ? 'near' : '';
 
   wrap.innerHTML = `
     <div class="contract-controls">
@@ -916,9 +931,18 @@ function renderContracts(wrap) {
       <button class="contract-sort-btn${contractsSort === 'position' ? ' active' : ''}" data-sort="position">Position</button>
     </div>
     <div class="contracts-list">${rows}</div>
+    <div class="contracts-payroll-bar-wrap">
+      <div class="contracts-payroll-bar ${luxuryClass}" style="width:${Math.min(pct,100)}%"></div>
+    </div>
     <div class="contracts-total">
-      <span class="contracts-total-label">Total payroll</span>
+      <span class="contracts-total-label">2026 Payroll</span>
       <span class="contracts-total-val">${formatSalary(total)}</span>
+    </div>
+    <div class="contracts-legend">
+      <span class="cl ct--ext">Extension</span>
+      <span class="cl ct--fa">Free Agent</span>
+      <span class="cl ct--arb">Arb</span>
+      <span class="cl ct--prearb">Pre-arb</span>
     </div>
     <a class="widget-link" href="${FG_PAYROLL_PAGE}" target="_blank" rel="noopener">Full contracts on FanGraphs ↗</a>`;
 
