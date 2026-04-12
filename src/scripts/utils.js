@@ -111,7 +111,7 @@ export function buildReaderDoc(article, htmlContent) {
   </head><body>${htmlContent}</body></html>`;
 }
 
-const CC_ORIOLES_LOGO = 'https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg';
+const CC_ORIOLES_LOGO = `${import.meta.env.BASE_URL}img/cc-orioles-b.svg`;
 const STD_TEAM_LOGO = id => `https://www.mlbstatic.com/team-logos/${id}.svg`;
 
 /** Returns the correct team logo URL, swapping in the City Connect curly-B for the Orioles. */
