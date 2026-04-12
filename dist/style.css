@@ -459,10 +459,6 @@ img { display: block; max-width: 100%; }
   -webkit-text-stroke: 0.5px #1A3826;
   text-shadow: 1px 2px 0 rgba(20, 50, 30, 0.45);
 }
-/* Replace Orioles bird logo with City Connect curly-B cap mark */
-[data-theme="city-connect"] img[src*="team-logos/110"] {
-  content: url('https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg');
-}
 .btn-settings {
   background: none; border: 1px solid var(--border); color: var(--text-3);
   padding: 6px; border-radius: 6px; cursor: pointer; display: flex;
