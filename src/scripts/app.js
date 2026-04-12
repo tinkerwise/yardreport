@@ -27,7 +27,7 @@ import {
   triggerOriolesMagic,
   triggerSevenNationArmy,
   toggleOpacyTheme,
-  toggleCityConnectTheme,
+  triggerCityConnectBanner,
 } from './easter-eggs.js';
 
 // ── Source settings ───────────────────────────────────────────────
@@ -189,9 +189,12 @@ function setupEvents() {
   $('themeToggle').addEventListener('click', e => {
     const btn = e.target.closest('[data-theme]');
     if (!btn) return;
-    applyTheme(btn.dataset.theme);
+    const newTheme = btn.dataset.theme;
+    const wasCC = document.documentElement.getAttribute('data-theme') === 'city-connect';
+    applyTheme(newTheme);
     $('themeToggle').querySelectorAll('.theme-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.theme === btn.dataset.theme));
+      b.classList.toggle('active', b.dataset.theme === newTheme));
+    if (newTheme === 'city-connect' && !wasCC) triggerCityConnectBanner();
   });
   $('defaultViewToggle').addEventListener('click', e => {
     const btn = e.target.closest('[data-defview]');
@@ -259,9 +262,6 @@ function setupEvents() {
     if (trigger === 'magic') {
       e.preventDefault();
       triggerOriolesMagic();
-    } else if (trigger === 'bmore' || trigger === '410') {
-      e.preventDefault();
-      toggleCityConnectTheme();
     }
   });
 

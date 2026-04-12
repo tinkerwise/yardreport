@@ -100,25 +100,28 @@
     rgba(45, 90, 61, 0.045) 18px, rgba(45, 90, 61, 0.045) 19px
   );
 }
-/* Header: white with green collar + brick orange shadow line */
+/* Header: white with jersey-collar layered bands (green | orange brick strip | mortar) */
 [data-theme="city-connect"] .site-header {
   background: #ffffff;
   border-bottom: 3px solid #2D5A3D;
-  box-shadow: 0 3px 0 0 #C84B11;
+  /* brick-inspired tri-band: orange collar strip + subtle mortar shadow */
+  box-shadow: 0 3px 0 0 #C84B11, 0 6px 0 0 rgba(45, 90, 61, 0.35);
 }
-/* Scores bar: Camden Yards green with brick mortar grid texture */
+/* Scores bar: Camden green with orange-brick mortar grid — horizontal courses + vertical joints */
 [data-theme="city-connect"] .scores-bar {
   background-color: #1E3D29;
   background-image:
+    /* horizontal mortar lines */
     repeating-linear-gradient(
-      0deg, transparent 0px, transparent 18px,
-      rgba(0,0,0,0.14) 18px, rgba(0,0,0,0.14) 19px
+      0deg, transparent 0px, transparent 17px,
+      rgba(200, 75, 17, 0.16) 17px, rgba(200, 75, 17, 0.16) 18px
     ),
+    /* vertical brick joints */
     repeating-linear-gradient(
-      90deg, transparent 0px, transparent 36px,
-      rgba(0,0,0,0.09) 36px, rgba(0,0,0,0.09) 37px
+      90deg, transparent 0px, transparent 34px,
+      rgba(200, 75, 17, 0.10) 34px, rgba(200, 75, 17, 0.10) 35px
     );
-  background-size: 37px 19px;
+  background-size: 35px 18px;
   border-bottom: 2px solid #C84B11;
 }
 /* Score chips pop white against the dark green bar */
@@ -211,11 +214,7 @@
 [data-theme="city-connect"] .txn-player:hover { color: #2D5A3D; }
 [data-theme="city-connect"] a.il-name:hover { color: #2D5A3D; }
 [data-theme="city-connect"] .share-btn:hover { color: #2D5A3D; background: rgba(45,90,61,0.08); }
-/* Logo */
-[data-theme="city-connect"] .logo strong { color: #2D5A3D; }
-[data-theme="city-connect"] .logo::after { background: rgba(45, 90, 61, 0.25); }
-[data-theme="city-connect"] .logo-word { color: #0e2118; text-shadow: none; }
-[data-theme="city-connect"] .logo-word-accent { color: #C84B11; }
+/* Logo — full rules below with other per-theme overrides */
 
 /* ── OPACY Theme (Easter Egg) ─────────────────────────────────── */
 [data-theme="opacy"] {
@@ -446,11 +445,26 @@ img { display: block; max-width: 100%; }
 [data-theme="opacy"] .logo-word-accent {
   color: #ff8a40;
 }
+/* City Connect: jersey block-letter treatment — dark green fill, orange stroke/shadow */
+[data-theme="city-connect"] .logo-wordmark {
+  text-shadow: none;
+}
+[data-theme="city-connect"] .logo-img {
+  content: url('/yardreport/img/cc-orioles-b.svg');
+}
 [data-theme="city-connect"] .logo-word {
-  color: #152B1C;
+  color: #1A3826;
+  -webkit-text-stroke: 1px #C84B11;
+  text-shadow: 2px 2px 0 rgba(200, 75, 17, 0.40);
 }
 [data-theme="city-connect"] .logo-word-accent {
   color: #C84B11;
+  -webkit-text-stroke: 0.5px #1A3826;
+  text-shadow: 1px 2px 0 rgba(20, 50, 30, 0.45);
+}
+/* Replace Orioles bird logo with City Connect orange-B hat mark */
+[data-theme="city-connect"] img[src*="team-logos/110"] {
+  content: url('/yardreport/img/cc-orioles-b.svg');
 }
 .btn-settings {
   background: none; border: 1px solid var(--border); color: var(--text-3);

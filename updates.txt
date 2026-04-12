@@ -133,8 +133,16 @@
 ✓ Enlarged the Yard Report placeholder logo to fill the thumbnail frame
 
 # EASTER EGGS
-✓ Added City Connect Easter Egg — triggers on "bmore" or "410"; applies Camden green/white palette
 ✓ Removed Heritage Easter Egg
+
+# CITY CONNECT THEME
+✓ Promoted City Connect from Easter Egg to a selectable theme in Settings — "bmore"/"410" trigger removed
+✓ Settings theme button shows orange B on green circle (hat mark); fires welcome banner on first selection
+✓ Yard Report title uses jersey block-letter style: dark green fill, orange stroke (-webkit-text-stroke), orange drop shadow on "Yard"; dark shadow on "Report"
+✓ Site logo swapped to City Connect orange B mark in city-connect theme
+✓ All Orioles bird logos (team-logos/110) replaced by orange B mark via CSS content replacement
+✓ Scores bar mortar grid lines updated to orange-tinted (rgba 200,75,17) — brick-on-green feel
+✓ Header bottom trim updated to layered jersey-collar bands: green border → orange strip → subtle mortar shadow
 
 # IOS / PWA
 ✓ Added apple-touch-icon link in <head> so favicon appears on iOS home screens

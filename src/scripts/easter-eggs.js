@@ -110,7 +110,7 @@ export function toggleCityConnectTheme() {
   }
 }
 
-function triggerCityConnectBanner() {
+export function triggerCityConnectBanner() {
   const banner = document.createElement('div');
   banner.className = 'city-connect-banner';
   banner.innerHTML = `

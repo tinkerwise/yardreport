@@ -293,7 +293,12 @@ function renderLineupRows(team, gameState = 'preview') {
 
   if (gameState === 'live') {
     const entries = getInGameLineupEntries(team);
-    return entries.map(({ player: p, isSubstitution }) => {
+    const header = `<div class="score-lineup-row score-lineup-row--header">
+      <span class="score-lineup-pos"></span>
+      <span class="score-lineup-name"></span>
+      <span class="score-lineup-box-cols"><span>AB</span><span>R</span><span>H</span><span>HR</span><span>RBI</span><span>SB</span></span>
+    </div>`;
+    const rows = entries.map(({ player: p, isSubstitution }) => {
       const name = compactBoxName(p.person?.fullName ?? 'TBD');
       const pos = isSubstitution ? 'ph' : (p.position?.abbreviation ?? '');
       const bs = p.stats?.batting ?? {};
@@ -306,6 +311,7 @@ function renderLineupRows(team, gameState = 'preview') {
         <span class="score-lineup-box-cols">${cols}</span>
       </div>`;
     }).join('');
+    return header + rows;
   }
 
   // Preview: season slashlines
