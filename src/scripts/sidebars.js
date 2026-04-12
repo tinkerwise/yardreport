@@ -959,7 +959,7 @@ export async function loadContracts() {
   if (!wrap) return;
   contractsData = [];
   try {
-    const data = await fetch('/contracts.json').then(r => {
+    const data = await fetch(`${import.meta.env.BASE_URL}contracts.json`).then(r => {
       if (!r.ok) throw new Error('missing');
       return r.json();
     });
