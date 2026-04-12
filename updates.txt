@@ -13,6 +13,7 @@
 ---
 
 ##Active
+- ATH: the baseball card design is cool, but it takes up a lot of real estate. Update all views (desktop and mobile) to use 16:9 thumbnails
 
 ##Queued
 
@@ -25,6 +26,9 @@
 ---
 
 ##Completed
+
+# AROUND THE HORN
+✓ ATH cards updated to 16:9 aspect ratio on all breakpoints (desktop, 2-col mobile, single-col mobile) — chrome elements (logo, padding, title, footer) scaled down proportionally
 
 # YARD LEADERS
 ✓ Added ROY scope to Yard Leaders widget — shows AL and NL rookie stat leaders (OPS, HR, AVG / ERA, SO, WHIP) via playerPool=Rookies

@@ -2279,8 +2279,8 @@ a.il-name:hover { color: var(--orange); }
 .ath-bundle-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 .ath-section {
   display: flex;
@@ -2314,7 +2314,7 @@ a.il-name:hover { color: var(--orange); }
 .ath-card-link {
   width: 100%;
   min-width: 0;
-  aspect-ratio: 5 / 7;
+  aspect-ratio: 16 / 9;
   position: relative;
   display: block;
   overflow: hidden;
@@ -2328,7 +2328,7 @@ a.il-name:hover { color: var(--orange); }
 .ath-card-link::before {
   content: '';
   position: absolute;
-  inset: 7px;
+  inset: 5px;
   border: 2px solid rgba(245, 230, 199, 0.26);
   box-shadow:
     inset 0 0 0 1px rgba(61, 37, 22, 0.1),
@@ -2362,18 +2362,18 @@ a.il-name:hover { color: var(--orange); }
 }
 .bundle-logo-mark {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
+  top: 10px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.22));
   z-index: 2;
 }
 .bundle-logo-mark--mlb {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 7px;
 }
 .bundle-logo-mark--fallback {
   display: inline-flex;
@@ -2403,7 +2403,7 @@ a.il-name:hover { color: var(--orange); }
 .bundle-card-copy {
   position: absolute;
   inset: auto 0 0 0;
-  padding: 18px 18px 44px;
+  padding: 8px 14px 28px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2412,9 +2412,9 @@ a.il-name:hover { color: var(--orange); }
 .bundle-card-copy::after {
   content: '';
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 34px;
+  left: 14px;
+  right: 14px;
+  bottom: 20px;
   height: 4px;
   background: rgba(245, 230, 199, 0.85);
   clip-path: polygon(
@@ -2430,16 +2430,16 @@ a.il-name:hover { color: var(--orange); }
 .bundle-card-copy::before {
   content: '';
   position: absolute;
-  left: 18px;
-  width: 46px;
-  bottom: 44px;
+  left: 14px;
+  width: 36px;
+  bottom: 26px;
   height: 3px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(223, 70, 1, 0.92), rgba(245, 230, 199, 0.6));
   box-shadow: 0 0 10px rgba(223, 70, 1, 0.12);
 }
 .bundle-title {
-  font-size: clamp(0.82rem, 1.18vw, 0.92rem);
+  font-size: clamp(0.74rem, 1.05vw, 0.86rem);
   font-weight: 700;
   line-height: 1.1;
   color: #fff6df;
@@ -2448,15 +2448,15 @@ a.il-name:hover { color: var(--orange); }
   letter-spacing: 0.02em;
   text-shadow: 0 1px 0 rgba(43,36,27,0.45);
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: calc(3 * 1.1em + 19px);
+  min-height: calc(2 * 1.1em + 14px);
   box-sizing: border-box;
-  padding: 8px 10px 11px;
+  padding: 6px 8px 8px;
   background:
     linear-gradient(180deg, rgba(64, 39, 19, 0.16), rgba(64, 39, 19, 0.5)),
     linear-gradient(90deg, rgba(223, 70, 1, 0.12), rgba(239, 224, 192, 0.06) 22%, rgba(239, 224, 192, 0.02));
@@ -2473,7 +2473,7 @@ a.il-name:hover { color: var(--orange); }
   right: 0;
   bottom: 0;
   z-index: 2;
-  padding: 10px 16px 12px;
+  padding: 5px 12px 6px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -2923,12 +2923,12 @@ a.il-name:hover { color: var(--orange); }
   .ath-section-title { font-size: 1.3rem; }
   .ath-section-desc { font-size: 0.86rem; }
   .ath-bundle-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .ath-card-link { max-width: none; aspect-ratio: 3 / 4; }
-  .bundle-card-copy { padding: 10px 10px 38px; }
-  .bundle-title { font-size: 0.82rem; min-height: auto; padding: 6px 8px 8px; }
-  .bundle-logo-mark { width: 32px; height: 32px; top: 10px; right: 10px; }
-  .bundle-logo-mark--mlb { width: 32px; height: 32px; border-radius: 7px; }
-  .bundle-card-footer { padding: 7px 10px 9px; }
+  .ath-card-link { max-width: none; aspect-ratio: 16 / 9; }
+  .bundle-card-copy { padding: 6px 10px 26px; }
+  .bundle-title { font-size: 0.78rem; min-height: auto; padding: 5px 7px 7px; }
+  .bundle-logo-mark { width: 28px; height: 28px; top: 8px; right: 8px; }
+  .bundle-logo-mark--mlb { width: 28px; height: 28px; border-radius: 5px; }
+  .bundle-card-footer { padding: 4px 10px 5px; }
   .bundle-sources .source-ico { width: 13px; height: 13px; }
   .ath-page { padding: 28px 14px 48px; }
 
@@ -2948,5 +2948,5 @@ a.il-name:hover { color: var(--orange); }
 /* Extra-narrow phones: single-column ATH grid */
 @media (max-width: 400px) {
   .ath-bundle-grid { grid-template-columns: 1fr; gap: 10px; }
-  .ath-card-link { aspect-ratio: 5 / 3; }
+  .ath-card-link { aspect-ratio: 16 / 9; }
 }
