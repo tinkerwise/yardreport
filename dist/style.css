@@ -2417,7 +2417,7 @@ a.il-name:hover { color: var(--orange); }
   right: 14px;
   bottom: 20px;
   height: 4px;
-  background: rgba(245, 230, 199, 0.85);
+  background: rgba(45, 90, 61, 0.78);
   clip-path: polygon(
     0 50%,
     5px 0,
@@ -2426,7 +2426,7 @@ a.il-name:hover { color: var(--orange); }
     calc(100% - 5px) 100%,
     5px 100%
   );
-  box-shadow: 0 0 0 1px rgba(62, 36, 21, 0.08);
+  box-shadow: 0 0 8px rgba(45, 90, 61, 0.28);
 }
 .bundle-card-copy::before {
   content: '';
@@ -2436,8 +2436,8 @@ a.il-name:hover { color: var(--orange); }
   bottom: 26px;
   height: 3px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(223, 70, 1, 0.92), rgba(245, 230, 199, 0.6));
-  box-shadow: 0 0 10px rgba(223, 70, 1, 0.12);
+  background: linear-gradient(90deg, rgba(45, 90, 61, 0.95), rgba(45, 90, 61, 0.2));
+  box-shadow: 0 0 8px rgba(45, 90, 61, 0.18);
 }
 .bundle-title {
   font-size: clamp(0.74rem, 1.05vw, 0.86rem);
@@ -2479,19 +2479,21 @@ a.il-name:hover { color: var(--orange); }
   align-items: center;
   justify-content: flex-start;
   background:
-    linear-gradient(180deg, rgba(23,16,9,0.04), rgba(23,16,9,0.66)),
-    repeating-linear-gradient(90deg, rgba(255,245,223,0.08) 0 1px, transparent 1px 10px);
-  border-top: 1px solid rgba(255,244,224,0.14);
+    linear-gradient(180deg, rgba(20, 40, 28, 0.06), rgba(20, 40, 28, 0.74)),
+    repeating-linear-gradient(90deg, rgba(45, 90, 61, 0.22) 0 1px, transparent 1px 10px);
+  border-top: 1px solid rgba(45, 90, 61, 0.38);
 }
 .ath-card-link--orioles .bundle-card-footer {
   background:
-    linear-gradient(180deg, rgba(23,16,9,0.04), rgba(23,16,9,0.62)),
-    repeating-linear-gradient(90deg, rgba(122, 45, 21, 0.16) 0 2px, transparent 2px 14px);
+    linear-gradient(180deg, rgba(20, 40, 28, 0.06), rgba(20, 40, 28, 0.70)),
+    repeating-linear-gradient(90deg, rgba(45, 90, 61, 0.28) 0 2px, transparent 2px 14px);
+  border-top: 1px solid rgba(45, 90, 61, 0.42);
 }
 .ath-card-link--mlb .bundle-card-footer {
   background:
-    linear-gradient(180deg, rgba(23,16,9,0.04), rgba(23,16,9,0.62)),
-    repeating-linear-gradient(90deg, rgba(42, 78, 63, 0.16) 0 2px, transparent 2px 14px);
+    linear-gradient(180deg, rgba(14, 26, 20, 0.06), rgba(14, 26, 20, 0.72)),
+    repeating-linear-gradient(90deg, rgba(45, 90, 61, 0.24) 0 2px, transparent 2px 14px);
+  border-top: 1px solid rgba(45, 90, 61, 0.34);
 }
 .bundle-meta { margin-top: 0; }
 .bundle-sources { display: flex; align-items: center; gap: 6px; }
@@ -2499,7 +2501,7 @@ a.il-name:hover { color: var(--orange); }
   width: 16px;
   height: 16px;
   border-radius: 3px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.42), 0 0 0 1px rgba(45,90,61,0.30);
 }
 .ath-card-link--orioles .bundle-title {
   background:

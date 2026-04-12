@@ -36,6 +36,7 @@
 ✓ object-position: top center on thumbnails — anchors crop to subject-heavy upper frame
 ✓ Smaller cards on mobile (2-col), single-column layout on screens ≤400px
 ✓ Chrome elements (logo, padding, title, footer) scaled proportionally to card size
+✓ Card footer and decoration inspired by Camden Yards green — ::after/::before pseudo-elements, footer pinstripe, and border-top all use #2D5A3D palette; source icon shadow updated for legibility
 
 # YARD LEADERS
 ✓ Added ROY scope — shows AL and NL rookie stat leaders (OPS, HR, AVG / ERA, SO, WHIP) via playerPool=Rookies
