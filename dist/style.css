@@ -63,8 +63,9 @@
   background: rgba(223,70,1,0.07);
   border-color: rgba(223,70,1,0.28);
 }
+[data-theme="light"] .chip-score { color: #374151; }
 [data-theme="light"] .chip-row.winner { color: #111827; }
-[data-theme="light"] .chip-row:not(.winner) .chip-score { color: #374151; }
+[data-theme="light"] .chip-row.winner .chip-score { color: #df4601; font-weight: 800; }
 [data-theme="light"] .chip-team { color: #111827; }
 [data-theme="light"] .chip-status.live { color: #15803d; }
 [data-theme="light"] .chip-status.delay { color: #1d4ed8; }
@@ -136,10 +137,10 @@
   border-left: 3px solid #2D5A3D;
   background: rgba(255,255,255,0.97);
 }
+[data-theme="city-connect"] .chip-score { color: #1A3826; }
 [data-theme="city-connect"] .chip-status.final { color: #4A7A59; }
 [data-theme="city-connect"] .chip-row.winner { color: #0e2118; }
 [data-theme="city-connect"] .chip-row.winner .chip-score { color: #C84B11; font-weight: 800; }
-[data-theme="city-connect"] .chip-row:not(.winner) .chip-score { color: #1A3826; }
 [data-theme="city-connect"] .chip-status.preview { color: #2D5A3D; }
 /* Article cards: jersey piping left stripe */
 [data-theme="city-connect"] .article-card {

@@ -145,7 +145,7 @@
 ✓ Scores bar mortar grid lines updated to orange-tinted (rgba 200,75,17) — brick-on-green feel
 ✓ Header bottom trim updated to layered jersey-collar bands: green border → orange strip → subtle mortar shadow
 ✓ City Connect theme auto-applied on Fridays; user's saved preference restored all other days
-✓ Score Bug chip text in CC theme: winner score renders orange, loser score dark — both readable on white chip
+✓ Score Bug chip text (light + CC themes): winner score orange, loser score dark — anchored for final, live, and preview states
 ✓ Widget block backgrounds darkened; text variables adjusted for contrast on deeper greens
 ✓ City Connect welcome banner redesigned as circular baseball-stitched patch (jersey sleeve badge style)
 
