@@ -114,51 +114,13 @@ export function triggerCityConnectBanner() {
   const banner = document.createElement('div');
   banner.className = 'city-connect-banner';
   banner.innerHTML = `
-    <svg class="cc-patch-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-label="From the Stoop to the Yard">
-      <!-- Background -->
-      <circle cx="150" cy="150" r="148" fill="#080F0B"/>
-      <circle cx="150" cy="150" r="141" fill="#0E1C12"/>
-      <!-- Outer stitch ring -->
-      <circle cx="150" cy="150" r="139" fill="none" stroke="#C84B11" stroke-width="2.8" stroke-dasharray="6 5.2" stroke-linecap="round"/>
-      <!-- Inner border ring -->
-      <circle cx="150" cy="150" r="131" fill="none" stroke="#C84B11" stroke-width="0.9" opacity="0.6"/>
-
-      <!-- BALTIMORE -->
-      <text x="150" y="90"
-        text-anchor="middle"
-        font-family="Georgia,'Times New Roman',serif"
-        font-size="11.5" font-weight="bold" fill="#C84B11" letter-spacing="4.5">BALTIMORE</text>
-
-      <!-- ORIOLES -->
-      <text x="150" y="127"
-        text-anchor="middle"
-        font-family="Georgia,'Times New Roman',serif"
-        font-size="38" font-weight="bold" fill="#C84B11" letter-spacing="1.5">ORIOLES</text>
-
-      <!-- Rule -->
-      <line x1="100" y1="138" x2="200" y2="138" stroke="#C84B11" stroke-width="0.9" opacity="0.55"/>
-
-      <!-- FROM THE STOOP -->
-      <text x="150" y="160"
-        text-anchor="middle"
-        font-family="Georgia,'Times New Roman',serif"
-        font-size="14.5" font-weight="bold" fill="#ffffff" letter-spacing="1.5">FROM THE STOOP</text>
-
-      <!-- TO THE YARD -->
-      <text x="150" y="179"
-        text-anchor="middle"
-        font-family="Georgia,'Times New Roman',serif"
-        font-size="14.5" font-weight="bold" fill="#ffffff" letter-spacing="1.5">TO THE YARD</text>
-
-      <!-- Rule -->
-      <line x1="100" y1="190" x2="200" y2="190" stroke="#C84B11" stroke-width="0.9" opacity="0.55"/>
-
-      <!-- 410 -->
-      <text x="150" y="215"
-        text-anchor="middle"
-        font-family="Georgia,'Times New Roman',serif"
-        font-size="24" font-weight="bold" fill="#C84B11" letter-spacing="5">410</text>
-    </svg>`;
+    <div class="cc-banner-text">
+      <span class="cc-banner-city">BALTIMORE</span>
+      <span class="cc-banner-team">ORIOLES</span>
+      <span class="cc-banner-stoop">FROM THE STOOP</span>
+      <span class="cc-banner-yard">TO THE YARD</span>
+      <span class="cc-banner-code">410</span>
+    </div>`;
   document.body.appendChild(banner);
 
   const dismiss = () => {
