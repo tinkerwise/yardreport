@@ -393,8 +393,8 @@ function fitBundleHeadline(title, maxLength = 54) {
 }
 
 function bundlePhoto(bundle, usedImages = new Set()) {
-  return bundle.articles.map(article => extractThumbnail(article))
-    .find(url => url && !usedImages.has(url)) || null;
+  const urls = bundle.articles.map(a => extractThumbnail(a)).filter(Boolean);
+  return urls.find(url => !usedImages.has(url)) || urls[0] || null;
 }
 
 function isOriolesArticle(article) {
@@ -645,7 +645,7 @@ function selectAdaptiveAthBundles(articles) {
     if (bundles.length >= 3) return bundles;
   }
 
-  if (state.activeCategory === 'mlb' && best.length < 3) {
+  if (best.length < 3) {
     const usedLinks = new Set(best.flatMap(bundle => bundle.articles.map(article => article?.link).filter(Boolean)));
     const fallbackArticles = articles.filter(article => !usedLinks.has(article.link));
     const fallbackBundles = selectTopStoryBundles(fallbackArticles, 3 - best.length, usedLinks);
