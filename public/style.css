@@ -687,6 +687,9 @@ img { display: block; max-width: 100%; }
   width: min(760px, calc(100vw - 24px));
   max-width: 95vw;
   overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .box-score-popover.hidden { visibility: hidden; pointer-events: none; }
 .box-popover-stack {

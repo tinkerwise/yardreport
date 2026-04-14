@@ -1041,14 +1041,28 @@ export async function loadScores() {
     const BOX_POPOVER_HIDE_DELAY = 250;
 
     function positionPopover(chip) {
+      const VIEWPORT_PAD = 8;
+      const POP_GAP = 6;
       const r = chip.getBoundingClientRect();
       const pw = boxPopover.offsetWidth;
-      const ph = boxPopover.offsetHeight;
+      const naturalHeight = boxPopover.scrollHeight || boxPopover.offsetHeight;
+      const spaceBelow = window.innerHeight - r.bottom - VIEWPORT_PAD;
+      const spaceAbove = r.top - VIEWPORT_PAD;
+      const minComfortHeight = 260;
+      const placeBelow = spaceBelow >= minComfortHeight || spaceBelow >= spaceAbove;
+      const availableHeight = Math.max(
+        180,
+        (placeBelow ? spaceBelow : spaceAbove) - POP_GAP
+      );
+
+      boxPopover.style.maxHeight = `${availableHeight}px`;
+      const ph = Math.min(naturalHeight, availableHeight);
       let left = r.left + r.width / 2 - pw / 2;
-      if (left < 4) left = 4;
-      if (left + pw > window.innerWidth - 4) left = window.innerWidth - pw - 4;
-      let top = r.bottom + 6;
-      if (top + ph > window.innerHeight - 4) top = Math.max(r.bottom + 6, window.innerHeight - ph - 4);
+      if (left < VIEWPORT_PAD) left = VIEWPORT_PAD;
+      if (left + pw > window.innerWidth - VIEWPORT_PAD) left = window.innerWidth - pw - VIEWPORT_PAD;
+      let top = placeBelow ? (r.bottom + POP_GAP) : (r.top - ph - POP_GAP);
+      if (top < VIEWPORT_PAD) top = VIEWPORT_PAD;
+      if (top + ph > window.innerHeight - VIEWPORT_PAD) top = window.innerHeight - ph - VIEWPORT_PAD;
       boxPopover.style.left = left + 'px';
       boxPopover.style.top = top + 'px';
     }
