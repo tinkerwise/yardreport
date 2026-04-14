@@ -5,8 +5,6 @@ import { loadPrefs } from './storage.js';
 export function triggerOriolesMagic() {
   const container = document.createElement('div');
   container.className = 'magic-confetti';
-  const birdNum = Math.floor(Math.random() * 10) + 1;
-  container.innerHTML = `<div class="magic-banner"><img src="/yardreport/img/randBird${birdNum}.png" alt="Oriole Bird" class="magic-bird"></div>`;
   document.body.appendChild(container);
 
   const audio = new Audio('/yardreport/audio/orioles_magic_short.mp3');
