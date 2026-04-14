@@ -1,4 +1,23 @@
 Yard Report Changelog
+Week of April 14, 2026
+
+April 14, 2026
+
+Schedule Page
+- Added a full-season Orioles schedule page at /schedule/.
+- Month view: 7-column calendar grid (Sun–Sat) with compact game chips per day showing opponent logo, home/away indicator, result (W/L + score, color-coded green/red) or start time, series badge (G1/3) on multi-game series, and weather emoji for upcoming games within 10 days.
+- Week view: 7-column day-by-day layout with full game cards showing opponent name, result or time, weather, probable pitcher (last name), broadcast network pill, series position ("Game X of Y"), and home/away stretch label.
+- Navigation: previous/next and Today buttons for month and week views; Month/Week view toggle.
+- Series detection groups consecutive games vs. the same opponent (within 2 days); first game of each series shows the full series label ("vs NYY (3-game series)") in month view.
+- Broadcast pill highlights national TV (ESPN, FS1, Apple TV+, Peacock, TBS, MLBN); falls back to MASN if no national broadcast is listed.
+- Weather fetched via Open-Meteo for upcoming games within the next 10 days, reusing the existing weather module.
+- Theme applied on load using the existing theme.js module (respects dark/light/system/city-connect preferences and Friday auto-CC).
+- "Full Schedule" link added to the left sidebar below the On Deck widget.
+- Breadcrumb header links back to the main Yard Report page.
+- Responsive: month grid adapts to small screens; week view stacks to a single column at ≤600px.
+
+---
+
 Week of April 4 - April 10, 2026
 
 April 5, 2026

@@ -25,6 +25,21 @@
 
 ##Completed
 
+# SCHEDULE PAGE
+✓ Added full-season Orioles schedule page at /schedule/
+✓ Month view: 7-column calendar grid with game chips per day; win/loss color-coded, series label on first game of each multi-game series, today highlighted
+✓ Week view: 7-column day-by-day layout with full game cards — opponent, result or time, weather, probable pitcher, broadcast pill, series position
+✓ Navigation: prev/next and Today buttons for both views; Month/Week view toggle
+✓ Weather fetched for upcoming games within next 10 days
+✓ Series detection groups consecutive games vs. same opponent (G1/3 badge; full "Game X of Y" label in week view)
+✓ Home/Away context (vs/@ indicator per chip; stretch label in week view)
+✓ Broadcast pill highlights national TV (ESPN, FS1, Apple TV+, etc.)
+✓ Probable pitcher shown for upcoming games (last name only in week view)
+✓ Full Schedule link added to left sidebar below On Deck widget
+✓ Breadcrumb header links back to main Yard Report page
+✓ Light/dark/CC theme applied on load via existing theme.js
+✓ Mobile responsive: month grid adapts, week view stacks to single column at 600px
+
 # MULTIPLE PAGES
 ✓ Audited whether additional pages improve performance or UX — current 2-page structure (main dashboard + ATH detail) is correct
 ✓ Main page already defers lower-priority sidebar data (roster, leaders, IL, transactions, podcast, video, contracts) in a second load wave — no performance case for splitting them out
