@@ -793,6 +793,22 @@ img { display: block; max-width: 100%; }
   text-underline-offset: 0.12em;
   outline: none;
 }
+.walkup-song-link {
+  display: inline-flex;
+  align-items: center;
+  color: #1db954;
+  font-size: calc(var(--popover-meta-size) - 0.05rem);
+  text-decoration: none;
+  flex-shrink: 0;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+.walkup-song-link:hover,
+.walkup-song-link:focus-visible {
+  opacity: 1;
+  outline: none;
+}
 .box-perf-team { color: var(--text-3); font-size: calc(var(--popover-meta-size) + 0.04rem); }
 .box-perf-stat { font-size: var(--popover-stat-size); color: var(--text-2); margin-left: auto; white-space: nowrap; text-align: right; }
 .box-perf-more {
@@ -1224,6 +1240,23 @@ img { display: block; max-width: 100%; }
   color: var(--text-3);
   font-weight: 400;
   flex-shrink: 0;
+}
+.score-lineup-music-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--orange);
+  opacity: 0.88;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+.score-lineup-music-link:hover {
+  opacity: 1;
+}
+.score-lineup-music-icon {
+  display: block;
 }
 .score-lineup-slash {
   font-size: var(--popover-stat-size);

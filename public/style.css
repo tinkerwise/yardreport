@@ -1241,6 +1241,23 @@ img { display: block; max-width: 100%; }
   font-weight: 400;
   flex-shrink: 0;
 }
+.score-lineup-music-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--orange);
+  opacity: 0.88;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+.score-lineup-music-link:hover {
+  opacity: 1;
+}
+.score-lineup-music-icon {
+  display: block;
+}
 .score-lineup-slash {
   font-size: var(--popover-stat-size);
   font-weight: 600;
