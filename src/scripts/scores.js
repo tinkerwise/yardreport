@@ -8,6 +8,7 @@ import {
   TEAM_SLUG,
 } from './config.js';
 import { $, esc, localDateStr, dayLabel, formatGameTime, normalizeText, teamLogoSrc } from './utils.js';
+import { WALKUP_SONGS } from './walkup-songs.js';
 import { getGameWeather, fetchWeatherForGames } from './weather.js';
 import { state } from './state.js';
 
@@ -174,11 +175,14 @@ function mlbPlayerUrl(playerId) {
   return playerId ? `https://www.mlb.com/player/${playerId}` : '';
 }
 
-export function renderPlayerNameLink(name, playerId, className = 'popover-player-link') {
+export function renderPlayerNameLink(name, playerId, className = 'popover-player-link', walkupUrl = null) {
   const label = esc(name || 'TBD');
   const href = mlbPlayerUrl(playerId);
-  if (!href) return `<span class="${className}">${label}</span>`;
-  return `<a class="${className}" href="${href}" target="_blank" rel="noopener">${label}</a>`;
+  const musicIcon = walkupUrl
+    ? `<a class="walkup-song-link" href="${walkupUrl}" target="_blank" rel="noopener" title="Walk-up song on Spotify" aria-label="Walk-up song on Spotify">♪</a>`
+    : '';
+  if (!href) return `<span class="${className}">${label}</span>${musicIcon}`;
+  return `<a class="${className}" href="${href}" target="_blank" rel="noopener">${label}</a>${musicIcon}`;
 }
 
 function getLineupBattingStats(player) {
@@ -282,9 +286,10 @@ function renderLineupRows(team, gameState = 'preview') {
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
       const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
+      const walkupUrl = WALKUP_SONGS[p.person?.id] ?? null;
       return `<div class="score-lineup-row${hasActivity ? '' : ' score-lineup-row--dnp'}${isSubstitution ? ' score-lineup-row--sub' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
-        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrl)}</span>
         <span class="score-lineup-box-cols">${cols}</span>
       </div>`;
     }).join('');
@@ -305,9 +310,10 @@ function renderLineupRows(team, gameState = 'preview') {
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
       const isCurrentBatter = p.gameStatus?.isCurrentBatter;
+      const walkupUrl = WALKUP_SONGS[p.person?.id] ?? null;
       return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}${isSubstitution ? ' score-lineup-row--sub' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
-        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrl)}</span>
         <span class="score-lineup-box-cols">${cols}</span>
       </div>`;
     }).join('');
@@ -331,9 +337,10 @@ function renderLineupRows(team, gameState = 'preview') {
       renderSlashSegment(rates.obp, obpValue > 0 && obpValue === leaders.obp, obpValue >= MLB_TOP_TEN_PROXY_RATES.obp),
       renderSlashSegment(rates.ops, opsValue > 0 && opsValue === leaders.ops, opsValue >= MLB_TOP_TEN_PROXY_RATES.ops),
     ].map((segment, idx) => `<span class="score-lineup-preview-stat score-lineup-preview-stat--${idx}">${segment}</span>`).join('');
+    const walkupUrl = WALKUP_SONGS[p.person?.id] ?? null;
     return `<div class="score-lineup-row">
       <span class="score-lineup-pos">${esc(pos)}</span>
-      <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null)}${batSideDisplay}</span>
+      <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrl)}${batSideDisplay}</span>
       <span class="score-lineup-box-cols score-lineup-box-cols--preview">${slashLine}</span>
     </div>`;
   }).join('');
