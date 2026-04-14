@@ -2118,6 +2118,37 @@ a.il-name:hover { color: var(--orange); }
 }
 [data-theme="city-connect"] .podcast-card {
   border-color: rgba(45, 90, 61, 0.35);
+  background:
+    linear-gradient(180deg, rgba(45, 90, 61, 0.14), rgba(45, 90, 61, 0.04)),
+    var(--card);
+}
+[data-theme="city-connect"] .podcast-hover-panel {
+  background: rgba(234, 244, 236, 0.98);
+  border-color: rgba(45, 90, 61, 0.28);
+  color: #1f3d2b;
+  box-shadow: 0 10px 28px rgba(21, 47, 32, 0.26);
+}
+[data-theme="city-connect"] .podcast-hover-title {
+  color: #1b3526;
+}
+[data-theme="city-connect"] .podcast-hover-desc {
+  color: #325140;
+}
+[data-theme="city-connect"] .podcast-kicker {
+  color: #2D5A3D;
+}
+[data-theme="city-connect"] .podcast-title {
+  color: #1b3526;
+}
+[data-theme="city-connect"] .podcast-meta,
+[data-theme="city-connect"] .podcast-desc {
+  color: #355443;
+}
+[data-theme="city-connect"] .podcast-link {
+  color: #1f4f35;
+}
+[data-theme="city-connect"] .podcast-link:hover {
+  color: #153826;
 }
 
 /* ── Video Widget ────────────────────────────────────────────── */
