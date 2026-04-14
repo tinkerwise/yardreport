@@ -3115,3 +3115,384 @@ a.il-name:hover { color: var(--orange); }
   .ath-bundle-grid { grid-template-columns: 1fr; gap: 10px; }
   .ath-card-link { aspect-ratio: 16 / 9; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SCHEDULE PAGE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Breadcrumb header ────────────────────────────────────────── */
+.header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+.breadcrumb-link {
+  color: var(--text-2);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.breadcrumb-link:hover { color: var(--orange); }
+.breadcrumb-sep { color: var(--border-light); }
+.breadcrumb-current { color: var(--text-2); font-weight: 500; }
+
+/* ── Page shell ───────────────────────────────────────────────── */
+.schedule-page {
+  padding: 0 16px 56px;
+  min-height: calc(100vh - var(--header-h, 82px));
+}
+.schedule-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-top: 18px;
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────── */
+.schedule-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.schedule-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sch-nav-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  width: 32px; height: 32px;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.sch-nav-btn:hover { background: var(--border); }
+.sch-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 185px;
+  text-align: center;
+  margin: 0;
+}
+.sch-today-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sch-today-btn:hover { background: var(--border); color: var(--text); }
+.sch-view-group {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+}
+.sch-view-btn {
+  background: none;
+  border: none;
+  color: var(--text-2);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sch-view-btn.active { background: var(--border-light); color: var(--text); }
+.sch-view-btn:not(.active):hover { color: var(--text); }
+
+/* ── Legend ───────────────────────────────────────────────────── */
+.sch-legend {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.sch-legend-item {
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.legend--win   { background: rgba(34,85,34,0.25);  border-color: rgba(76,175,80,0.3);  color: #8fe08f; }
+.legend--loss  { background: rgba(85,25,25,0.25);  border-color: rgba(239,83,80,0.3);  color: #f09090; }
+.legend--live  { background: rgba(223,70,1,0.12);  border-color: rgba(223,70,1,0.4);   color: var(--orange); }
+.legend--preview { background: var(--surface); color: var(--text-3); }
+
+/* ── Month calendar grid ──────────────────────────────────────── */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.cal-hdr {
+  background: var(--surface);
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cal-cell {
+  background: var(--card);
+  padding: 5px;
+  min-height: 82px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cal-cell--empty { background: var(--surface); opacity: 0.4; min-height: 82px; }
+.cal-cell--today { background: color-mix(in srgb, var(--orange) 6%, var(--card)); }
+.cal-day {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-3);
+  line-height: 1;
+}
+.cal-cell--today .cal-day { color: var(--orange); }
+.cal-series-label {
+  font-size: 0.57rem;
+  color: var(--text-3);
+  font-style: italic;
+  line-height: 1.2;
+  margin-bottom: 1px;
+}
+
+/* ── Game chip: compact (month view) ─────────────────────────── */
+.sch-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 5px;
+  border-radius: 4px;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s, background 0.15s;
+  line-height: 1.25;
+}
+.sch-chip:hover { border-color: var(--border-light); background: var(--border); }
+
+.chip--win  { background: rgba(34,85,34,0.25);  border-color: rgba(76,175,80,0.3); }
+.chip--loss { background: rgba(85,25,25,0.25);  border-color: rgba(239,83,80,0.3); }
+.chip--tie  { background: rgba(60,60,60,0.3);   border-color: var(--border); }
+.chip--live { background: rgba(223,70,1,0.12);  border-color: rgba(223,70,1,0.4); }
+.chip--win:hover  { background: rgba(34,85,34,0.35); }
+.chip--loss:hover { background: rgba(85,25,25,0.35); }
+
+.chip-row1 {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.chip-logo {
+  width: 18px; height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(255,255,255,0.08));
+}
+.chip-ha   { font-size: 0.58rem; color: var(--text-3); font-style: italic; flex-shrink: 0; }
+.chip-abbr { font-size: 0.67rem; font-weight: 600; color: var(--text); flex: 1; min-width: 0; }
+.chip-series-badge {
+  font-size: 0.55rem;
+  color: var(--text-3);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 3px;
+  flex-shrink: 0;
+}
+.chip-row2 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip-result  { font-size: 0.64rem; color: var(--text-2); }
+.chip-result strong { font-weight: 700; color: var(--text); }
+.chip--win  .chip-result         { color: #6fcf6f; }
+.chip--win  .chip-result strong  { color: #8fe08f; }
+.chip--loss .chip-result         { color: #ef8080; }
+.chip--loss .chip-result strong  { color: #f09090; }
+.chip-time  { font-size: 0.6rem;  color: var(--text-3); }
+.chip-live  { font-size: 0.62rem; color: var(--orange); font-weight: 600; }
+.chip-wx    { font-size: 0.62rem; color: var(--text-3); margin-left: auto; }
+
+/* ── Game chip: full (week view) ──────────────────────────────── */
+.sch-chip--full {
+  padding: 8px 10px;
+  gap: 5px;
+  font-size: 0.75rem;
+}
+.sch-chip--full .chip-logo { width: 24px; height: 24px; }
+.chip-full-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chip-full-matchup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.chip-full-ha {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chip-series-info { font-size: 0.62rem; color: var(--text-3); }
+.chip-full-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chip-full-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 1px;
+}
+.chip-probable {
+  font-size: 0.63rem;
+  color: var(--text-2);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.chip-broadcast {
+  font-size: 0.6rem;
+  color: var(--orange);
+  background: var(--orange-dim);
+  border: 1px solid rgba(223,70,1,0.25);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+/* ── Week view ────────────────────────────────────────────────── */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.week-col {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-height: 160px;
+}
+.week-col--today { border-color: rgba(223,70,1,0.4); }
+.week-col-hdr {
+  background: var(--surface);
+  padding: 7px 8px 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.week-day-name {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.week-day-num { font-size: 0.72rem; color: var(--text); }
+.week-col--today .week-day-num { color: var(--orange); font-weight: 600; }
+.week-stretch-label {
+  font-size: 0.57rem;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.week-col-body {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.week-empty {
+  color: var(--text-3);
+  font-size: 0.8rem;
+  text-align: center;
+  margin: auto;
+}
+
+/* ── Loading / empty states ───────────────────────────────────── */
+.sch-loading, .sch-msg {
+  padding: 56px 16px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 0.88rem;
+}
+
+/* ── Full-schedule sidebar link ───────────────────────────────── */
+.section-schedule-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 3px 14px 8px;
+  font-size: 0.68rem;
+  color: var(--text-3);
+  text-decoration: none;
+  transition: color 0.15s;
+  gap: 3px;
+}
+.section-schedule-link:hover { color: var(--orange); }
+
+/* ── Light theme overrides ────────────────────────────────────── */
+[data-theme="light"] .cal-cell      { background: #fff; }
+[data-theme="light"] .cal-cell--empty { background: #f0f0f0; }
+[data-theme="light"] .sch-chip      { background: #f8f8f8; }
+[data-theme="light"] .chip--win     { background: rgba(34,139,34,0.1); border-color: rgba(34,139,34,0.3); }
+[data-theme="light"] .chip--loss    { background: rgba(200,40,40,0.1); border-color: rgba(200,40,40,0.3); }
+[data-theme="light"] .chip--win  .chip-result        { color: #2a7a2a; }
+[data-theme="light"] .chip--win  .chip-result strong { color: #1a5a1a; }
+[data-theme="light"] .chip--loss .chip-result        { color: #c02020; }
+[data-theme="light"] .chip--loss .chip-result strong { color: #901010; }
+[data-theme="light"] .week-col { background: #fff; }
+[data-theme="light"] .legend--win  { color: #2a7a2a; }
+[data-theme="light"] .legend--loss { color: #c02020; }
+[data-theme="light"] .chip-probable { background: #f0f0f0; }
+
+/* ── Schedule: responsive ─────────────────────────────────────── */
+@media (max-width: 900px) {
+  .week-grid { overflow-x: auto; grid-template-columns: repeat(7, minmax(100px, 1fr)); }
+}
+@media (max-width: 600px) {
+  .schedule-page { padding: 0 8px 48px; }
+  .sch-title { min-width: 130px; font-size: 0.9rem; }
+  .cal-cell { min-height: 64px; padding: 4px; gap: 2px; }
+  .sch-chip { padding: 3px 4px; }
+  .chip-abbr { font-size: 0.62rem; }
+  .week-grid { grid-template-columns: 1fr; overflow-x: unset; }
+  .week-col { min-height: auto; }
+}
