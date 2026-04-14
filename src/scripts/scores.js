@@ -3,12 +3,14 @@ import {
   MLB,
   ORIOLES_ID,
   PITCH_NAMES,
+  PROXY,
   SEASON,
   TEAM_ABBREV,
   TEAM_SLUG,
 } from './config.js';
 import { $, esc, localDateStr, dayLabel, formatGameTime, teamLogoSrc } from './utils.js';
-import { WALKUP_SONGS } from './walkup-songs.js';
+import { ensureWalkupSongsLoaded, getWalkupSongUrl } from './walkup-songs.js';
+import { triggerOriolesMagic } from './easter-eggs.js';
 import { getGameWeather, fetchWeatherForGames } from './weather.js';
 import { state } from './state.js';
 
@@ -111,6 +113,44 @@ export const boxscoreCache = {};
 export const arsenalCache = {};
 export const teamStatsCache = {};
 export const pitcherVsCache = {};
+const magicTriggeredWinGames = new Set();
+
+function isOriolesWinFinal(game) {
+  if (game?.status?.abstractGameState !== 'Final') return false;
+  const awayId = game?.teams?.away?.team?.id;
+  const homeId = game?.teams?.home?.team?.id;
+  if (awayId !== ORIOLES_ID && homeId !== ORIOLES_ID) return false;
+  const awayScore = Number(game?.teams?.away?.score ?? 0);
+  const homeScore = Number(game?.teams?.home?.score ?? 0);
+  if (awayId === ORIOLES_ID) return awayScore > homeScore;
+  return homeScore > awayScore;
+}
+
+function maybeTriggerOriolesWinMagic(games) {
+  const today = localDateStr(0);
+  const winners = games
+    .filter(g => g?.officialDate === today && isOriolesWinFinal(g))
+    .sort((a, b) => new Date(a.gameDate) - new Date(b.gameDate));
+
+  for (const game of winners) {
+    const key = String(game.gamePk ?? '');
+    if (!key || magicTriggeredWinGames.has(key)) continue;
+    let alreadyFired = false;
+    try {
+      alreadyFired = sessionStorage.getItem(`magic_win_${key}`) === '1';
+    } catch {}
+    if (alreadyFired) {
+      magicTriggeredWinGames.add(key);
+      continue;
+    }
+    magicTriggeredWinGames.add(key);
+    try {
+      sessionStorage.setItem(`magic_win_${key}`, '1');
+    } catch {}
+    triggerOriolesMagic();
+    break;
+  }
+}
 
 export async function fetchBoxscore(gamePk) {
   if (boxscoreCache[gamePk]) return boxscoreCache[gamePk];
@@ -175,11 +215,78 @@ function mlbPlayerUrl(playerId) {
   return playerId ? `https://www.mlb.com/player/${playerId}` : '';
 }
 
+function spotifyEmbedUrl(songUrl) {
+  try {
+    const url = new URL(songUrl);
+    const parts = url.pathname.split('/').filter(Boolean);
+    const trackIdx = parts.findIndex(part => part === 'track');
+    const trackId = trackIdx >= 0 ? parts[trackIdx + 1] : '';
+    if (!trackId) return '';
+    return `https://open.spotify.com/embed/track/${trackId}?utm_source=yardreport`;
+  } catch {
+    return '';
+  }
+}
+
+function closeWalkupPlayerOverlay() {
+  const overlay = document.getElementById('walkupPlayerOverlay');
+  if (!overlay) return;
+  const frame = overlay.querySelector('.walkup-player-frame');
+  if (frame) frame.setAttribute('src', '');
+  const source = overlay.querySelector('.walkup-player-open');
+  if (source) source.setAttribute('href', '#');
+  overlay.classList.add('hidden');
+  document.body.classList.remove('walkup-player-overlay-open');
+}
+
+function ensureWalkupPlayerOverlay() {
+  let overlay = document.getElementById('walkupPlayerOverlay');
+  if (overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'walkupPlayerOverlay';
+  overlay.className = 'walkup-player-overlay hidden';
+  overlay.innerHTML = `<div class="walkup-player-backdrop"></div>
+    <div class="walkup-player-dialog" role="dialog" aria-modal="true" aria-label="Walk-up song player">
+      <button class="walkup-player-close" type="button" aria-label="Close walk-up player">×</button>
+      <div class="walkup-player-title">Walk-up song</div>
+      <div class="walkup-player-name"></div>
+      <iframe class="walkup-player-frame" src="" width="100%" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      <a class="walkup-player-open" href="#" target="_blank" rel="noopener">Open in Spotify ↗</a>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('.walkup-player-backdrop')?.addEventListener('click', closeWalkupPlayerOverlay);
+  overlay.querySelector('.walkup-player-close')?.addEventListener('click', closeWalkupPlayerOverlay);
+  return overlay;
+}
+
+function openWalkupPlayerOverlay(songUrl, playerName = '') {
+  const embedUrl = spotifyEmbedUrl(songUrl);
+  if (!embedUrl) {
+    window.open(songUrl, '_blank', 'noopener');
+    return;
+  }
+  const overlay = ensureWalkupPlayerOverlay();
+  const frame = overlay.querySelector('.walkup-player-frame');
+  const source = overlay.querySelector('.walkup-player-open');
+  const name = overlay.querySelector('.walkup-player-name');
+  if (frame) frame.setAttribute('src', embedUrl);
+  if (source) source.setAttribute('href', songUrl);
+  if (name) name.textContent = playerName || '';
+  overlay.classList.remove('hidden');
+  document.body.classList.add('walkup-player-overlay-open');
+}
+
 export function renderPlayerNameLink(name, playerId, className = 'popover-player-link', walkupUrl = null) {
   const label = esc(name || 'TBD');
   const href = mlbPlayerUrl(playerId);
   const musicIcon = walkupUrl
-    ? `<a class="walkup-song-link" href="${walkupUrl}" target="_blank" rel="noopener" title="Walk-up song on Spotify" aria-label="Walk-up song on Spotify">♪</a>`
+    ? `<a class="walkup-song-link" href="${esc(walkupUrl)}" data-song-url="${esc(walkupUrl)}" data-player-name="${label}" target="_blank" rel="noopener" title="Play walk-up song" aria-label="Play walk-up song for ${label}">
+      <svg class="walkup-song-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M14 3v10.55a3.95 3.95 0 0 0-1.5-.28C10.57 13.27 9 14.6 9 16.27S10.57 19.27 12.5 19.27 16 17.94 16 16.27V8.86l4-1.15v4.14a3.95 3.95 0 0 0-1.5-.28C16.57 11.57 15 12.9 15 14.57s1.57 3 3.5 3 3.5-1.33 3.5-3V4.95L14 7.24V3Z"/>
+      </svg>
+    </a>`
     : '';
   if (!href) return `<span class="${className}">${label}</span>${musicIcon}`;
   return `<a class="${className}" href="${href}" target="_blank" rel="noopener">${label}</a>${musicIcon}`;
@@ -288,7 +395,9 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
       const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
-      const walkupUrl = Number(lineupTeamId) === ORIOLES_ID ? (WALKUP_SONGS[p.person?.id] ?? null) : null;
+      const walkupUrl = Number(lineupTeamId) === ORIOLES_ID
+        ? getWalkupSongUrl(p.person?.id, fullName)
+        : '';
       return `<div class="score-lineup-row${hasActivity ? '' : ' score-lineup-row--dnp'}${isSubstitution ? ' score-lineup-row--sub' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
         <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrl)}</span>
@@ -313,7 +422,9 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
       const isCurrentBatter = p.gameStatus?.isCurrentBatter;
-      const walkupUrl = Number(lineupTeamId) === ORIOLES_ID ? (WALKUP_SONGS[p.person?.id] ?? null) : null;
+      const walkupUrl = Number(lineupTeamId) === ORIOLES_ID
+        ? getWalkupSongUrl(p.person?.id, fullName)
+        : '';
       return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}${isSubstitution ? ' score-lineup-row--sub' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
         <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrl)}</span>
@@ -341,7 +452,9 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
       renderSlashSegment(rates.obp, obpValue > 0 && obpValue === leaders.obp, obpValue >= MLB_TOP_TEN_PROXY_RATES.obp),
       renderSlashSegment(rates.ops, opsValue > 0 && opsValue === leaders.ops, opsValue >= MLB_TOP_TEN_PROXY_RATES.ops),
     ].map((segment, idx) => `<span class="score-lineup-preview-stat score-lineup-preview-stat--${idx}">${segment}</span>`).join('');
-    const walkupUrl = Number(lineupTeamId) === ORIOLES_ID ? (WALKUP_SONGS[p.person?.id] ?? null) : null;
+    const walkupUrl = Number(lineupTeamId) === ORIOLES_ID
+      ? getWalkupSongUrl(p.person?.id, fullName)
+      : '';
     return `<div class="score-lineup-row">
       <span class="score-lineup-pos">${esc(pos)}</span>
       <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrl)}${batSideDisplay}</span>
@@ -839,6 +952,7 @@ export async function loadScores() {
       ...(tmData.dates?.[0]?.games ?? []),
     ];
     for (const g of allGames) state.gamesMap[g.gamePk] = g;
+    maybeTriggerOriolesWinMagic(allGames);
     await fetchWeatherForGames(allGames);
 
     const days = [
@@ -938,6 +1052,7 @@ export async function loadScores() {
 
       const missing = [
         !boxscoreCache[pk]                                         && fetchBoxscore(pk),
+        isOriolesGame                                              && ensureWalkupSongsLoaded(PROXY),
         isPreview && !arsenalCache[awayPitcherId]                 && fetchArsenal(awayPitcherId),
         isPreview && !arsenalCache[homePitcherId]                 && fetchArsenal(homePitcherId),
         isLive && livePitcherId && !arsenalCache[livePitcherId]   && fetchArsenal(livePitcherId),
@@ -980,12 +1095,28 @@ export async function loadScores() {
     boxPopover.addEventListener('mouseleave', hideBoxScore);
     if (!boxPopover.dataset.globalBound) {
       document.addEventListener('click', e => {
+        const clickTarget = e.target instanceof Element ? e.target : null;
+        const songLink = clickTarget?.closest('.walkup-song-link');
+        if (songLink) {
+          const useDefaultTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+          if (!useDefaultTab) {
+            e.preventDefault();
+            e.stopPropagation();
+            openWalkupPlayerOverlay(songLink.dataset.songUrl || songLink.href, songLink.dataset.playerName || '');
+          }
+          return;
+        }
         if (boxPopover.classList.contains('hidden')) return;
-        if (boxPopover.contains(e.target)) return;
-        if (e.target.closest('.score-chip')) return;
+        if (clickTarget && boxPopover.contains(clickTarget)) return;
+        if (clickTarget?.closest('.score-chip')) return;
         hideBoxScoreImmediate();
       });
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') hideBoxScoreImmediate(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          closeWalkupPlayerOverlay();
+          hideBoxScoreImmediate();
+        }
+      });
       boxPopover.dataset.globalBound = 'true';
     }
 
