@@ -909,10 +909,19 @@ export function getGamedayUrl(g) {
   return `https://www.mlb.com/gameday/${awaySlug}-vs-${homeSlug}/${gameDate}/${g.gamePk}/${gamedaySuffix}`;
 }
 
+function getMlbTvUrl(g) {
+  return `https://www.mlb.com/tv/g${g.gamePk}`;
+}
+
 function renderPopoverGameLink(g) {
   const isPreview = g.status?.abstractGameState === 'Preview';
   const label = isPreview ? 'Open Game Preview' : 'Open Game Results';
+  const lookInLabel = 'Look In (MLB.TV)';
   return `<div class="box-popover-actions">
+    <a class="box-popover-link box-popover-link--watch" href="${getMlbTvUrl(g)}" target="_blank" rel="noopener">
+      <span class="box-popover-link-eye" aria-hidden="true">◉</span>
+      <span>${lookInLabel}</span>
+    </a>
     <a class="box-popover-link" href="${getGamedayUrl(g)}" target="_blank" rel="noopener">
       <img class="box-popover-link-logo" src="${import.meta.env.BASE_URL}mlb-logo.png" alt="" width="14" height="14" loading="eager" decoding="async">
       <span>${label}</span>

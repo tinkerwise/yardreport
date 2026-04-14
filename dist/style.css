@@ -828,6 +828,8 @@ img { display: block; max-width: 100%; }
 .box-popover-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
   padding-top: 2px;
 }
 .box-popover-link {
@@ -861,6 +863,25 @@ img { display: block; max-width: 100%; }
   background: color-mix(in srgb, var(--orange) 14%, var(--card) 86%);
   color: #fff0e6;
   outline: none;
+}
+.box-popover-link--watch {
+  border-color: color-mix(in srgb, #1db954 42%, var(--border) 58%);
+  color: #1ed760;
+}
+.box-popover-link--watch:hover,
+.box-popover-link--watch:focus-visible {
+  border-color: #1ed760;
+  background: color-mix(in srgb, #1db954 16%, var(--card) 84%);
+  color: #d9ffe9;
+}
+.box-popover-link-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  line-height: 1;
+  font-size: 0.7rem;
 }
 .pitching-scroll {
   max-height: 88px;
