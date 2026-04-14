@@ -25,6 +25,12 @@
 
 ##Completed
 
+# MULTIPLE PAGES
+✓ Audited whether additional pages improve performance or UX — current 2-page structure (main dashboard + ATH detail) is correct
+✓ Main page already defers lower-priority sidebar data (roster, leaders, IL, transactions, podcast, video, contracts) in a second load wave — no performance case for splitting them out
+✓ ATH detail page is the right pattern for story deep-dives; no other sidebar widget warrants its own page
+✓ Splitting standings/roster/leaders/etc. into separate pages would fragment the dashboard without meaningful gain
+
 # AROUND THE HORN
 ✓ Redesigned ATH into landscape story cards (3:2 aspect ratio) with topic text overlay
 ✓ Clicking an ATH card now opens a dedicated Around the Horn story page with related coverage
