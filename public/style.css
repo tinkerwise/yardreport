@@ -1856,6 +1856,25 @@ img { display: block; max-width: 100%; }
   object-fit: contain;
   filter: drop-shadow(0 1px 3px rgba(255,255,255,0.25));
 }
+.team-detail-card .box-perf-logo {
+  filter: drop-shadow(0 1px 3px rgba(255,255,255,0.25));
+}
+
+/* Improve readability of dark team marks (e.g., NYY) on dark UI surfaces. */
+:root:not([data-theme="light"]) .score-lineup-logo,
+:root:not([data-theme="light"]) .standings-team-logo,
+:root:not([data-theme="light"]) .on-deck-logo,
+:root:not([data-theme="light"]) .sched-box-logo,
+:root:not([data-theme="light"]) .pill-logo--orioles,
+:root:not([data-theme="light"]) .pill-logo--league,
+:root:not([data-theme="light"]) .leaders-scope-logo,
+:root:not([data-theme="light"]) .team-detail-card .box-perf-logo {
+  filter:
+    brightness(1.14)
+    contrast(1.08)
+    drop-shadow(0 0 0.6px rgba(255,255,255,0.82))
+    drop-shadow(0 1px 4px rgba(255,255,255,0.34));
+}
 .leaders-scope-btn.active .leaders-scope-logo--league {
   background: rgba(255,255,255,0.9);
   border-radius: 2px;
