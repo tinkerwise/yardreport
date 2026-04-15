@@ -278,21 +278,33 @@ function openWalkupPlayerOverlay(songUrl, playerName = '') {
   document.body.classList.add('walkup-player-overlay-open');
 }
 
-export function renderPlayerNameLink(name, playerId, className = 'popover-player-link', walkupUrls = []) {
+const WALKUP_ICON_SVG = `<svg class="walkup-song-icon" viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="10.2" fill="currentColor"/>
+    <path d="M7.1 9.7c3.5-1.1 6.6-.8 9.7.7" fill="none" stroke="#fff" stroke-width="1.55" stroke-linecap="round"/>
+    <path d="M7.8 12.4c2.7-.8 5.1-.6 7.5.5" fill="none" stroke="#fff" stroke-width="1.45" stroke-linecap="round"/>
+    <path d="M8.6 14.8c2-.6 3.7-.4 5.5.3" fill="none" stroke="#fff" stroke-width="1.35" stroke-linecap="round"/>
+  </svg>`;
+
+// fallbackName: if provided and no songs are cached, renders a dimmed search
+// icon linking to Spotify search so every Orioles player always has an icon.
+export function renderPlayerNameLink(name, playerId, className = 'popover-player-link', walkupUrls = [], fallbackName = '') {
   const label = esc(name || 'TBD');
   const href = mlbPlayerUrl(playerId);
   const songs = Array.isArray(walkupUrls) ? walkupUrls : [];
-  const musicIcon = songs.map((url, idx) => `<a class="walkup-song-link" href="${esc(url)}" data-song-url="${esc(url)}" data-player-name="${label}" target="_blank" rel="noopener" title="Play walk-up song ${idx + 1}" aria-label="Play walk-up song ${idx + 1} for ${label}">
-      <svg class="walkup-song-icon" viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" focusable="false">
-        <circle cx="12" cy="12" r="10.2" fill="currentColor"/>
-        <path d="M7.1 9.7c3.5-1.1 6.6-.8 9.7.7" fill="none" stroke="#fff" stroke-width="1.55" stroke-linecap="round"/>
-        <path d="M7.8 12.4c2.7-.8 5.1-.6 7.5.5" fill="none" stroke="#fff" stroke-width="1.45" stroke-linecap="round"/>
-        <path d="M8.6 14.8c2-.6 3.7-.4 5.5.3" fill="none" stroke="#fff" stroke-width="1.35" stroke-linecap="round"/>
-      </svg>
-    </a>`).join('');
+  let musicIcon;
+  if (songs.length > 0) {
+    musicIcon = songs.map((url, idx) => `<a class="walkup-song-link" href="${esc(url)}" data-song-url="${esc(url)}" data-player-name="${label}" target="_blank" rel="noopener" title="Play walk-up song${songs.length > 1 ? ` ${idx + 1}` : ''}" aria-label="Play walk-up song for ${label}">${WALKUP_ICON_SVG}</a>`).join('');
+  } else if (fallbackName) {
+    const searchUrl = `https://open.spotify.com/search/${encodeURIComponent(fallbackName + ' walk up song')}`;
+    musicIcon = `<a class="walkup-song-link walkup-song-link--search" href="${esc(searchUrl)}" data-player-name="${label}" target="_blank" rel="noopener" title="Search walk-up song for ${esc(fallbackName)}" aria-label="Search walk-up song for ${label}">${WALKUP_ICON_SVG}</a>`;
+  } else {
+    musicIcon = '';
+  }
   if (!href) return `<span class="${className}">${label}</span>${musicIcon}`;
   return `<a class="${className}" href="${href}" target="_blank" rel="noopener">${label}</a>${musicIcon}`;
 }
+
+export { WALKUP_ICON_SVG };
 
 function renderLiveWalkupQueueRow(label, person) {
   if (!person?.fullName) return '';
@@ -392,6 +404,7 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
   const players = team?.battingOrder ?? [];
   const roster = team?.players ?? {};
   const lineupTeamId = teamId ?? team?.team?.id ?? null;
+  const isOriolesLineup = Number(lineupTeamId) === ORIOLES_ID;
   if (!players.length) return '<div class="score-lineups-empty">Lineup not yet posted</div>';
 
   if (gameState === 'final') {
@@ -409,12 +422,10 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
       const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
-      const walkupUrls = Number(lineupTeamId) === ORIOLES_ID
-        ? getWalkupSongUrls(p.person?.id, fullName)
-        : [];
+      const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
       return `<div class="score-lineup-row${hasActivity ? '' : ' score-lineup-row--dnp'}${isSubstitution ? ' score-lineup-row--sub' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
-        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls)}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls, isOriolesLineup ? fullName : '')}</span>
         <span class="score-lineup-box-cols">${cols}</span>
       </div>`;
     }).join('');
@@ -436,12 +447,10 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
         .map(v => `<span>${v}</span>`).join('');
       const isCurrentBatter = p.gameStatus?.isCurrentBatter;
-      const walkupUrls = Number(lineupTeamId) === ORIOLES_ID
-        ? getWalkupSongUrls(p.person?.id, fullName)
-        : [];
+      const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
       return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}${isSubstitution ? ' score-lineup-row--sub' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
-        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls)}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls, isOriolesLineup ? fullName : '')}</span>
         <span class="score-lineup-box-cols">${cols}</span>
       </div>`;
     }).join('');
@@ -466,12 +475,10 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
       renderSlashSegment(rates.obp, obpValue > 0 && obpValue === leaders.obp, obpValue >= MLB_TOP_TEN_PROXY_RATES.obp),
       renderSlashSegment(rates.ops, opsValue > 0 && opsValue === leaders.ops, opsValue >= MLB_TOP_TEN_PROXY_RATES.ops),
     ].map((segment, idx) => `<span class="score-lineup-preview-stat score-lineup-preview-stat--${idx}">${segment}</span>`).join('');
-    const walkupUrls = Number(lineupTeamId) === ORIOLES_ID
-      ? getWalkupSongUrls(p.person?.id, fullName)
-      : [];
+    const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
     return `<div class="score-lineup-row">
       <span class="score-lineup-pos">${esc(pos)}</span>
-      <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls)}${batSideDisplay}</span>
+      <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls, isOriolesLineup ? fullName : '')}${batSideDisplay}</span>
       <span class="score-lineup-box-cols score-lineup-box-cols--preview">${slashLine}</span>
     </div>`;
   }).join('');
@@ -779,7 +786,7 @@ function renderPreviewTeamCard(game, boxData, side, arsenalData) {
     <div class="score-lineup-head">${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span></div>
     <div class="preview-team-section">
       <div class="preview-team-subhead">Probable Pitcher</div>
-      <div class="probable-pitcher-row"><span class="probable-pitcher-name">${renderPlayerNameLink(probablePitcher, probablePitcherId, 'popover-player-link', probablePitcherSongs)}</span></div>
+      <div class="probable-pitcher-row"><span class="probable-pitcher-name">${renderPlayerNameLink(probablePitcher, probablePitcherId, 'popover-player-link', probablePitcherSongs, Number(teamId) === ORIOLES_ID ? probablePitcher : '')}</span></div>
       ${arsenal}
     </div>
     <div class="preview-team-section">
@@ -833,12 +840,11 @@ function renderPitchingLines(boxData, gameState = 'final') {
       const role = i === spIndex ? 'SP' : 'RP';
       const handDisplay = p.pitchHand ? `<span class="score-lineup-hand">(${p.pitchHand})</span>` : '';
       const cols = [p.ip, p.h, p.er, p.k].map(v => `<span>${v}</span>`).join('');
-      const walkupUrls = Number(team.team?.id) === ORIOLES_ID
-        ? getWalkupSongUrls(p.playerId, p.name)
-        : [];
+      const isOriolesPitching = Number(team.team?.id) === ORIOLES_ID;
+      const walkupUrls = isOriolesPitching ? getWalkupSongUrls(p.playerId, p.name) : [];
       return `<div class="score-lineup-row">
         <span class="score-lineup-pos">${role}</span>
-        <span class="score-lineup-name">${renderPlayerNameLink(compactBoxName(p.name), p.playerId, 'popover-player-link', walkupUrls)}${handDisplay}</span>
+        <span class="score-lineup-name">${renderPlayerNameLink(compactBoxName(p.name), p.playerId, 'popover-player-link', walkupUrls, isOriolesPitching ? p.name : '')}${handDisplay}</span>
         <span class="score-lineup-box-cols score-lineup-box-cols--pitch">${cols}</span>
       </div>`;
     }).join('');
@@ -1167,6 +1173,8 @@ export async function loadScores() {
         const clickTarget = e.target instanceof Element ? e.target : null;
         const songLink = clickTarget?.closest('.walkup-song-link');
         if (songLink) {
+          // Search-fallback icons open Spotify search directly in a new tab — no overlay.
+          if (songLink.classList.contains('walkup-song-link--search')) return;
           const useDefaultTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
           if (!useDefaultTab) {
             e.preventDefault();

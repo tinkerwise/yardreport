@@ -21,6 +21,8 @@ import {
   teamLogoSrc,
 } from './utils.js';
 import { fetchWeatherForGames, getGameWeather } from './weather.js';
+import { ensureWalkupSongsLoaded, getWalkupSongUrls } from './walkup-songs.js';
+import { WALKUP_ICON_SVG } from './scores.js';
 
 // ── Standings ─────────────────────────────────────────────────────
 export async function loadStandings() {
@@ -232,9 +234,10 @@ const IL_BADGE = { D10: '10-Day IL', D15: '15-Day IL', D60: '60-Day IL' };
 export async function loadRoster() {
   const wrap = $('rosterWrap');
   try {
-    const data = await fetch(
-      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man&season=${SEASON}`
-    ).then(r => r.json());
+    const [data] = await Promise.all([
+      fetch(`${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man&season=${SEASON}`).then(r => r.json()),
+      ensureWalkupSongsLoaded(PROXY),
+    ]);
 
     const all = data.roster ?? [];
     if (!all.length) {
@@ -261,9 +264,19 @@ export async function loadRoster() {
       const url = savantUrl(p.person.id);
       const pos = p.position?.abbreviation ?? '';
       const badge = opts.badge ? `<span class="roster-badge roster-badge--${opts.badgeType ?? 'il'}">${esc(opts.badge)}</span>` : '';
+      const fullName = p.person.fullName;
+      const songUrls = getWalkupSongUrls(p.person.id, fullName);
+      const label = esc(fullName);
+      let musicIcon;
+      if (songUrls.length > 0) {
+        musicIcon = songUrls.map(songUrl => `<a class="walkup-song-link" href="${esc(songUrl)}" data-song-url="${esc(songUrl)}" data-player-name="${label}" target="_blank" rel="noopener" title="Play walk-up song" aria-label="Play walk-up song for ${label}">${WALKUP_ICON_SVG}</a>`).join('');
+      } else {
+        const searchUrl = `https://open.spotify.com/search/${encodeURIComponent(fullName + ' walk up song')}`;
+        musicIcon = `<a class="walkup-song-link walkup-song-link--search" href="${esc(searchUrl)}" data-player-name="${label}" target="_blank" rel="noopener" title="Search walk-up song for ${label}" aria-label="Search walk-up song for ${label}">${WALKUP_ICON_SVG}</a>`;
+      }
       return `<div class="roster-item${opts.muted ? ' roster-item--muted' : ''}">
         <span class="roster-num">${esc(p.jerseyNumber ?? '')}</span>
-        <a class="roster-name" href="${url}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+        <a class="roster-name" href="${url}" target="_blank" rel="noopener">${esc(fullName)}</a>${musicIcon}
         <span class="roster-pos">${esc(pos)}</span>
         ${badge}
       </div>`;

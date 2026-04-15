@@ -813,6 +813,10 @@ img { display: block; max-width: 100%; }
 .walkup-song-icon {
   display: block;
 }
+.walkup-song-link--search {
+  color: var(--text-3);
+  opacity: 0.45;
+}
 .walkup-song-link:hover,
 .walkup-song-link:focus-visible {
   transform: translateY(-0.8px) scale(1.06);
