@@ -6,16 +6,37 @@ const ORIOLES_WALKUP_MUSIC_URL = 'https://www.mlb.com/orioles/ballpark/music';
 const WALKUP_SONG_TTL_MS = 1000 * 60 * 60 * 6;
 
 export const FALLBACK_WALKUP_SONGS = {
-  683002: ['https://open.spotify.com/track/66ZcOcouenzZEnzTJvoFmH'], // Gunnar Henderson – The Sweet Escape (Gwen Stefani)
-  668939: ['https://open.spotify.com/track/2ueM6ZRm1HJZo5FBatt7Qm'], // Adley Rutschman – Alive (nightmare) (Kid Cudi & Ratatat)
+  // ── Active roster (sourced from mlb.com/orioles/ballpark/music, April 2026) ──
+  677942: ['https://open.spotify.com/track/1E6bzmruhqnQDzq78o7Qq1'], // Blaze Alexander – Pump It Up (Joe Budden)
+  624413: ['https://open.spotify.com/track/0k9JIBszlCqCa4SpXI353F'], // Pete Alonso – BIRDS (Turnstile)
+  694212: ['https://open.spotify.com/track/45kBRk3OOKJNKJJFO0h1OJ'], // Samuel Basallo – Misericordia (Onell Diaz & Farruko)
+  605135: ['https://open.spotify.com/track/0uNnfawpud9YTcn7WCRBgM'], // Chris Bassitt – God's Country (Blake Shelton)
+  669358: ['https://open.spotify.com/track/0HY4qXIQLJ4E95I1LuPnU8'], // Shane Baz – Rooster (Alice in Chains)
+  687637: ['https://open.spotify.com/track/6LyAwkJsHlW7RQ8S1cYAtM'], // Dylan Beavers – Overdue (Metro Boomin ft. Travis Scott)
+  680694: ['https://open.spotify.com/track/7lrVfHGjUfWtlSKbDn141u'], // Kyle Bradish – Memories feat. Kid Cudi (David Guetta)
+  666974: ['https://open.spotify.com/track/4lkbBBumrQF1SDhQkqs0Y3'], // Yennier Cano – Como Te Pago (Lenier)
+  670329: ['https://open.spotify.com/track/228BxWXUYQPJrJYHDLOHkj'], // Rico Garcia – Gasolina (Daddy Yankee)
+  668974: ['https://open.spotify.com/track/3hMHG6lx9QHVcfYSUr5PoM'], // Maverick Handley – Danger Zone (Kenny Loggins)
+  664854: ['https://open.spotify.com/track/69QHm3pustz01CJRwdo20z'], // Ryan Helsley – Hells Bells (AC/DC)
+  683002: ['https://open.spotify.com/track/66ZcOcouenzZEnzTJvoFmH', 'https://open.spotify.com/track/2Wgg8XEn4DBfbQy0tEIkPi'], // Gunnar Henderson – The Sweet Escape (Gwen Stefani) + I've Been Down (Hank Williams Jr.)
+  669236: ['https://open.spotify.com/track/4xm2HjtDAdCobewPoaImT7'], // Jeremiah Jackson – Revolution (Kirk Franklin)
+  691723: ['https://open.spotify.com/track/28DySuOwKC5m8We3yRPS04'], // Coby Mayo – End of Beginning (Djo)
+  689296: ['https://open.spotify.com/track/2yxMDNWlGtsTes4Jbrddoi'], // Anthony Nunez – WALK (Hulvey & Lecrae)
+  671286: ['https://open.spotify.com/track/2eFuynnDYd7UGN3piHjoMO'], // Johnathan Rodríguez – Volver A Empezar (Obyone)
+  669432: ['https://open.spotify.com/track/1UBQ5GK8JaQjm5VbkBZY66'], // Trevor Rogers – Sharp Dressed Man (ZZ Top)
+  544150: ['https://open.spotify.com/track/13OjJ7UaagsmVTaVN4yFrL'], // Albert Suárez – Danza Kuduro (Don Omar)
+  665750: ['https://open.spotify.com/track/0K1XXuhaJBPWMcgjj3ug3u'], // Leody Taveras – Las Avispas (Juan Luis Guerra 4.40)
+  621493: ['https://open.spotify.com/track/7wmi32Wz3IXXyCl60QZkTb'], // Taylor Ward – Superhero (Heroes & Villains) Instrumental (Metro Boomin)
+  669330: ['https://open.spotify.com/track/2WVHl9NBV7qqkocj6Bsgqo'], // Tyler Wells – Waiting for the Thunder (Blackberry Smoke)
+  642215: ['https://open.spotify.com/track/63SevszngYpZOwf63o61K4'], // Weston Wilson – Nevermind (Dennis Lloyd)
+  664991: ['https://open.spotify.com/track/505lCWNDROW6OMK02H8SPw'], // Grant Wolfram – Lonely Is The Night (Billy Squier)
+  // ── IL / inactive (preserved for when players return) ──────────────────────
+  668939: ['https://open.spotify.com/track/2ueM6ZRm1HJZo5FBatt7Qm'], // Adley Rutschman – Alive (nightmare) (Kid Cudi)
   683734: ['https://open.spotify.com/track/2CGNAOSuO1MEFCbBRgUzjd'], // Jackson Holliday – luther (Kendrick Lamar & SZA)
   663624: ['https://open.spotify.com/track/0JJP0IS4w0fJx01EcrfkDe'], // Ryan Mountcastle – Dear Maria, Count Me In (All Time Low)
   641933: ['https://open.spotify.com/track/2tUL6dZf1mywCj5WvCPZw6'], // Tyler O'Neill – No Friends In The Industry (Drake)
   676059: ['https://open.spotify.com/track/1OLkuTadZZSdfzgUeemRsU'], // Jordan Westburg – The Name (KB ft. Koryn Hawthorne)
   681297: ['https://open.spotify.com/track/1EiLrPd8JMTcQUr1aLEUKi'], // Colton Cowser – Work (Gang Starr)
-  624413: ['https://open.spotify.com/track/0k9JIBszlCqCa4SpXI353F'], // Pete Alonso – BIRDS (Turnstile)
-  691723: ['https://open.spotify.com/track/28DySuOwKC5m8We3yRPS04'], // Coby Mayo – End of Beginning (Djo)
-  665750: ['https://open.spotify.com/track/7uH27oIt4a6cIFCA8ZPcyG'], // Leody Taveras – Baila Baila Baila (Ozuna)
 };
 
 const walkupSongsCache = {
