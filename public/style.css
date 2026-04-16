@@ -1605,6 +1605,21 @@ img { display: block; max-width: 100%; }
 .search-input::placeholder { color: var(--text-3); }
 
 .filter-section { display: flex; flex-direction: column; gap: 8px; }
+.sidebar-group { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
+.sidebar-group .sidebar-section { padding-left: 6px; border-left: 2px solid var(--border); }
 .sidebar-section { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .section-body { position: relative; min-width: 0; }
 .section-label {
