@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "smoke:verify": "sh -lc 'test -f dist/index.html && test -f dist/style.css && test -f dist/rss-proxy.php && rg -q \"id=\\\"scoresTrack\\\"\" dist/index.html && rg -q \"id=\\\"articleList\\\"\" dist/index.html && rg -q \"id=\\\"onDeckWrap\\\"\" dist/index.html && rg -q \"id=\\\"podcastWrap\\\"\" dist/index.html && rg -q \"id=\\\"videoWrap\\\"\" dist/index.html && rg -q \"id=\\\"standingsWrap\\\"\" dist/index.html && rg -q \"id=\\\"leadersWrap\\\"\" dist/index.html && rg -q \"id=\\\"readerOverlay\\\"\" dist/index.html && rg -q \"id=\\\"settingsOverlay\\\"\" dist/index.html'",
+    "smoke:verify": "sh -lc 'test -f dist/index.html && test -f dist/style.css && test -f dist/rss-proxy.php && rg -q \"id=\\\"scoresTrack\\\"\" dist/index.html && rg -q \"id=\\\"articleList\\\"\" dist/index.html && rg -q \"id=\\\"onDeckWrap\\\"\" dist/index.html && rg -q \"id=\\\"mediaWrap\\\"\" dist/index.html && rg -q \"id=\\\"standingsWrap\\\"\" dist/index.html && rg -q \"id=\\\"leadersWrap\\\"\" dist/index.html && rg -q \"id=\\\"readerOverlay\\\"\" dist/index.html && rg -q \"id=\\\"settingsOverlay\\\"\" dist/index.html'",
     "smoke": "npm run build && npm run smoke:verify"
   },
   "dependencies": {
