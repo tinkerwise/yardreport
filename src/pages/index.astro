@@ -71,27 +71,22 @@ import Layout from '../layouts/Layout.astro';
         Full Schedule
       </a>
 
-      <!-- Podcast -->
-      <div class="sidebar-section collapsible" data-section="podcast">
-        <h3 class="section-label section-toggle" data-target="podcast">
-          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18a4 4 0 0 0 4-4V8a4 4 0 1 0-8 0v6a4 4 0 0 0 4 4Z"/><path d="M19 10v4a7 7 0 0 1-14 0v-4"/><path d="M12 21v-3"/></svg>
-          Podcast
+      <!-- Media (Podcast + Video) -->
+      <div class="sidebar-section collapsible" data-section="media">
+        <h3 class="section-label section-toggle" data-target="media">
+          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+          Media
           <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </h3>
-        <div class="section-body" id="podcastWrap">
-          <span class="sidebar-msg">Loading…</span>
-        </div>
-      </div>
-
-      <!-- Video -->
-      <div class="sidebar-section collapsible" data-section="video">
-        <h3 class="section-label section-toggle" data-target="video">
-          <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          Video
-          <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-        </h3>
-        <div class="section-body" id="videoWrap">
-          <span class="sidebar-msg">Loading…</span>
+        <div class="section-body">
+          <div class="media-tabs pill-group" id="mediaTabs">
+            <button class="pill active" data-media-filter="all">All</button>
+            <button class="pill" data-media-filter="video">Video</button>
+            <button class="pill" data-media-filter="audio">Audio</button>
+          </div>
+          <div id="mediaWrap">
+            <span class="sidebar-msg">Loading…</span>
+          </div>
         </div>
       </div>
     </aside>
