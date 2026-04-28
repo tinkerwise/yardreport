@@ -1,6 +1,6 @@
 **Maintainer Brief**
 
-Yard Report is a single-page Astro site with a thin static shell and a modular client-side script layer. The client is split into domain modules under `src/scripts/`: [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) is now a slim orchestrator (~175 lines) that imports from [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js), [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js), [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js), [state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js), [theme.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/theme.js), [utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js), [weather.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/weather.js), and [easter-eggs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/easter-eggs.js). The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is intentionally public-facing and brief; this file is the home for maintainer detail.
+Yard Report is a single-page Astro site with a thin static shell and a modular client-side script layer. The client is split into domain modules under `src/scripts/`: [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) is now a slim orchestrator (~175 lines) that imports from [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js), [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js), [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js), [walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js), [state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js), [theme.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/theme.js), [utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js), [weather.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/weather.js), and [easter-eggs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/easter-eggs.js). The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is intentionally public-facing and brief; this file is the home for maintainer detail.
 
 **What’s Fragile**
 
@@ -9,6 +9,7 @@ The client is now split into domain modules, so changes to one area are less lik
 - `getFilteredArticles()` in [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js) is the source of truth for what appears; filter bugs ripple everywhere.
 - `setupEvents()` in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) is the central event wiring point; new controls should be added carefully to avoid duplicated listeners or state drift.
 - `loadScores()` in [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js) is both a rendering surface and an interaction surface; it owns score-chip triggers, popover timing, click-to-open behavior, and async boxscore refreshes.
+- Walk-up songs are shared by [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js) and [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js) through [walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js); keep the fallback map usable and preserve the non-blocking roster render.
 - `loadOnDeck()` in [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js) is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
 - Score/on-deck/transactions/leaders/video/podcast all depend on third-party APIs or feeds with no formal abstraction layer, so breakage from upstream response changes is a real risk.
 - There is both a dev-time JS proxy in [astro.config.mjs](/Users/briancsmith/Documents/GitHub/yardreport/astro.config.mjs) and a production PHP proxy in [rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php); feed issues may differ between local and deployed environments, especially now that the proxy also supports trusted raw HTML/text passthrough for widget enrichment and audio-enclosure extraction for the podcast widget.
@@ -19,6 +20,7 @@ For feature work, I’d first check whether it’s already described in [updates
 - structure change: [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro)
 - feed/reader/article behavior: [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js)
 - score chips/popovers/lineups/scout notes: [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js)
+- walk-up song metadata/player overlay: [walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js), plus the score/roster render surfaces that consume it
 - sidebar widgets (standings, on deck, roster, IL, transactions, leaders, video, podcast): [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js)
 - shared state: [state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js)
 - shared pure utilities: [utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js)
@@ -33,6 +35,7 @@ For safety, I’d usually preserve:
 - the current feed-toolbar alignment pattern: category pills left, source/view controls right
 - the current score-chip pattern: chips act as popover triggers first, with external MLB preview/results links living inside the popover
 - the current category-pill pattern: Orioles, MLB, and MiLB use logo-backed pills rather than emoji labels
+- the current walk-up song pattern: known songs open in the overlay, unknown Orioles players get a Spotify search icon, and roster render should not wait on live song fetches
 
 **Best Next Refactors**
 
@@ -48,6 +51,7 @@ The domain module split is done. If we want the repo even easier to maintain, th
 - [src/scripts/feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js): feed fetching, article rendering, reader, ATH bundling, view mode
 - [src/scripts/scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js): score chips, box score popover, lineup, pitching, scout notes
 - [src/scripts/sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js): standings, on deck, roster, IL, transactions, leaders, video, podcast
+- [src/scripts/walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js): Orioles walk-up song fetching, parsing, cache, and fallback map
 - [src/scripts/state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js): shared mutable app state
 - [src/scripts/theme.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/theme.js): theme application (runs on import)
 - [src/scripts/utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js): shared pure utilities
@@ -64,11 +68,12 @@ The domain module split is done. If we want the repo even easier to maintain, th
 
 **Stack**
 
-- Astro 4
+- Astro 6
 - Static deployment
-- Client-heavy rendering and state in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js)
+- Modular client-side rendering and state under [src/scripts/](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts)
 - PHP RSS proxy for production feed fetching in [rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php)
 - MLB Stats API and Open-Meteo as primary runtime data services
+- Official Orioles walk-up music page plus Spotify embeds/search for player music context
 
 **Development**
 
@@ -110,7 +115,7 @@ Preferred cadence:
 
 `updates.txt` is the main running spec for feature work. New ideas, shipped features, and implementation prompts should stay aligned with that file.
 
-The main implementation surface is `src/scripts/app.js`, so even small changes can have broad UI impact. When making updates, preserve readability, avoid content overload, and be careful with shared render/state logic.
+The main implementation surface is the `src/scripts/` module set, with `app.js` as the event/init orchestrator. When making updates, preserve readability, avoid content overload, and be careful with shared render/state logic.
 
 The built-in smoke test is `npm run smoke`. It runs a production build and then checks that the generated site still includes the core UI surfaces: scores, feed, On Deck, podcast, video, standings, leaders, reader overlay, settings overlay, plus key built assets.
 
@@ -139,6 +144,7 @@ News RSS sources:
 - Baseball Prospectus: `https://www.baseballprospectus.com/tag/baltimore-orioles/feed/`
 - Baseball America: `https://www.baseballamerica.com/feed/`
 - New York Times Baseball: `https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml`
+- The Athletic Orioles: `https://theathletic.com/mlb/baltimore-orioles/feed/`
 
 Podcast sources:
 - Baseball Tonight with Buster Olney RSS: `https://feeds.megaphone.fm/ESP1723897648`
@@ -151,6 +157,10 @@ Video sources:
 - Orioles Game Recaps playlist ID: `PLoeYQM_iUEVyoMu-AIZFXs9ja6GMzF1Ce`
 - Orioles Moments playlist ID: `PLoeYQM_iUEVwNa9HwsFfS0aWvshxoYnhy`
 - MLB game-content media fallback for Orioles recap freshness: `https://statsapi.mlb.com/api/v1/schedule?...&hydrate=game(content(media(epg)))`
+
+Walk-up music sources:
+- Official Orioles walk-up music page: `https://www.mlb.com/orioles/ballpark/music`
+- Spotify track/search/player embeds: `https://open.spotify.com/...`
 
 Data and asset services:
 - MLB Stats API: `https://statsapi.mlb.com/api/v1`
@@ -169,6 +179,7 @@ The prompts that will work best with this repo are specific and scoped, like:
 - “Update the video widget playlists or rotation logic without changing theater-mode behavior”
 - “Adjust the podcast card placement or feed source without turning it into a heavy media experience”
 - “Refine the On Deck card to show Y and keep the current visual style”
+- “Update the walk-up song fallback map without blocking roster render”
 - “Implement the next unchecked item from `updates.txt`”
 - “Refactor just the leaders widget into a separate module without changing output”
 
@@ -178,7 +189,7 @@ The prompts most likely to cause churn are broad redesigns or “clean this all 
 
 - Feed supports Orioles, MLB, and MiLB categories
 - Around the Horn surfaces three featured baseball story cards with a dedicated follow-through page
-- Score bugs support preview, live, and final popovers with scouting, lineups, pitching, box score, and MLB-link actions
+- Score bugs support preview, live, and final popovers with scouting, lineups, pitching, box score, walk-up song icons/queue, and MLB-link actions
 - On Deck surfaces the next Orioles game, compact schedule boxes, and forecast weather for today or tomorrow when available
 - Left sidebar carries the podcast card above the video widget
-- Right sidebar carries standings, leaders, roster, injury report, and transactions
+- Right sidebar carries standings, leaders, roster with walk-up song/search icons, injury report, transactions, and contracts

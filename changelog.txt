@@ -1,4 +1,23 @@
 Yard Report Changelog
+
+Week of April 15, 2026
+
+April 15-16, 2026
+
+Walk-Up Songs
+- Added a dedicated Orioles walk-up song metadata layer sourced from the official Orioles ballpark music page.
+- Added a 6-hour cache and a parser that reads Next.js page data first, then falls back to player-link plus Spotify iframe/anchor order in the DOM.
+- Populated the April 2026 fallback map with 23 active Orioles and 6 IL/inactive players, including corrected Leody Taveras music and multi-song support for Gunnar Henderson.
+- Added Spotify-style walk-up icons next to Orioles player names in the roster, score lineup rows, pitching rows, and live-game walk-up queue.
+- Added a Yard Report popup player for Spotify track playback and search, with an external "Open in Spotify" action.
+- Added live-game Orioles Walk-Up Queue context for At Bat, On Deck, In Hole, and Warmup players.
+- Updated the roster load path so the roster renders immediately from cached/fallback song data, then re-renders when live song metadata arrives.
+
+Documentation
+- Updated `README.md`, `features.txt`, `brief.txt`, `updates.txt`, and `changelog.txt` to reflect the walk-up song system, current feed source count, Contracts widget, The Athletic feed source, and Astro 6 stack.
+
+---
+
 Week of April 14, 2026
 
 April 14, 2026

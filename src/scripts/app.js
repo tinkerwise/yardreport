@@ -19,8 +19,7 @@ import {
   loadTransactions,
   loadInjuryReport,
   loadLeaders,
-  loadPodcast,
-  loadVideos,
+  loadMedia,
   loadContracts,
 } from './sidebars.js';
 import {
@@ -312,8 +311,7 @@ async function init() {
     loadTransactions(),
     loadInjuryReport(),
     loadLeaders(),
-    loadPodcast(),
-    loadVideos(),
+    loadMedia(),
     loadContracts(),
   ]);
 }

@@ -25,6 +25,18 @@
 
 ##Completed
 
+# WALK-UP SONGS
+✓ Added walk-up song metadata loader sourced from the official Orioles ballpark music page
+✓ Parser reads Next.js __NEXT_DATA__ first, then falls back to player-link + Spotify iframe/anchor DOM order
+✓ Added 6-hour in-memory cache for live song metadata
+✓ Populated April 2026 fallback map for 23 active Orioles plus 6 IL/inactive players
+✓ Corrected Leody Taveras to "Las Avispas" and added multi-song support for Gunnar Henderson
+✓ Added Spotify-style walk-up icons next to Orioles player names in roster, lineup, and pitching rows
+✓ Show a dimmed Spotify search icon when a cached/live song is missing so every Orioles player still has an action
+✓ Route all walk-up icons through the Yard Report popup player with embedded Spotify playback/search and an "Open in Spotify" link
+✓ Added live-game Orioles Walk-Up Queue for At Bat, On Deck, In Hole, and Warmup contexts
+✓ Roster fetch no longer blocks on live song loading — it renders from fallback/cache data immediately, then re-renders when songs arrive
+
 # SCHEDULE PAGE
 ✓ Added full-season Orioles schedule page at /schedule/
 ✓ Month view: 7-column calendar grid with game chips per day; win/loss color-coded, series label on first game of each multi-game series, today highlighted

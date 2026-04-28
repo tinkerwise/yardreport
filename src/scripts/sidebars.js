@@ -572,154 +572,189 @@ async function fetchOriolesRecapVideo() {
   };
 }
 
-export async function loadVideos() {
-  const wrap = $('videoWrap');
-  try {
-    const results = await Promise.allSettled(
-      [fetchOriolesRecapVideo(), ...YT_PLAYLISTS.map(fetchPlaylistVideo)]
-    );
-
-    const videos = results
-      .filter(r => r.status === 'fulfilled' && r.value)
-      .map(r => r.value);
-
-    if (!videos.length) {
-      wrap.innerHTML = '<span class="sidebar-msg">No videos available</span>';
-      return;
-    }
-
-    wrap.innerHTML = `<div class="video-list">${videos.map(v => {
-      return `<div class="video-item" data-video-id="${esc(v.videoId)}" data-video-url="${esc(v.url)}">
-        <div class="video-thumb-wrap">
-          <img class="video-thumb" src="${esc(v.thumb)}" alt="" loading="lazy">
-          <svg class="video-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </div>
-        <div class="video-info">
-          <span class="video-channel">${esc(v.label)}</span>
-          <span class="video-title">${esc(v.title)}</span>
-        </div>
-      </div>`;
-    }).join('')}</div>`;
-
-    wrap.querySelectorAll('.video-item').forEach(el => {
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', () => {
-        const id = el.dataset.videoId;
-        if (id) openVideoTheater(id);
-        else window.open(el.dataset.videoUrl, '_blank');
-      });
-    });
-  } catch {
-    wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
-  }
-}
-
-// ── Podcast ───────────────────────────────────────────────────────
+// ── Media (Podcast + Video unified) ──────────────────────────────
 const PODCAST_FEED = 'https://feeds.megaphone.fm/ESP1723897648';
 const PODCAST_SHOW_URL = 'https://www.espn.com/espnradio/podcast/archive?id=2386164';
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
-function setupPodcastHover(card) {
-  if (!card) return;
-  const panel = card.querySelector('.podcast-hover-panel');
-  if (!panel) return;
-
-  document.querySelectorAll('.podcast-hover-panel--floating').forEach(node => node.remove());
-  panel.classList.add('podcast-hover-panel--floating');
-  document.body.appendChild(panel);
-
-  let active = false;
-  const place = () => {
-    const rect = card.getBoundingClientRect();
-    panel.style.left = `${Math.min(rect.right + 12, window.innerWidth - panel.offsetWidth - 12)}px`;
-    panel.style.top = `${Math.max(12, rect.top)}px`;
-  };
-  const show = () => { active = true; place(); panel.classList.add('is-visible'); };
-  const hide = () => { active = false; panel.classList.remove('is-visible'); };
-  const refresh = () => { if (active) place(); };
-
-  card.addEventListener('mouseenter', show);
-  card.addEventListener('mouseleave', hide);
-  card.addEventListener('focusin', show);
-  card.addEventListener('focusout', hide);
-  window.addEventListener('scroll', refresh, { passive: true });
-  window.addEventListener('resize', refresh);
+function isLiveContent(dateStr) {
+  if (!dateStr) return false;
+  return Date.now() - new Date(dateStr).getTime() < TWO_HOURS_MS;
 }
 
-export async function loadPodcast() {
-  const wrap = $('podcastWrap');
-  try {
-    const xmlText = await fetch(PODCAST_FEED).then(r => r.text());
-    const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
-    const allItems = Array.from(doc.querySelectorAll('channel > item'));
+function formatAudioTime(s) {
+  if (!isFinite(s) || isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+}
 
-    const episodeIndex = allItems.findIndex(item => {
-      const enc = item.querySelector('enclosure');
-      return enc && enc.getAttribute('type')?.startsWith('audio/');
-    });
-    const rawEpisode = episodeIndex >= 0 ? allItems[episodeIndex] : null;
+function renderCustomPlayer(audioUrl, audioType) {
+  return `<div class="media-player" data-src="${esc(audioUrl)}" data-type="${esc(audioType)}">
+    <button class="media-play-btn" aria-label="Play">
+      <svg class="media-icon media-icon--play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg class="media-icon media-icon--pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <div class="media-scrubber-wrap">
+      <div class="media-scrubber"><div class="media-fill"></div></div>
+    </div>
+    <span class="media-time">—</span>
+  </div>`;
+}
 
-    if (!rawEpisode) {
-      wrap.innerHTML = `<div class="podcast-card">
-        <span class="podcast-kicker">Baseball Tonight</span>
-        <div class="podcast-title">Podcast feed is temporarily unavailable.</div>
-        <div class="podcast-links">
-          <a class="podcast-link" href="${PODCAST_SHOW_URL}" target="_blank" rel="noopener">Open show page ↗</a>
-        </div>
-      </div>`;
-      return;
+function setupAudioPlayer(playerEl) {
+  const src = playerEl.dataset.src;
+  const playBtn = playerEl.querySelector('.media-play-btn');
+  const playIcon = playerEl.querySelector('.media-icon--play');
+  const pauseIcon = playerEl.querySelector('.media-icon--pause');
+  const fill = playerEl.querySelector('.media-fill');
+  const scrubber = playerEl.querySelector('.media-scrubber');
+  const timeEl = playerEl.querySelector('.media-time');
+  let audio = null;
+
+  pauseIcon.style.display = 'none';
+
+  const updateUI = () => {
+    if (!audio) return;
+    const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+    fill.style.width = `${pct}%`;
+    timeEl.textContent = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration)}`;
+  };
+
+  playBtn.addEventListener('click', () => {
+    if (!audio) {
+      document.querySelectorAll('.media-player').forEach(p => {
+        const a = p._audio;
+        if (a && !a.paused) {
+          a.pause();
+          p.querySelector('.media-icon--play').style.display = '';
+          p.querySelector('.media-icon--pause').style.display = 'none';
+        }
+      });
+      audio = new Audio(src);
+      audio.preload = 'metadata';
+      playerEl._audio = audio;
+      audio.addEventListener('timeupdate', updateUI);
+      audio.addEventListener('loadedmetadata', updateUI);
+      audio.addEventListener('ended', () => {
+        playIcon.style.display = '';
+        pauseIcon.style.display = 'none';
+        fill.style.width = '0%';
+        timeEl.textContent = `0:00 / ${formatAudioTime(audio.duration)}`;
+      });
     }
+    if (audio.paused) {
+      audio.play().then(() => { playIcon.style.display = 'none'; pauseIcon.style.display = ''; }).catch(() => {});
+    } else {
+      audio.pause();
+      playIcon.style.display = '';
+      pauseIcon.style.display = 'none';
+    }
+  });
 
-    const enc = rawEpisode.querySelector('enclosure');
-    const audioUrl = enc?.getAttribute('url') || '';
-    const audioType = enc?.getAttribute('type') || 'audio/mpeg';
-    const rawTitle = rawEpisode.querySelector('title')?.textContent || 'Latest episode';
-    const rawDesc = rawEpisode.querySelector('description')?.textContent || '';
-    const rawDate = rawEpisode.querySelector('pubDate')?.textContent || '';
-    const rawLink = rawEpisode.querySelector('link')?.textContent || PODCAST_SHOW_URL;
+  scrubber.addEventListener('click', e => {
+    if (!audio || !audio.duration) return;
+    const rect = scrubber.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+  });
+}
 
-    const title = cleanFeedText(rawTitle);
-    const description = cleanFeedText(rawDesc);
-    const dateLabel = relativeDate(rawDate);
-    const fallbackLabel = episodeIndex > 0
-      ? '<span class="podcast-fallback-note">Showing a recent playable episode</span>'
-      : '';
-    const titleClass = title.length > 62 ? 'podcast-title podcast-title--scroll' : 'podcast-title';
-    const hoverPanel = description
-      ? `<div class="podcast-hover-panel" aria-hidden="true">
-          <div class="podcast-hover-title">${esc(title)}</div>
-          <div class="podcast-hover-desc">${esc(description)}</div>
-        </div>`
-      : '';
-
-    wrap.innerHTML = `<div class="podcast-card podcast-card--hoverable">
-      <span class="podcast-kicker">Baseball Tonight</span>
-      ${fallbackLabel}
-      <div class="${titleClass}"><span class="podcast-title-track">${esc(title)}</span></div>
-      <div class="podcast-meta">
-        <span>${esc(dateLabel || 'Latest episode')}</span>
-        <span>Buster Olney</span>
+function renderMediaItem(item) {
+  const liveDot = item.isLive ? '<span class="media-live-dot" title="New"></span>' : '';
+  if (item.type === 'audio') {
+    const player = item.audioUrl ? renderCustomPlayer(item.audioUrl, item.audioType) : '';
+    return `<div class="media-item media-item--audio">
+      <div class="media-item-header">
+        ${liveDot}<span class="media-item-label">${esc(item.label)}</span>
+        <span class="media-item-date">${esc(item.dateLabel)}</span>
       </div>
-      <audio class="podcast-player" controls preload="metadata">
-        <source src="${audioUrl}" type="${audioType}">
-        Your browser does not support the audio element.
-      </audio>
-      <div class="podcast-links">
-        <a class="podcast-link" href="${esc(rawLink || PODCAST_SHOW_URL)}" target="_blank" rel="noopener">Episode details ↗</a>
-        <a class="podcast-link" href="${PODCAST_SHOW_URL}" target="_blank" rel="noopener">Show archive ↗</a>
-      </div>
-      ${hoverPanel}
-    </div>`;
-    setupPodcastHover(wrap.querySelector('.podcast-card--hoverable'));
-  } catch {
-    wrap.innerHTML = `<div class="podcast-card">
-      <span class="podcast-kicker">Baseball Tonight</span>
-      <div class="podcast-title">Podcast feed is temporarily unavailable.</div>
-      <div class="podcast-links">
-        <a class="podcast-link" href="${PODCAST_SHOW_URL}" target="_blank" rel="noopener">Open show page ↗</a>
-      </div>
+      <div class="media-item-title">${esc(item.title)}</div>
+      ${player}
+      ${item.link ? `<div class="media-item-links"><a class="media-link" href="${esc(item.link)}" target="_blank" rel="noopener noreferrer">Details ↗</a></div>` : ''}
     </div>`;
   }
+  return `<div class="media-item media-item--video" data-video-id="${esc(item.videoId)}" data-video-url="${esc(item.url)}">
+    <div class="video-thumb-wrap">${liveDot}
+      <img class="video-thumb" src="${esc(item.thumb)}" alt="" loading="lazy">
+      <svg class="video-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <div class="video-info">
+      <span class="video-channel">${esc(item.label)}</span>
+      <span class="video-title">${esc(item.title)}</span>
+    </div>
+  </div>`;
 }
+
+function applyMediaFilter(filter) {
+  const wrap = $('mediaWrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('.media-item').forEach(el => {
+    const isVideo = el.classList.contains('media-item--video');
+    el.style.display = (filter === 'all' || (filter === 'video' && isVideo) || (filter === 'audio' && !isVideo)) ? '' : 'none';
+  });
+}
+
+export async function loadMedia() {
+  const wrap = $('mediaWrap');
+  if (!wrap) return;
+
+  const [podcastResult, videoResult] = await Promise.allSettled([
+    (async () => {
+      const xmlText = await fetch(PODCAST_FEED).then(r => r.text());
+      const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+      const allItems = Array.from(doc.querySelectorAll('channel > item'));
+      const idx = allItems.findIndex(item => item.querySelector('enclosure')?.getAttribute('type')?.startsWith('audio/'));
+      if (idx < 0) return null;
+      const ep = allItems[idx];
+      const enc = ep.querySelector('enclosure');
+      const rawDate = ep.querySelector('pubDate')?.textContent || '';
+      return {
+        type: 'audio',
+        label: 'Baseball Tonight',
+        title: cleanFeedText(ep.querySelector('title')?.textContent || 'Latest episode'),
+        dateLabel: relativeDate(rawDate),
+        audioUrl: enc?.getAttribute('url') || '',
+        audioType: enc?.getAttribute('type') || 'audio/mpeg',
+        link: ep.querySelector('link')?.textContent || PODCAST_SHOW_URL,
+        isLive: isLiveContent(rawDate),
+      };
+    })(),
+    (async () => {
+      const results = await Promise.allSettled([fetchOriolesRecapVideo(), ...YT_PLAYLISTS.map(fetchPlaylistVideo)]);
+      return results.filter(r => r.status === 'fulfilled' && r.value).map(r => ({ ...r.value, type: 'video', isLive: false }));
+    })(),
+  ]);
+
+  const items = [];
+  if (podcastResult.status === 'fulfilled' && podcastResult.value) items.push(podcastResult.value);
+  if (videoResult.status === 'fulfilled' && videoResult.value) items.push(...videoResult.value);
+
+  if (!items.length) {
+    wrap.innerHTML = '<span class="sidebar-msg">Media unavailable</span>';
+    return;
+  }
+
+  wrap.innerHTML = `<div class="media-list">${items.map(renderMediaItem).join('')}</div>`;
+
+  wrap.querySelectorAll('.media-item--video').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => {
+      const id = el.dataset.videoId;
+      if (id) openVideoTheater(id);
+      else window.open(el.dataset.videoUrl, '_blank');
+    });
+  });
+
+  wrap.querySelectorAll('.media-player').forEach(setupAudioPlayer);
+
+  document.querySelectorAll('[data-media-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-media-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyMediaFilter(btn.dataset.mediaFilter);
+    });
+  });
+}
+
 
 // ── Video Theater Overlay ─────────────────────────────────────────
 function openVideoTheater(videoId) {

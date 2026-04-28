@@ -2,8 +2,8 @@
 // Current site capabilities. Update when features ship.
 
 #News Feed
-  - RSS aggregation from 15 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, Eutaw Street Report, MASN Sports, Orioles Hangout, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, Baseball America, New York Times Baseball, and The Long Game
-  - 3-day default article feed with selectable range (3 / 7 / 14 / 30 days)
+  - RSS aggregation from 14 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, Eutaw Street Report, MASN Sports, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, Baseball America, New York Times Baseball, and The Athletic
+  - 7-day default article feed with selectable range (3 / 7 / 14 / 30 days)
   - Full article reader (iframe for full RSS content, excerpt + link for others)
   - Off-topic article filter (rejects non-baseball content from general feeds)
   - Filler image detection (replaces generic thumbnails with YR favicon)
@@ -42,10 +42,23 @@
   - Team logos inline with Key Hitters names (removed abbreviations)
   - Team logos in lineup popover titles with full team names (Baltimore Orioles)
   - Batter/pitcher handedness (L/R) indicators next to player names
+  - Orioles player names in lineup and pitching rows include walk-up song icons
+  - Live Orioles games can show an Orioles Walk-Up Queue for At Bat, On Deck, In Hole, or Warmup players
   - Pitchers sorted by innings pitched (starters first)
   - Scout Notes for all game states (preview/live/final)
   - Scout Notes show probable pitcher matchup for preview games
   - Scout Notes show final result summary for final games
+
+#Walk-Up Songs
+  - Dynamic source: official Orioles walk-up music page via proxy text fetch
+  - 6-hour in-memory cache for live song metadata
+  - Parser reads Next.js __NEXT_DATA__ first, then falls back to player-link + Spotify iframe/anchor DOM order
+  - Complete April 2026 fallback map covers 23 active Orioles plus 6 IL/inactive players
+  - Multiple songs per player supported (ex: Gunnar Henderson)
+  - Spotify-style icons render next to Orioles player names in Roster, score lineup rows, pitching rows, and live walk-up queue
+  - Known song icons open an embedded Spotify player overlay with an "Open in Spotify" link
+  - Missing song icons open a Spotify search overlay so every Orioles roster player still has an action
+  - Roster renders immediately with fallback/cache data, then re-renders when live song fetch completes
 
 #Left Sidebar
   - Search
@@ -61,20 +74,21 @@
   - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
 
 #Right Sidebar
-  - Yard Leaders: batting/pitching toggle, player names link to Baseball Savant, stat labels link to corresponding Baseball Savant leaderboards/custom stat views
+  - Yard Leaders: O's / AL / NL / MLB / ROY scope pills, batting and pitching groups, player names link to Baseball Savant, stat labels link to corresponding Baseball Savant leaderboards/custom stat views
     - Batting: AVG, OBP, OPS, HR, H, BB, SLG, RBI
-    - Pitching: ERA, SO, GS, QS, WHIP, W, K/9, BB/9
-  - Roster: active Orioles roster grouped by position, jersey numbers, links to Baseball Savant (default collapsed)
+    - Pitching: ERA, SO, QS, WHIP, W, K/9, BB/9
+  - Roster: 40-man Orioles roster grouped by position players, pitchers, injured list, and minors; jersey numbers, links to Baseball Savant, walk-up song/search icons (default collapsed)
   - Injury Report: current IL players with position, IL type (10/15/60-day), and injury note; player names link to MLB.com
   - Transactions: last 14 days of Orioles moves, sorted newest-first, player names link to MLB.com, auto-refreshes every 5 minutes (positioned below Injury Report)
+  - Contracts: curated FanGraphs Roster Resource and Spotrac payroll links
 
 #Settings
   - Settings gear icon in header opens overlay panel
-  - Theme: Light / Dark / System (persisted to localStorage, system follows OS)
+  - Theme: Light / Dark / System / City Connect (persisted to localStorage, system follows OS)
   - Default view: Grid / List / Compact (persisted to localStorage)
 
 #Design
-  - Dark theme (default), light theme available
+  - Dark theme (default), light theme available, City Connect theme selectable and auto-applied on Fridays
   - 3-column layout (left sidebar / feed / right sidebar)
   - Widget titles prominent (0.78rem, white, uppercase)
   - All sidebar sections have inline icons and are collapsible
@@ -87,7 +101,6 @@
 
 #Easter Eggs
   - Type "magic" + Enter in search: random Oriole bird graphic centered in viewport with repeating confetti animation, Orioles Magic audio clip, display lasts for audio duration
-  - Type "heritage" + Enter in search: temporary Heritage Edition mode with baseball-card-themed feed cards, force grid view during effect, then restore prior view
   - Konami Code (↑↑↓↓←→←→BA): Seven Nation Army chant with logo animation
   - Triple-click theme toggle: secret OPACY theme (all-orange dark mode)
 
@@ -97,6 +110,8 @@
   - Cron guidance: keep scheduled tasks minimal; prefer deploy-time smoke tests and daily health/proxy checks over scheduled content refresh jobs
   - Scheduled GitHub Actions checks now run daily for smoke + homepage health and for production proxy/feed sanity
   - PHP RSS proxy with domain allowlist (includes youtube.com and megaphone.fm), audio-enclosure extraction, and optional raw text/HTML passthrough for trusted pages
+  - Official Orioles walk-up music page for dynamic walk-up song metadata
+  - Spotify track/search embeds for walk-up song player overlay
   - MLB Stats API for scores, standings, schedule, roster, transactions, leaders, boxscore
     - Pitcher pitch arsenal: `/people/{playerId}/stats?stats=pitchArsenal&season=YYYY&group=pitching`
   - Open-Meteo API for weather forecasts (all 30 MLB venues)
