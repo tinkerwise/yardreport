@@ -1198,7 +1198,7 @@ img { display: block; max-width: 100%; }
   align-items: stretch;
 }
 .score-lineups-grid--details {
-  min-width: 640px;
+  min-width: 680px;
 }
 .preview-team-card {
   flex: 1;
@@ -1365,7 +1365,7 @@ img { display: block; max-width: 100%; }
 }
 .score-lineup-box-cols {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-size: var(--popover-stat-size);
@@ -1373,7 +1373,24 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
 }
 .score-lineup-box-cols--pitch {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(8, 1fr);
+}
+.score-lineup-box-cols--bench {
+  grid-template-columns: repeat(6, 1fr);
+}
+.score-lineup-box-cols--bullpen {
+  grid-template-columns: repeat(5, 1fr);
+}
+.bullpen-warm-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  align-self: center;
+  margin-right: 3px;
+  box-shadow: 0 0 4px rgba(34,197,94,0.7);
 }
 .score-lineup-rate {
   color: var(--text-2);

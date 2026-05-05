@@ -419,14 +419,16 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
     const header = `<div class="score-lineup-row score-lineup-row--header">
       <span class="score-lineup-pos"></span>
       <span class="score-lineup-name"></span>
-      <span class="score-lineup-box-cols"><span>AB</span><span>R</span><span>H</span><span>HR</span><span>RBI</span><span>BB</span><span>SB</span></span>
+      <span class="score-lineup-box-cols"><span>AB</span><span>R</span><span>H</span><span>RBI</span><span>BB</span><span>K</span><span>AVG</span><span>OPS</span></span>
     </div>`;
     const rows = entries.map(({ player: p, isSubstitution }) => {
       const fullName = p.person?.fullName ?? 'TBD';
       const name = compactBoxName(fullName);
       const pos = isSubstitution ? 'ph' : (p.position?.abbreviation ?? '');
       const bs = p.stats?.batting ?? {};
-      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
+      const ss = p.seasonStats?.batting ?? {};
+      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.strikeOuts ?? 0,
+        ss.avg != null ? formatSlashStat(ss.avg) : '—', ss.ops != null ? formatSlashStat(ss.ops) : '—']
         .map(v => `<span>${v}</span>`).join('');
       const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
       const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
@@ -444,14 +446,16 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
     const header = `<div class="score-lineup-row score-lineup-row--header">
       <span class="score-lineup-pos"></span>
       <span class="score-lineup-name"></span>
-      <span class="score-lineup-box-cols"><span>AB</span><span>R</span><span>H</span><span>HR</span><span>RBI</span><span>BB</span><span>SB</span></span>
+      <span class="score-lineup-box-cols"><span>AB</span><span>R</span><span>H</span><span>RBI</span><span>BB</span><span>K</span><span>AVG</span><span>OPS</span></span>
     </div>`;
     const rows = entries.map(({ player: p, isSubstitution }) => {
       const fullName = p.person?.fullName ?? 'TBD';
       const name = compactBoxName(fullName);
       const pos = isSubstitution ? 'ph' : (p.position?.abbreviation ?? '');
       const bs = p.stats?.batting ?? {};
-      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.homeRuns ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.stolenBases ?? 0]
+      const ss = p.seasonStats?.batting ?? {};
+      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.strikeOuts ?? 0,
+        ss.avg != null ? formatSlashStat(ss.avg) : '—', ss.ops != null ? formatSlashStat(ss.ops) : '—']
         .map(v => `<span>${v}</span>`).join('');
       const isCurrentBatter = p.gameStatus?.isCurrentBatter;
       const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
@@ -814,6 +818,61 @@ function renderPreviewMatchup(game, boxData, arsenals, matchupCtx = null) {
   </div>`;
 }
 
+function renderBenchRows(team) {
+  const benchIds = team?.bench ?? [];
+  const roster = team?.players ?? {};
+  if (!benchIds.length) return '';
+  const rows = benchIds.map(id => {
+    const p = roster[`ID${id}`];
+    if (!p) return '';
+    const fullName = p.person?.fullName ?? 'TBD';
+    const name = compactBoxName(fullName);
+    const batSide = p.person?.batSide?.code ?? '';
+    const pos = p.position?.abbreviation ?? '';
+    const ss = p.seasonStats?.batting ?? {};
+    const avg = ss.avg != null ? formatSlashStat(ss.avg) : '—';
+    return `<div class="score-lineup-row">
+      <span class="score-lineup-pos">${esc(batSide)}</span>
+      <span class="score-lineup-name"><span class="score-lineup-hand">${esc(pos)}</span>${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}</span>
+      <span class="score-lineup-box-cols score-lineup-box-cols--bench"><span>${esc(String(avg))}</span><span>${ss.gamesPlayed ?? '—'}</span><span>${ss.runs ?? '—'}</span><span>${ss.hits ?? '—'}</span><span>${ss.homeRuns ?? '—'}</span><span>${ss.rbi ?? '—'}</span></span>
+    </div>`;
+  }).filter(Boolean).join('');
+  if (!rows) return '';
+  const header = `<div class="score-lineup-row score-lineup-row--header">
+    <span class="score-lineup-pos"></span><span class="score-lineup-name"></span>
+    <span class="score-lineup-box-cols score-lineup-box-cols--bench"><span>AVG</span><span>G</span><span>R</span><span>H</span><span>HR</span><span>RBI</span></span>
+  </div>`;
+  return header + rows;
+}
+
+function renderBullpenRows(team) {
+  const bullpenIds = team?.bullpen ?? [];
+  const roster = team?.players ?? {};
+  if (!bullpenIds.length) return '';
+  const rows = bullpenIds.map(id => {
+    const p = roster[`ID${id}`];
+    if (!p) return '';
+    const fullName = p.person?.fullName ?? 'TBD';
+    const name = compactBoxName(fullName);
+    const pitchHand = p.person?.pitchHand?.code ?? '';
+    const isWarm = p.gameStatus?.isCurrentPitcher || p.gameStatus?.isWarmingUp || false;
+    const ss = p.seasonStats?.pitching ?? {};
+    const era = ss.era ?? '—';
+    return `<div class="score-lineup-row${isWarm ? ' score-lineup-row--current' : ''}">
+      <span class="score-lineup-pos">${esc(pitchHand)}</span>
+      <span class="score-lineup-name">${isWarm ? '<span class="bullpen-warm-dot" aria-label="Active"></span>' : ''}${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}</span>
+      <span class="score-lineup-box-cols score-lineup-box-cols--bullpen"><span>${esc(String(era))}</span><span>${ss.inningsPitched ?? '—'}</span><span>${ss.hits ?? '—'}</span><span>${ss.baseOnBalls ?? '—'}</span><span>${ss.strikeOuts ?? '—'}</span></span>
+    </div>`;
+  }).filter(Boolean).join('');
+  if (!rows) return '';
+  const header = `<div class="score-lineup-row score-lineup-row--header">
+    <span class="score-lineup-pos"></span><span class="score-lineup-name"></span>
+    <span class="score-lineup-box-cols score-lineup-box-cols--bullpen"><span>ERA</span><span>IP</span><span>H</span><span>BB</span><span>K</span></span>
+  </div>`;
+  const content = header + rows;
+  return bullpenIds.length > 5 ? `<div class="pitching-scroll">${content}</div>` : content;
+}
+
 function renderPitchingLines(boxData, gameState = 'final') {
   if (!boxData?.teams) return '';
 
@@ -824,13 +883,18 @@ function renderPitchingLines(boxData, gameState = 'final') {
       .filter(player => player.stats?.pitching?.inningsPitched != null)
       .map(player => {
         const stats = player.stats.pitching;
+        const seasonEra = player.seasonStats?.pitching?.era;
         return {
           name: player.person?.fullName ?? 'TBD',
           playerId: player.person?.id ?? null,
           ip: stats.inningsPitched ?? '0.0',
           h: stats.hits ?? 0,
+          r: stats.runs ?? 0,
           er: stats.earnedRuns ?? 0,
+          bb: stats.baseOnBalls ?? 0,
           k: stats.strikeOuts ?? 0,
+          hr: stats.homeRuns ?? 0,
+          era: seasonEra != null ? seasonEra : '—',
           ipNum: parseFloat(stats.inningsPitched ?? 0),
           pitchHand: player.person?.pitchHand?.code ?? '',
         };
@@ -841,12 +905,12 @@ function renderPitchingLines(boxData, gameState = 'final') {
     const spIndex = pitchers[0].ipNum >= 2 ? 0 : -1;
     const header = `<div class="score-lineup-row score-lineup-row--header">
       <span class="score-lineup-pos"></span><span class="score-lineup-name"></span>
-      <span class="score-lineup-box-cols score-lineup-box-cols--pitch"><span>IP</span><span>H</span><span>ER</span><span>K</span></span>
+      <span class="score-lineup-box-cols score-lineup-box-cols--pitch"><span>IP</span><span>H</span><span>R</span><span>ER</span><span>BB</span><span>K</span><span>HR</span><span>ERA</span></span>
     </div>`;
     const rows = pitchers.map((p, i) => {
       const role = i === spIndex ? 'SP' : 'RP';
       const handDisplay = p.pitchHand ? `<span class="score-lineup-hand">(${p.pitchHand})</span>` : '';
-      const cols = [p.ip, p.h, p.er, p.k].map(v => `<span>${v}</span>`).join('');
+      const cols = [p.ip, p.h, p.r, p.er, p.bb, p.k, p.hr, p.era].map(v => `<span>${esc(String(v))}</span>`).join('');
       const isOriolesPitching = Number(team.team?.id) === ORIOLES_ID;
       const walkupUrls = isOriolesPitching ? getWalkupSongUrls(p.playerId, p.name) : [];
       return `<div class="score-lineup-row">
@@ -865,16 +929,26 @@ function renderPitchingLines(boxData, gameState = 'final') {
     const teamName = team.team?.teamName ?? team.team?.name ?? (side === 'away' ? 'Away' : 'Home');
     const teamId = team.team?.id;
     const logoHtml = teamId ? `<img class="score-lineup-logo" src="${teamLogoSrc(teamId)}" alt="${esc(teamName)}" width="20" height="20">` : '';
+    const bullpenHtml = renderBullpenRows(team);
+    const benchHtml = renderBenchRows(team);
     return `<div class="team-detail-card">
       <div class="score-lineup-head">${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span></div>
       <div class="preview-team-section team-detail-pitching">
         <div class="preview-team-subhead">Pitching</div>
         <div class="score-lineup-side">${renderPitchingRows(side)}</div>
       </div>
+      ${bullpenHtml ? `<div class="preview-team-section">
+        <div class="preview-team-subhead">Bullpen</div>
+        <div class="score-lineup-side">${bullpenHtml}</div>
+      </div>` : ''}
       <div class="preview-team-section">
         <div class="preview-team-subhead">Lineup</div>
         <div class="score-lineup-side">${renderLineupRows(team, gameState, teamId)}</div>
       </div>
+      ${benchHtml ? `<div class="preview-team-section">
+        <div class="preview-team-subhead">Bench</div>
+        <div class="score-lineup-side">${benchHtml}</div>
+      </div>` : ''}
     </div>`;
   };
 
