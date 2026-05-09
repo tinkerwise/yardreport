@@ -849,21 +849,26 @@ function renderBullpenRows(team) {
   const bullpenIds = team?.bullpen ?? [];
   const roster = team?.players ?? {};
   if (!bullpenIds.length) return '';
-  const rows = bullpenIds.map(id => {
+  const entries = bullpenIds.map(id => {
     const p = roster[`ID${id}`];
-    if (!p) return '';
+    if (!p) return null;
     const fullName = p.person?.fullName ?? 'TBD';
     const name = compactBoxName(fullName);
     const pitchHand = p.person?.pitchHand?.code ?? '';
     const isWarm = p.gameStatus?.isCurrentPitcher || p.gameStatus?.isWarmingUp || false;
     const ss = p.seasonStats?.pitching ?? {};
     const era = ss.era ?? '—';
-    return `<div class="score-lineup-row${isWarm ? ' score-lineup-row--current' : ''}">
+    return { isWarm, html: `<div class="score-lineup-row${isWarm ? ' score-lineup-row--current' : ''}">
       <span class="score-lineup-pos">${esc(pitchHand)}</span>
-      <span class="score-lineup-name">${isWarm ? '<span class="bullpen-warm-dot" aria-label="Active"></span>' : ''}${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}</span>
+      <span class="score-lineup-name">${isWarm ? '<span class="bullpen-warm-dot" aria-label="Warming Up"></span>' : ''}${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}</span>
       <span class="score-lineup-box-cols score-lineup-box-cols--bullpen"><span>${esc(String(era))}</span><span>${ss.inningsPitched ?? '—'}</span><span>${ss.hits ?? '—'}</span><span>${ss.baseOnBalls ?? '—'}</span><span>${ss.strikeOuts ?? '—'}</span></span>
-    </div>`;
-  }).filter(Boolean).join('');
+    </div>` };
+  }).filter(Boolean);
+
+  // Warming/active pitchers float to the top
+  entries.sort((a, b) => (b.isWarm ? 1 : 0) - (a.isWarm ? 1 : 0));
+
+  const rows = entries.map(e => e.html).join('');
   if (!rows) return '';
   const header = `<div class="score-lineup-row score-lineup-row--header">
     <span class="score-lineup-pos"></span><span class="score-lineup-name"></span>

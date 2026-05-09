@@ -286,23 +286,24 @@ export async function loadRoster() {
       </div>`;
     };
 
-    // Active 26-man — split into batters / pitchers
-    const activeBatters  = sortByPos(active.filter(p => !['SP','RP','P'].includes(p.position?.abbreviation ?? '')));
-    const activePitchers = sortByPos(active.filter(p => ['SP','RP','P'].includes(p.position?.abbreviation ?? '')));
+    // Split active and IL players into batters / pitchers
+    const isPitcher = p => ['SP','RP','P'].includes(p.position?.abbreviation ?? '');
+    const activeBatters  = sortByPos(active.filter(p => !isPitcher(p)));
+    const activePitchers = sortByPos(active.filter(isPitcher));
+    const ilBatters      = sortByPos(il.filter(p => !isPitcher(p)));
+    const ilPitchers     = sortByPos(il.filter(isPitcher));
 
     const buildHtml = () => {
       let h = '';
-      if (activeBatters.length) {
+      if (activeBatters.length || ilBatters.length) {
         h += `<div class="roster-group-label">Position Players</div>`;
         h += activeBatters.map(p => renderItem(p)).join('');
+        h += ilBatters.map(p => renderItem(p, { badge: IL_BADGE[p.status?.code] ?? 'IL', badgeType: 'il' })).join('');
       }
-      if (activePitchers.length) {
+      if (activePitchers.length || ilPitchers.length) {
         h += `<div class="roster-group-label">Pitchers</div>`;
         h += activePitchers.map(p => renderItem(p)).join('');
-      }
-      if (il.length) {
-        h += `<div class="roster-group-label">Injured List</div>`;
-        h += sortByPos(il).map(p => renderItem(p, { badge: IL_BADGE[p.status?.code] ?? 'IL', badgeType: 'il' })).join('');
+        h += ilPitchers.map(p => renderItem(p, { badge: IL_BADGE[p.status?.code] ?? 'IL', badgeType: 'il' })).join('');
       }
       if (minors.length) {
         h += `<div class="roster-group-label">Minors</div>`;
