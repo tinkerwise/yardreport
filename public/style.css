@@ -193,6 +193,10 @@
 /* Roster */
 [data-theme="city-connect"] .roster-group-label { color: #2D5A3D; }
 [data-theme="city-connect"] a.roster-name:hover { color: #2D5A3D; }
+/* Depth Chart */
+[data-theme="city-connect"] .depth-group-label { color: #2D5A3D; }
+[data-theme="city-connect"] .depth-player--starter .depth-rank { color: #2D5A3D; }
+[data-theme="city-connect"] a.depth-name:hover { color: #2D5A3D; }
 /* On Deck */
 [data-theme="city-connect"] .on-deck-card { background: var(--card); border-color: var(--border); }
 [data-theme="city-connect"] .on-deck-card:hover { border-color: #2D5A3D; }
@@ -1956,6 +1960,26 @@ a.roster-name:hover { color: var(--orange); }
 .roster-pos { color: var(--text-3); font-size: 0.68rem; flex-shrink: 0; }
 .roster-badge { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
 .roster-badge--il { background: rgba(239,68,68,0.15); color: #ef4444; }
+.roster-badge--taxi { background: rgba(234,179,8,0.15); color: #ca8a04; }
+
+/* ── Depth Chart ──────────────────────────────────────────────── */
+.depth-chart { display: flex; flex-direction: column; gap: 12px; }
+.depth-group { }
+.depth-group-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--orange); padding-bottom: 4px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+.depth-group-body { display: flex; flex-wrap: wrap; gap: 8px; }
+.depth-group--pitching .depth-group-body { display: flex; flex-direction: column; gap: 2px; }
+.depth-pos-block { min-width: 0; }
+.depth-group:not(.depth-group--pitching) .depth-pos-block { flex: 1 1 60px; }
+.depth-pos-label { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); margin-bottom: 3px; }
+.depth-player { display: flex; align-items: baseline; gap: 4px; padding: 2px 0; }
+.depth-group--pitching .depth-player { border-bottom: 1px solid #1e1e1e; }
+.depth-rank { font-size: 0.58rem; font-weight: 700; color: var(--text-3); min-width: 10px; text-align: right; flex-shrink: 0; }
+.depth-player--starter .depth-rank { color: var(--orange); }
+.depth-name { font-size: 0.72rem; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.15s; }
+.depth-player--starter .depth-name { font-size: 0.74rem; color: var(--text); }
+.depth-player--backup .depth-name, .depth-player--depth .depth-name { color: var(--text-2); font-weight: 400; }
+.depth-name:hover { color: var(--orange); }
+.depth-num { font-size: 0.58rem; color: var(--text-3); flex-shrink: 0; }
 
 /* ── Contracts ────────────────────────────────────────────────── */
 .contracts-blurb { font-size: 0.72rem; color: var(--text-3); margin: 0 0 10px; line-height: 1.4; }

@@ -239,9 +239,10 @@ export async function loadRoster() {
     // cache (fallback songs or already-loaded data), then re-render once the
     // song fetch resolves if it was still in flight.
     const songPromise = ensureWalkupSongsLoaded(PROXY);
-    const data = await fetch(
-      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man&season=${SEASON}`
-    ).then(r => r.json());
+    const [data, taxiData] = await Promise.all([
+      fetch(`${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man&season=${SEASON}`).then(r => r.json()),
+      fetch(`${MLB}/teams/${ORIOLES_ID}/roster?rosterType=taxi&season=${SEASON}`).then(r => r.json()).catch(() => ({ roster: [] })),
+    ]);
 
     const all = data.roster ?? [];
     if (!all.length) {
@@ -253,6 +254,7 @@ export async function loadRoster() {
     const active = all.filter(p => p.status?.code === 'A');
     const il     = all.filter(p => ['D10', 'D15', 'D60'].includes(p.status?.code));
     const minors = all.filter(p => p.status?.code === 'RM');
+    const taxi   = taxiData.roster ?? [];
 
     const posOrder = { C: 0, '1B': 1, '2B': 2, '3B': 3, SS: 4, LF: 5, CF: 5, RF: 5, OF: 5, DH: 6 };
     const sortByPos = list => list.slice().sort((a, b) => {
@@ -308,6 +310,10 @@ export async function loadRoster() {
       if (minors.length) {
         h += `<div class="roster-group-label">Minors</div>`;
         h += sortByPos(minors).map(p => renderItem(p, { muted: true })).join('');
+      }
+      if (taxi.length) {
+        h += `<div class="roster-group-label">Taxi Squad</div>`;
+        h += sortByPos(taxi).map(p => renderItem(p, { badge: 'Taxi', badgeType: 'taxi', muted: true })).join('');
       }
       return `<div class="roster-list">${h}</div>
         <a class="widget-link" href="https://www.mlb.com/orioles/roster/40-man" target="_blank" rel="noopener">Full 40-man roster ↗</a>`;
@@ -958,6 +964,78 @@ function renderLeaders() {
       loadLeaders();
     });
   });
+}
+
+// ── Depth Chart ───────────────────────────────────────────────────
+const DEPTH_POS_ORDER = ['C','1B','2B','SS','3B','LF','CF','RF','DH','SP','RP','P'];
+const DEPTH_GROUPS = [
+  { label: 'Catcher',    positions: ['C'] },
+  { label: 'Infield',    positions: ['1B','2B','SS','3B'] },
+  { label: 'Outfield',   positions: ['LF','CF','RF','OF'] },
+  { label: 'DH',         positions: ['DH'] },
+  { label: 'Rotation',   positions: ['SP'] },
+  { label: 'Bullpen',    positions: ['RP','P'] },
+];
+
+export async function loadDepthChart() {
+  const wrap = $('depthChartWrap');
+  if (!wrap) return;
+  try {
+    const data = await fetch(
+      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=depthChart&season=${SEASON}`
+    ).then(r => r.json());
+
+    const players = data.roster ?? [];
+    if (!players.length) {
+      wrap.innerHTML = '<span class="sidebar-msg">Depth chart unavailable</span>';
+      return;
+    }
+
+    // Group by position abbreviation; preserve API order (= depth order)
+    const byPos = {};
+    for (const p of players) {
+      const pos = p.position?.abbreviation ?? 'UTIL';
+      (byPos[pos] ??= []).push(p);
+    }
+
+    const renderDepthPlayer = (p, rank) => {
+      const url = savantUrl(p.person.id);
+      const name = p.person.fullName;
+      const num = p.jerseyNumber ? `<span class="depth-num">#${esc(p.jerseyNumber)}</span>` : '';
+      const rankCls = rank === 1 ? ' depth-player--starter' : rank === 2 ? ' depth-player--backup' : ' depth-player--depth';
+      return `<div class="depth-player${rankCls}">
+        <span class="depth-rank">${rank}</span>
+        <a class="depth-name" href="${url}" target="_blank" rel="noopener">${esc(name)}</a>
+        ${num}
+      </div>`;
+    };
+
+    const renderPosBlock = (pos, list) => {
+      const rows = list.slice(0, 4).map((p, i) => renderDepthPlayer(p, i + 1)).join('');
+      return `<div class="depth-pos-block">
+        <div class="depth-pos-label">${esc(pos)}</div>
+        ${rows}
+      </div>`;
+    };
+
+    let html = '';
+    for (const group of DEPTH_GROUPS) {
+      const blocks = group.positions
+        .map(pos => byPos[pos]?.length ? renderPosBlock(pos, byPos[pos]) : null)
+        .filter(Boolean);
+      if (!blocks.length) continue;
+      const groupCls = ['Rotation','Bullpen'].includes(group.label) ? ' depth-group--pitching' : '';
+      html += `<div class="depth-group${groupCls}">
+        <div class="depth-group-label">${esc(group.label)}</div>
+        <div class="depth-group-body">${blocks.join('')}</div>
+      </div>`;
+    }
+
+    wrap.innerHTML = `<div class="depth-chart">${html}</div>
+      <a class="widget-link" href="https://www.mlb.com/orioles/roster/depth-chart" target="_blank" rel="noopener">Full depth chart ↗</a>`;
+  } catch {
+    wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
+  }
 }
 
 // ── Contracts & Payroll ───────────────────────────────────────────
