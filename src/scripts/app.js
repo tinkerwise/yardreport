@@ -21,6 +21,7 @@ import {
   loadLeaders,
   loadMedia,
   loadContracts,
+  loadDepthChart,
 } from './sidebars.js';
 import {
   triggerOriolesMagic,
@@ -108,7 +109,7 @@ async function refresh() {
   const btn = $('refreshBtn');
   btn.disabled = true;
   btn.classList.add('spinning');
-  await Promise.allSettled([loadFeeds(), loadScores(), loadStandings(), loadOnDeck(), loadRoster(), loadTransactions(), loadInjuryReport(), loadLeaders()]);
+  await Promise.allSettled([loadFeeds(), loadScores(), loadStandings(), loadOnDeck(), loadRoster(), loadTransactions(), loadInjuryReport(), loadLeaders(), loadDepthChart()]);
   btn.disabled = false;
   btn.classList.remove('spinning');
   const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -313,6 +314,7 @@ async function init() {
     loadLeaders(),
     loadMedia(),
     loadContracts(),
+    loadDepthChart(),
   ]);
 }
 
