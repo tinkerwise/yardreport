@@ -1635,16 +1635,22 @@ img { display: block; max-width: 100%; }
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-3);
+  letter-spacing: 0.06em;
+  color: var(--text);
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 2px;
 }
 .sidebar-group .sidebar-section { padding-left: 6px; border-left: 2px solid var(--border); }
+.sidebar-group .section-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+}
 .sidebar-section { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 0 0 4px; }
 .section-body { position: relative; min-width: 0; }
 .section-label {
