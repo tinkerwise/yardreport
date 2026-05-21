@@ -1989,6 +1989,18 @@ a.roster-name:hover { color: var(--orange); }
 
 /* ── Contracts ────────────────────────────────────────────────── */
 .contracts-blurb { font-size: 0.72rem; color: var(--text-3); margin: 0 0 10px; line-height: 1.4; }
+.contract-year-header { display: flex; justify-content: flex-end; gap: 0; padding: 0 0 3px; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
+.contract-year-col { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); width: 52px; text-align: right; }
+.contract-list { display: flex; flex-direction: column; }
+.contract-item { display: flex; align-items: baseline; gap: 5px; font-size: 0.73rem; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.contract-item:last-child { border-bottom: none; }
+.contract-pos { width: 22px; font-size: 0.63rem; color: var(--text-3); flex-shrink: 0; text-align: right; }
+.contract-name { flex: 1; color: var(--text); font-weight: 500; text-decoration: none; transition: color 0.15s; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.contract-name:hover { color: var(--orange); }
+.contract-sal { width: 52px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); font-size: 0.68rem; flex-shrink: 0; }
+.contract-sal2 { width: 52px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-3); font-size: 0.65rem; flex-shrink: 0; }
+.contract-total { display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 600; color: var(--text-2); padding: 5px 0 2px; border-top: 1px solid var(--border); margin-top: 2px; }
+[data-theme="city-connect"] a.contract-name:hover { color: #2D5A3D; }
 .widget-link-card {
   display: flex; flex-direction: column; gap: 2px;
   padding: 9px 11px; margin-bottom: 6px;

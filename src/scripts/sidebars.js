@@ -1039,17 +1039,138 @@ export async function loadDepthChart() {
 }
 
 // ── Contracts & Payroll ───────────────────────────────────────────
-export function loadContracts() {
+const COTS_URL = 'https://legacy.baseballprospectus.com/compensation/cots/al_east.php';
+const COTS_PAGE_URL = 'https://legacy.baseballprospectus.com/compensation/cots/';
+
+function parseCotsSalary(text) {
+  const t = (text ?? '').trim();
+  if (!t || t === '-' || t === ' ') return '';
+  return t;
+}
+
+function parseCotsContracts(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // Find heading that contains "Baltimore" or "Orioles"
+  const headings = [...doc.querySelectorAll('h1,h2,h3,h4,h5,td.team-name,div.team-name,span.team-name,b,strong')];
+  const oriHeading = headings.find(el => /baltimore|orioles/i.test(el.textContent));
+  if (!oriHeading) return null;
+
+  // Walk siblings/parents to find the next table
+  function findNextTable(startEl) {
+    let el = startEl;
+    for (let i = 0; i < 10; i++) {
+      el = el.nextElementSibling;
+      if (!el) break;
+      if (el.tagName === 'TABLE') return el;
+      const t = el.querySelector('table');
+      if (t) return t;
+    }
+    // Try parent's next siblings
+    const parent = startEl.parentElement;
+    if (parent) {
+      let pel = parent.nextElementSibling;
+      for (let i = 0; i < 5; i++) {
+        if (!pel) break;
+        if (pel.tagName === 'TABLE') return pel;
+        const t = pel.querySelector('table');
+        if (t) return t;
+        pel = pel.nextElementSibling;
+      }
+    }
+    return null;
+  }
+
+  const table = findNextTable(oriHeading);
+  if (!table) return null;
+
+  const rows = [...table.querySelectorAll('tr')];
+  if (!rows.length) return null;
+
+  // Detect header row and column indices
+  const headerCells = [...rows[0].querySelectorAll('td,th')].map(c => c.textContent.trim());
+  const currentYear = new Date().getFullYear();
+  const nameIdx = headerCells.findIndex(c => /name|player/i.test(c) || c === '');
+  const posIdx  = headerCells.findIndex(c => /pos/i.test(c));
+
+  // Find current year salary column
+  const salIdx = headerCells.findIndex(c => parseInt(c) === currentYear);
+  // Next year column
+  const sal2Idx = headerCells.findIndex(c => parseInt(c) === currentYear + 1);
+
+  const players = [];
+  let totalPayroll = '';
+
+  for (const row of rows.slice(1)) {
+    const cells = [...row.querySelectorAll('td,th')];
+    if (cells.length < 2) continue;
+
+    const rawName = cells[nameIdx >= 0 ? nameIdx : 0]?.textContent.trim() ?? '';
+    if (!rawName || /^-+$/.test(rawName)) continue;
+
+    // Skip totals / summary rows
+    if (/total|payroll|avg\s*sal|luxury/i.test(rawName)) {
+      const sal = salIdx >= 0 ? parseCotsSalary(cells[salIdx]?.textContent) : '';
+      if (sal && /total/i.test(rawName)) totalPayroll = sal;
+      continue;
+    }
+
+    const pos = posIdx >= 0 ? (cells[posIdx]?.textContent.trim() ?? '') : '';
+    const sal  = salIdx  >= 0 ? parseCotsSalary(cells[salIdx]?.textContent)  : '';
+    const sal2 = sal2Idx >= 0 ? parseCotsSalary(cells[sal2Idx]?.textContent) : '';
+
+    const link = cells[nameIdx >= 0 ? nameIdx : 0]?.querySelector('a')?.href ?? COTS_URL;
+
+    if (!sal) continue;
+    players.push({ name: rawName, pos, sal, sal2, link });
+  }
+
+  return players.length ? { players, totalPayroll, currentYear } : null;
+}
+
+export async function loadContracts() {
   const wrap = $('contractsWrap');
   if (!wrap) return;
-  wrap.innerHTML = `
-    <p class="contracts-blurb">Salary, contract type, and payroll data for the 2026 Orioles roster.</p>
-    <a class="widget-link-card" href="https://www.fangraphs.com/roster-resource/payroll/orioles" target="_blank" rel="noopener">
-      <span class="widget-link-card-label">Contracts &amp; Payroll</span>
-      <span class="widget-link-card-sub">FanGraphs Roster Resource ↗</span>
-    </a>
-    <a class="widget-link-card" href="https://www.spotrac.com/mlb/baltimore-orioles/payroll/" target="_blank" rel="noopener">
-      <span class="widget-link-card-label">Spotrac Payroll</span>
-      <span class="widget-link-card-sub">Salaries, options &amp; totals ↗</span>
-    </a>`;
+
+  try {
+    const res = await fetch(`${PROXY}?url=${encodeURIComponent(COTS_URL)}&format=text`).then(r => r.json());
+    if (!res.text) throw new Error('empty');
+
+    const parsed = parseCotsContracts(res.text);
+    if (!parsed) throw new Error('parse failed');
+
+    const { players, totalPayroll, currentYear } = parsed;
+
+    const rows = players.map(p => {
+      const sal2Html = p.sal2 ? `<span class="contract-sal2">${esc(p.sal2)}</span>` : '';
+      return `<div class="contract-item">
+        <span class="contract-pos">${esc(p.pos)}</span>
+        <a class="contract-name" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.name)}</a>
+        <span class="contract-sal">${esc(p.sal)}</span>
+        ${sal2Html}
+      </div>`;
+    }).join('');
+
+    const totalHtml = totalPayroll
+      ? `<div class="contract-total"><span>Total ${currentYear}</span><span>${esc(totalPayroll)}</span></div>`
+      : '';
+
+    wrap.innerHTML = `<div class="contract-year-header">
+        <span class="contract-year-col">${currentYear}</span>
+        <span class="contract-year-col">${currentYear + 1}</span>
+      </div>
+      <div class="contract-list">${rows}</div>
+      ${totalHtml}
+      <a class="widget-link" href="${COTS_PAGE_URL}" target="_blank" rel="noopener">Cot's Contracts (BP) ↗</a>`;
+  } catch {
+    wrap.innerHTML = `
+      <a class="widget-link-card" href="${COTS_URL}" target="_blank" rel="noopener">
+        <span class="widget-link-card-label">Cot's Contracts</span>
+        <span class="widget-link-card-sub">Baseball Prospectus ↗</span>
+      </a>
+      <a class="widget-link-card" href="https://www.fangraphs.com/roster-resource/payroll/orioles" target="_blank" rel="noopener">
+        <span class="widget-link-card-label">Contracts &amp; Payroll</span>
+        <span class="widget-link-card-sub">FanGraphs Roster Resource ↗</span>
+      </a>`;
+  }
 }
