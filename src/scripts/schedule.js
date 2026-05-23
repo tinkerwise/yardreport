@@ -102,7 +102,7 @@ function renderChip(g, compact = false) {
   const probable  = oriProbable(g);
   const broadcast = getBroadcast(g);
   const abbr    = TEAM_ABBREV[opp.id] ?? (opp.abbreviation ?? opp.name.slice(0, 3).toUpperCase());
-  const haStr   = home ? 'vs' : '@';
+  const haStr   = home ? 'vs.' : '@';
   const logoSrc = `https://www.mlbstatic.com/team-logos/${opp.id}.svg`;
   const gameUrl = `https://www.mlb.com/gameday/${g.gamePk}`;
 
@@ -123,37 +123,27 @@ function renderChip(g, compact = false) {
     statusHtml = `<span class="chip-time">${esc(t)}</span>`;
   }
 
-  const seriesBadge = sd && sd.total > 1
-    ? `<span class="chip-series-badge" title="Game ${sd.gameNum} of ${sd.total}">G${sd.gameNum}/${sd.total}</span>`
-    : '';
   const wxHtml = weather && !result
     ? `<span class="chip-wx">${weather.emoji} ${weather.temp}°</span>`
     : '';
+  const bcastHtml = broadcast ? `<span class="chip-broadcast">${esc(broadcast)}</span>` : '';
 
   if (compact) {
     return `<a class="${chipClass}" href="${esc(gameUrl)}" target="_blank" rel="noopener noreferrer">
       <div class="chip-row1">
-        <img class="chip-logo" src="${esc(logoSrc)}" alt="${esc(abbr)}" width="18" height="18" loading="lazy" decoding="async">
         <span class="chip-ha">${haStr}</span>
-        <span class="chip-abbr">${esc(abbr)}</span>
-        ${seriesBadge}
+        <img class="chip-logo" src="${esc(logoSrc)}" alt="${esc(abbr)}" width="18" height="18" loading="lazy" decoding="async">
       </div>
-      <div class="chip-row2">${statusHtml}${wxHtml}</div>
+      <div class="chip-row2">${statusHtml}${wxHtml}${bcastHtml}</div>
     </a>`;
   }
 
-  const seriesInfo  = sd && sd.total > 1 ? `<span class="chip-series-info">Game ${sd.gameNum} of ${sd.total}</span>` : '';
-  const probHtml    = probable && !result ? `<span class="chip-probable">${esc(probable)}</span>` : '';
-  const bcastHtml   = broadcast ? `<span class="chip-broadcast">${esc(broadcast)}</span>` : '';
-  const oppName     = opp.name ?? abbr;
+  const probHtml = probable && !result ? `<span class="chip-probable">${esc(probable)}</span>` : '';
 
   return `<a class="${chipClass} sch-chip--full" href="${esc(gameUrl)}" target="_blank" rel="noopener noreferrer">
     <div class="chip-full-header">
+      <span class="chip-full-ha">${haStr}</span>
       <img class="chip-logo" src="${esc(logoSrc)}" alt="${esc(abbr)}" width="24" height="24" loading="lazy" decoding="async">
-      <div class="chip-full-matchup">
-        <span class="chip-full-ha">${haStr} ${esc(oppName)}</span>
-        ${seriesInfo}
-      </div>
     </div>
     <div class="chip-full-status">${statusHtml}${wxHtml}</div>
     ${probHtml || bcastHtml ? `<div class="chip-full-meta">${probHtml}${bcastHtml}</div>` : ''}
@@ -181,18 +171,6 @@ function renderMonth() {
   const firstDow   = new Date(year, month, 1).getDay();
   const daysInMo   = new Date(year, month + 1, 0).getDate();
 
-  const seriesFirstByDate = {};
-  for (const g of monthGames) {
-    const sd = seriesMap.get(g.gamePk);
-    if (sd?.isFirst && sd.total > 1) {
-      const key = gameOfficialDate(g);
-      const opp = getOpponent(g);
-      const abbr = TEAM_ABBREV[opp.id] ?? opp.abbreviation ?? opp.name.slice(0,3).toUpperCase();
-      const haStr = oriIsHome(g) ? 'vs' : '@';
-      seriesFirstByDate[key] = `${haStr} ${abbr} (${sd.total}-game series)`;
-    }
-  }
-
   let html = '<div class="cal-grid">';
   for (const d of DAYS_SHORT) html += `<div class="cal-hdr">${d}</div>`;
   for (let i = 0; i < firstDow; i++) html += '<div class="cal-cell cal-cell--empty"></div>';
@@ -201,13 +179,9 @@ function renderMonth() {
     const key   = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const games = byDate[key] ?? [];
     const isToday = key === today;
-    const seriesLabel = seriesFirstByDate[key]
-      ? `<span class="cal-series-label">${esc(seriesFirstByDate[key])}</span>`
-      : '';
 
     html += `<div class="cal-cell${isToday ? ' cal-cell--today' : ''}${games.length ? ' cal-cell--game' : ''}">
       <span class="cal-day">${day}</span>
-      ${seriesLabel}
       ${games.map(g => renderChip(g, true)).join('')}
     </div>`;
   }
