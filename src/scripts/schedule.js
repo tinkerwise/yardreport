@@ -245,6 +245,45 @@ function renderWeek() {
   document.getElementById('scheduleGrid').innerHTML = html;
 }
 
+// ── Record bar ────────────────────────────────────────────────
+function computeRecords() {
+  const now = new Date();
+  const curMonth = now.getMonth();
+  const curYear  = now.getFullYear();
+
+  const finalGames = allGames
+    .filter(g => g.status?.abstractGameState === 'Final')
+    .sort((a, b) => new Date(a.gameDate) - new Date(b.gameDate));
+
+  const tally = list => list.reduce((acc, g) => {
+    const r = getResult(g);
+    if (r?.result === 'W') acc.w++;
+    else if (r?.result === 'L') acc.l++;
+    return acc;
+  }, { w: 0, l: 0 });
+
+  const overall  = tally(finalGames);
+  const monthly  = tally(finalGames.filter(g => {
+    const d = new Date(g.gameDate);
+    return d.getFullYear() === curYear && d.getMonth() === curMonth;
+  }));
+  const last10   = tally(finalGames.slice(-10));
+
+  const monthLabel = MONTHS[curMonth].slice(0, 3);
+  const fmt = ({ w, l }) => `${w}–${l}`;
+
+  const el = document.getElementById('schRecord');
+  if (el) {
+    el.innerHTML = `
+      <span class="sch-record-item"><span class="sch-record-label">Overall</span><span class="sch-record-val">${fmt(overall)}</span></span>
+      <span class="sch-record-sep">·</span>
+      <span class="sch-record-item"><span class="sch-record-label">${monthLabel}</span><span class="sch-record-val">${fmt(monthly)}</span></span>
+      <span class="sch-record-sep">·</span>
+      <span class="sch-record-item"><span class="sch-record-label">L10</span><span class="sch-record-val">${fmt(last10)}</span></span>
+    `;
+  }
+}
+
 // ── Render + Navigation ───────────────────────────────────────
 function render() {
   if (viewMode === 'month') renderMonth();
@@ -288,6 +327,7 @@ async function loadSchedule() {
     const data = await fetch(url).then(r => r.json());
     allGames = (data.dates ?? []).flatMap(d => d.games ?? []);
     buildSeries(allGames);
+    computeRecords();
 
     const now     = Date.now();
     const tenDays = 10 * 24 * 60 * 60 * 1000;

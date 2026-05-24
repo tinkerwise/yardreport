@@ -298,7 +298,7 @@ function renderCard(a, i) {
     ? `<img class="article-thumb" src="${esc(imgSrc)}" alt="" loading="lazy" referrerpolicy="no-referrer"
          onerror="this.outerHTML='${fallback}'"
          onload="var w=this.naturalWidth,h=this.naturalHeight,r=w/h;if(w<80||h<60||r>4||r<0.3)this.outerHTML='${fallback}'">`
-    : `<div class="article-thumb-placeholder"><img class="placeholder-logo" src="${PLACEHOLDER_IMG}" alt=""></div>`;
+    : `<div class="article-thumb-placeholder" data-needs-thumb="${esc(a.link)}"><img class="placeholder-logo" src="${PLACEHOLDER_IMG}" alt=""></div>`;
 
   const source = `<span class="source-line">
     <img class="source-ico" src="${esc(favicon)}" alt="" onerror="this.style.display='none'">
@@ -665,6 +665,63 @@ function groupArticles(arts, keyFn) {
   return groups;
 }
 
+// ── Lazy og:image fetching ────────────────────────────────────────
+const ogCache = new Map();
+
+async function fetchOgImage(articleUrl) {
+  if (ogCache.has(articleUrl)) return ogCache.get(articleUrl);
+  try {
+    const key = 'yr_og:' + articleUrl;
+    const stored = sessionStorage.getItem(key);
+    if (stored !== null) { const v = stored || null; ogCache.set(articleUrl, v); return v; }
+  } catch {}
+  try {
+    const data = await fetch(`${PROXY}?url=${encodeURIComponent(articleUrl)}&format=og`)
+      .then(r => r.ok ? r.json() : { image: null });
+    const img = typeof data.image === 'string' && data.image ? data.image : null;
+    ogCache.set(articleUrl, img);
+    try { sessionStorage.setItem('yr_og:' + articleUrl, img ?? ''); } catch {}
+    return img;
+  } catch { return null; }
+}
+
+let thumbObserver = null;
+
+function setupThumbObserver() {
+  const nodes = document.querySelectorAll('.article-thumb-placeholder[data-needs-thumb]');
+  if (!nodes.length) return;
+
+  if (!thumbObserver) {
+    thumbObserver = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const placeholder = entry.target;
+        const articleUrl = placeholder.dataset.needsThumb;
+        if (!articleUrl) continue;
+        thumbObserver.unobserve(placeholder);
+        delete placeholder.dataset.needsThumb;
+
+        fetchOgImage(articleUrl).then(src => {
+          if (!src) return;
+          const img = document.createElement('img');
+          img.className = 'article-thumb';
+          img.alt = '';
+          img.loading = 'lazy';
+          img.referrerPolicy = 'no-referrer';
+          img.onload = () => {
+            const w = img.naturalWidth, h = img.naturalHeight, r = w / h;
+            if (w < 80 || h < 60 || r > 4 || r < 0.3) return;
+            if (placeholder.isConnected) placeholder.replaceWith(img);
+          };
+          img.src = src;
+        });
+      }
+    }, { rootMargin: '300px' });
+  }
+
+  for (const node of nodes) thumbObserver.observe(node);
+}
+
 // ── Render articles ───────────────────────────────────────────────
 export function renderArticles() {
   const list = $('articleList');
@@ -728,6 +785,7 @@ export function renderArticles() {
   }
 
   list.innerHTML = html;
+  setupThumbObserver();
 
   list.querySelectorAll('.ath-card-link').forEach(link => {
     link.addEventListener('click', () => {

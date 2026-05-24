@@ -289,8 +289,10 @@ export async function loadRoster() {
     const isPitcher = p => ['SP','RP','P'].includes(p.position?.abbreviation ?? '');
     const activeBatters  = sortByPos(active.filter(p => !isPitcher(p)));
     const activePitchers = sortByPos(active.filter(isPitcher));
-    const ilBatters      = sortByPos(il.filter(p => !isPitcher(p)));
-    const ilPitchers     = sortByPos(il.filter(isPitcher));
+    const ilOrder = { D10: 0, D15: 1, D60: 2 };
+    const sortByIl = list => list.slice().sort((a, b) => (ilOrder[a.status?.code] ?? 9) - (ilOrder[b.status?.code] ?? 9) || a.person.fullName.localeCompare(b.person.fullName));
+    const ilBatters      = sortByIl(il.filter(p => !isPitcher(p)));
+    const ilPitchers     = sortByIl(il.filter(isPitcher));
 
     const buildHtml = () => {
       let h = '';

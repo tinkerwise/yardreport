@@ -139,6 +139,29 @@ if ($format === 'text') {
     exit;
 }
 
+if ($format === 'og') {
+    // Extract og:image (or twitter:image) from HTML head
+    $image = null;
+    $patterns = [
+        '/<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']/',
+        '/<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']/',
+        '/<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']/',
+        '/<meta[^>]+content=["\']([^"\']+)["\'][^>]+name=["\']twitter:image["\']/',
+    ];
+    foreach ($patterns as $pat) {
+        if (preg_match($pat, $xml_raw, $m)) {
+            $candidate = html_entity_decode(trim($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if (filter_var($candidate, FILTER_VALIDATE_URL)) {
+                $image = $candidate;
+                break;
+            }
+        }
+    }
+    header('Cache-Control: public, max-age=3600'); // og:image changes rarely
+    echo json_encode(['image' => $image], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 // ── Parse XML ─────────────────────────────────────────────────────
 libxml_use_internal_errors(true);
 $xml = simplexml_load_string($xml_raw, 'SimpleXMLElement', LIBXML_NOCDATA);

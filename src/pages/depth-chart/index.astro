@@ -1,0 +1,180 @@
+---
+import Layout from '../../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="Depth Chart | Yard Report">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href={base}>
+        <img class="logo-img" src={`${base}logo.png`} alt="Yard Report logo" height="36" />
+        <span class="logo-wordmark" aria-label="Yard Report">
+          <span class="logo-word">Yard</span>
+          <strong class="logo-word logo-word-accent">Report</strong>
+        </span>
+      </a>
+      <nav class="header-right header-breadcrumb" aria-label="Breadcrumb">
+        <a class="breadcrumb-link" href={base}>← Yard Report</a>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="breadcrumb-current">Depth Chart</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dc-page">
+    <div class="dc-wrap">
+
+      <!-- ── OPACY Field ─────────────────────────────────────────── -->
+      <div class="dc-field-container">
+
+        <svg class="dc-svg" viewBox="0 0 620 560" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="grassGrad" cx="50%" cy="80%" r="75%">
+              <stop offset="0%"   stop-color="#1e5218"/>
+              <stop offset="60%"  stop-color="#163d12"/>
+              <stop offset="100%" stop-color="#0e2a0c"/>
+            </radialGradient>
+            <radialGradient id="dirtGrad" cx="50%" cy="55%" r="60%">
+              <stop offset="0%"   stop-color="#7a4828"/>
+              <stop offset="100%" stop-color="#4d2e18"/>
+            </radialGradient>
+            <radialGradient id="moundGrad" cx="40%" cy="35%" r="65%">
+              <stop offset="0%"   stop-color="#6a3e22"/>
+              <stop offset="100%" stop-color="#3e2410"/>
+            </radialGradient>
+            <!-- Mowing pattern stripes on grass -->
+            <pattern id="mowStripes" x="0" y="0" width="36" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+              <rect width="18" height="36" fill="rgba(255,255,255,0.022)"/>
+            </pattern>
+            <!-- Wall brick texture hint -->
+            <pattern id="brickPat" x="0" y="0" width="12" height="8" patternUnits="userSpaceOnUse">
+              <rect width="12" height="8" fill="#5c2010"/>
+              <rect x="0" y="0" width="11" height="3.5" fill="#6b2812" rx="0.5"/>
+              <rect x="6" y="4.5" width="6" height="3.5" fill="#6b2812" rx="0.5"/>
+              <rect x="0" y="4.5" width="5" height="3.5" fill="#6b2812" rx="0.5"/>
+            </pattern>
+          </defs>
+
+          <!-- ── Sky background ── -->
+          <rect width="620" height="560" fill="var(--bg, #0d0d0d)"/>
+
+          <!-- ── B&O Warehouse silhouette (OPACY right field) ── -->
+          <!-- Main building body -->
+          <rect class="dc-warehouse" x="560" y="62" width="60" height="152" rx="3"/>
+          <!-- Roof parapet detail -->
+          <rect x="560" y="58" width="60" height="8" rx="2" fill="#5a2010"/>
+          <!-- Window rows -->
+          <rect class="dc-wh-win" x="566" y="72"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="578" y="72"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="590" y="72"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="602" y="72"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="566" y="90"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="578" y="90"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="590" y="90"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="602" y="90"  width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="566" y="108" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="578" y="108" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="590" y="108" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="602" y="108" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="566" y="126" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="578" y="126" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="590" y="126" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="602" y="126" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="566" y="144" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="578" y="144" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="590" y="144" width="7" height="11" rx="1"/>
+          <rect class="dc-wh-win" x="602" y="144" width="7" height="11" rx="1"/>
+          <!-- Warehouse label (vertical) -->
+          <text class="dc-wh-label" x="557" y="140" text-anchor="middle" transform="rotate(-90,557,140)">B&amp;O Warehouse</text>
+
+          <!-- ── Fair territory grass ── -->
+          <path class="dc-grass" d="M 310,508 L 0,198 C 88,46 172,20 310,16 C 448,20 532,46 620,198 Z"/>
+          <!-- Mow pattern overlay -->
+          <path fill="url(#mowStripes)" d="M 310,508 L 0,198 C 88,46 172,20 310,16 C 448,20 532,46 620,198 Z"/>
+
+          <!-- ── Warning track (sandy strip along wall) ── -->
+          <path class="dc-track" d="
+            M 0,198
+            C 88,46 172,20 310,16
+            C 448,20 532,46 620,198
+            L 604,208
+            C 524,60 444,36 310,32
+            C 176,36 96,60 16,208
+            Z"/>
+
+          <!-- ── Infield dirt ── -->
+          <circle class="dc-dirt" cx="310" cy="388" r="120"/>
+
+          <!-- ── Basepaths (diamond lines) ── -->
+          <polygon class="dc-basepath" points="310,508 450,368 310,228 170,368"/>
+
+          <!-- ── Pitcher's mound ── -->
+          <ellipse class="dc-mound" cx="310" cy="390" rx="14" ry="11"/>
+
+          <!-- ── Bases ── -->
+          <rect class="dc-base" x="444" y="362" width="12" height="12" transform="rotate(45,450,368)"/>
+          <rect class="dc-base" x="304" y="222" width="12" height="12" transform="rotate(45,310,228)"/>
+          <rect class="dc-base" x="164" y="362" width="12" height="12" transform="rotate(45,170,368)"/>
+
+          <!-- ── Home plate ── -->
+          <polygon class="dc-home-plate" points="310,502 302,510 302,517 318,517 318,510"/>
+
+          <!-- ── Pitcher's rubber ── -->
+          <rect class="dc-rubber" x="303" y="387" width="14" height="5" rx="1"/>
+
+          <!-- ── Foul lines ── -->
+          <line class="dc-foul" x1="310" y1="508" x2="0"   y2="198"/>
+          <line class="dc-foul" x1="310" y1="508" x2="620" y2="198"/>
+
+          <!-- ── Outfield wall ── -->
+          <path class="dc-wall" d="M 0,198 C 88,46 172,20 310,16 C 448,20 532,46 620,198"/>
+
+          <!-- ── Foul poles ── -->
+          <line class="dc-pole" x1="0"   y1="178" x2="0"   y2="212"/>
+          <line class="dc-pole" x1="620" y1="178" x2="620" y2="212"/>
+
+          <!-- ── Distance markers ── -->
+          <text class="dc-dist" x="54"  y="162">333</text>
+          <text class="dc-dist" x="310" y="11" text-anchor="middle">400</text>
+          <text class="dc-dist" x="566" y="168">318</text>
+        </svg>
+
+        <!-- ── Position chips overlay ── -->
+        <div class="dc-overlay" id="dcOverlay">
+          <!-- Outfield -->
+          <div class="dc-chip" id="dc-LF"  style="left:17%;top:31%"></div>
+          <div class="dc-chip" id="dc-CF"  style="left:50%;top:10%"></div>
+          <div class="dc-chip" id="dc-RF"  style="left:80%;top:31%"></div>
+          <!-- Infield -->
+          <div class="dc-chip" id="dc-3B"  style="left:24%;top:66%"></div>
+          <div class="dc-chip" id="dc-SS"  style="left:38%;top:58%"></div>
+          <div class="dc-chip" id="dc-2B"  style="left:62%;top:54%"></div>
+          <div class="dc-chip" id="dc-1B"  style="left:76%;top:66%"></div>
+          <!-- Battery + DH -->
+          <div class="dc-chip dc-chip--dh" id="dc-DH"  style="left:13%;top:80%"></div>
+          <div class="dc-chip" id="dc-C"   style="left:50%;top:88%"></div>
+        </div>
+      </div>
+
+      <!-- ── Pitching section ── -->
+      <div class="dc-pitching" id="dcPitching">
+        <div class="dc-pit-col" id="dcRotation">
+          <div class="dc-pit-label">Rotation</div>
+        </div>
+        <div class="dc-pit-divider"></div>
+        <div class="dc-pit-col" id="dcBullpen">
+          <div class="dc-pit-label">Bullpen</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="dc-page-footer">
+      <a class="widget-link" href="https://www.mlb.com/orioles/roster/depth-chart" target="_blank" rel="noopener">Full depth chart on MLB.com ↗</a>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import '../../scripts/depth-chart.js';
+</script>
