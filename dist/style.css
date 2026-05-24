@@ -718,8 +718,8 @@ img { display: block; max-width: 100%; }
   padding: 12px 16px;
   box-shadow: 0 14px 36px rgba(0,0,0,0.42);
   pointer-events: auto;
-  width: min(920px, calc(100vw - 24px));
-  max-width: 95vw;
+  width: min(1080px, calc(100vw - 24px));
+  max-width: 96vw;
   overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1230,7 +1230,7 @@ img { display: block; max-width: 100%; }
   align-items: stretch;
 }
 .score-lineups-grid--details {
-  min-width: 720px;
+  min-width: 820px;
 }
 .preview-team-card {
   flex: 1;
