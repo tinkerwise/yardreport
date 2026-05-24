@@ -1406,8 +1406,9 @@ img { display: block; max-width: 100%; }
 }
 .score-lineup-box-cols {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, 34px);
   gap: 0 7px;
+  flex-shrink: 0;
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-size: var(--popover-stat-size);
@@ -1415,13 +1416,13 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
 }
 .score-lineup-box-cols--pitch {
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, 34px);
 }
 .score-lineup-box-cols--bench {
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, 34px);
 }
 .score-lineup-box-cols--bullpen {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, 34px);
 }
 .bullpen-warm-dot {
   display: inline-block;
