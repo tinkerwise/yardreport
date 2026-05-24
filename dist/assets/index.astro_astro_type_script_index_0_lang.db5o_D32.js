@@ -137,7 +137,7 @@ import{l as De,a as ze,$ as w,O as E,P as de,b as Q,M,d as Ce,e as f,S as X,f as
         <div class="preview-team-subhead">Lineup</div>
         <div class="score-lineup-side">${Ut(o,t,i)}</div>
       </div>
-      ${u?`<div class="preview-team-section">
+      ${u&&t!=="final"?`<div class="preview-team-section">
         <div class="preview-team-subhead">Bench</div>
         <div class="score-lineup-side">${u}</div>
       </div>`:""}

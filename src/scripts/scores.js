@@ -987,7 +987,7 @@ function renderPitchingLines(boxData, gameState = 'final') {
         <div class="preview-team-subhead">Lineup</div>
         <div class="score-lineup-side">${renderLineupRows(team, gameState, teamId)}</div>
       </div>
-      ${benchHtml ? `<div class="preview-team-section">
+      ${benchHtml && gameState !== 'final' ? `<div class="preview-team-section">
         <div class="preview-team-subhead">Bench</div>
         <div class="score-lineup-side">${benchHtml}</div>
       </div>` : ''}
