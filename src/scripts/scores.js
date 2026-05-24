@@ -461,10 +461,12 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
       const pos = isSubstitution ? 'ph' : (p.position?.abbreviation ?? '');
       const bs = p.stats?.batting ?? {};
       const ss = p.seasonStats?.batting ?? {};
+      const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
+      // In a completed game, omit players who never came to the plate
+      if (gameState === 'final' && !hasActivity) return '';
       const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.strikeOuts ?? 0,
         ss.avg != null ? formatSlashStat(ss.avg) : '—', ss.ops != null ? formatSlashStat(ss.ops) : '—']
         .map(v => `<span>${v}</span>`).join('');
-      const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
       const isCurrentBatter = gameState === 'live' && p.gameStatus?.isCurrentBatter;
       const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
       return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}${!hasActivity ? ' score-lineup-row--dnp' : ''}${isSubstitution ? ' score-lineup-row--sub' : ''}">
@@ -826,7 +828,7 @@ function renderPreviewMatchup(game, boxData, arsenals, matchupCtx = null) {
   </div>`;
 }
 
-function renderBenchRows(team) {
+function renderBenchRows(team, gameState = 'live') {
   const benchIds = team?.bench ?? [];
   const roster = team?.players ?? {};
   if (!benchIds.length) return '';
@@ -838,6 +840,12 @@ function renderBenchRows(team) {
   const rows = benchIds.map(id => {
     const p = roster[`ID${id}`];
     if (!p) return '';
+    // In a completed game, skip bench players who never appeared
+    if (gameState === 'final') {
+      const gb = p.stats?.batting ?? {};
+      const appeared = (gb.atBats ?? 0) > 0 || (gb.baseOnBalls ?? 0) > 0 || (gb.hitByPitch ?? 0) > 0 || (gb.sacFlies ?? 0) > 0;
+      if (!appeared) return '';
+    }
     const fullName = p.person?.fullName ?? 'TBD';
     const name = compactBoxName(fullName);
     const batSide = p.person?.batSide?.code ?? '';
@@ -964,7 +972,7 @@ function renderPitchingLines(boxData, gameState = 'final') {
     const teamId = team.team?.id;
     const logoHtml = teamId ? `<img class="score-lineup-logo" src="${teamLogoSrc(teamId)}" alt="${esc(teamName)}" width="20" height="20">` : '';
     const bullpenHtml = renderBullpenRows(team, gameState);
-    const benchHtml = renderBenchRows(team);
+    const benchHtml = renderBenchRows(team, gameState);
     return `<div class="team-detail-card">
       <div class="score-lineup-head">${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span></div>
       <div class="preview-team-section team-detail-pitching">
