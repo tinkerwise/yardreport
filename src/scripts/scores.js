@@ -934,6 +934,8 @@ function renderPitchingLines(boxData, gameState = 'final') {
           k: stats.strikeOuts ?? 0,
           hr: stats.homeRuns ?? 0,
           era: seasonEra != null ? seasonEra : '—',
+          pc: stats.numberOfPitches ?? null,
+          str: stats.strikes ?? null,
           ipNum: parseFloat(stats.inningsPitched ?? 0),
           pitchHand: player.person?.pitchHand?.code ?? '',
         };
@@ -945,13 +947,14 @@ function renderPitchingLines(boxData, gameState = 'final') {
     const header = `<div class="score-lineup-row score-lineup-row--header">
       <span class="score-lineup-pos"></span>
       <span class="score-lineup-name"></span>
-      <span class="score-lineup-box-cols score-lineup-box-cols--pitch"><span>IP</span><span>H</span><span>R</span><span>ER</span><span>BB</span><span>K</span><span>HR</span><span>ERA</span></span>
+      <span class="score-lineup-box-cols score-lineup-box-cols--pitch"><span>IP</span><span>H</span><span>R</span><span>ER</span><span>BB</span><span>K</span><span>HR</span><span>ERA</span><span>PC-S</span></span>
     </div>`;
     const isOriolesPitching = Number(team.team?.id) === ORIOLES_ID;
     const rows = pitchers.map((p, i) => {
       const role = i === spIndex ? 'SP' : 'RP';
       const handDisplay = p.pitchHand ? `<span class="score-lineup-hand">(${p.pitchHand})</span>` : '';
-      const cols = [p.ip, p.h, p.r, p.er, p.bb, p.k, p.hr, p.era]
+      const pcStr = p.pc != null ? `${p.pc}${p.str != null ? `-${p.str}` : ''}` : '—';
+      const cols = [p.ip, p.h, p.r, p.er, p.bb, p.k, p.hr, p.era, pcStr]
         .map(v => `<span>${v}</span>`).join('');
       const walkupUrls = isOriolesPitching ? getWalkupSongUrls(p.playerId, p.name) : [];
       return `<div class="score-lineup-row">
@@ -1079,6 +1082,60 @@ function renderPopoverGameLink(g) {
   </div>`;
 }
 
+function renderTeamSituationalStats(boxData) {
+  if (!boxData?.teams) return '';
+
+  const getSit = side => {
+    const batting = boxData.teams?.[side]?.teamStats?.batting ?? {};
+    const info    = boxData.teams?.[side]?.info ?? [];
+    const risp    = info.find(i => i.label === 'RISP')?.value ?? null;
+    const sb      = batting.stolenBases ?? null;
+    const cs      = batting.caughtStealing ?? null;
+    const sbStr   = sb != null ? `${sb}${cs != null ? `/${cs}` : ''}` : null;
+    return {
+      risp,
+      lob:  batting.leftOnBase ?? null,
+      gdp:  batting.groundIntoDoublePlay ?? null,
+      k:    batting.strikeOuts ?? null,
+      bb:   batting.baseOnBalls ?? null,
+      sb:   sbStr,
+    };
+  };
+
+  const aw = getSit('away');
+  const hw = getSit('home');
+  const awayId = boxData.teams?.away?.team?.id;
+  const homeId = boxData.teams?.home?.team?.id;
+  const awayAbbr = TEAM_ABBREV[awayId] ?? 'Away';
+  const homeAbbr = TEAM_ABBREV[homeId] ?? 'Home';
+
+  const ROWS = [
+    { label: 'RISP',  aw: aw.risp, hw: hw.risp },
+    { label: 'LOB',   aw: aw.lob,  hw: hw.lob  },
+    { label: 'GDP',   aw: aw.gdp,  hw: hw.gdp  },
+    { label: 'K',     aw: aw.k,    hw: hw.k    },
+    { label: 'BB',    aw: aw.bb,   hw: hw.bb   },
+    { label: 'SB/CS', aw: aw.sb,   hw: hw.sb   },
+  ].filter(r => r.aw != null || r.hw != null);
+
+  if (!ROWS.length) return '';
+
+  const rows = ROWS.map(r => `<div class="box-sit-row">
+    <span class="box-sit-val">${r.aw ?? '—'}</span>
+    <span class="box-sit-key">${esc(r.label)}</span>
+    <span class="box-sit-val">${r.hw ?? '—'}</span>
+  </div>`).join('');
+
+  return `<div class="box-situational">
+    <div class="box-sit-row box-sit-header">
+      <span class="box-sit-val box-sit-abbr">${esc(awayAbbr)}</span>
+      <span class="box-sit-key"></span>
+      <span class="box-sit-val box-sit-abbr">${esc(homeAbbr)}</span>
+    </div>
+    ${rows}
+  </div>`;
+}
+
 function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
@@ -1119,6 +1176,7 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const decisions = renderDecisionStrip(g);
   const pitchingLines = renderPitchingLines(boxData, gameState);
   const scoutNotes = renderScoutNotes(g, arsenals, null);
+  const situational = renderTeamSituationalStats(boxData);
 
   return `<div class="box-popover-stack">
     ${scoutNotes}
@@ -1132,6 +1190,7 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
       </table>
       ${decisions}
     </div>
+    ${situational ? `<div class="box-section">${situational}</div>` : ''}
     ${pitchingLines}
     ${renderPopoverGameLink(g)}
   </div>`;
