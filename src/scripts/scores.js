@@ -1100,7 +1100,7 @@ function renderTeamSituationalStats(boxData) {
       gdp:  batting.groundIntoDoublePlay ?? null,
       k:    batting.strikeOuts           ?? null,
       bb:   batting.baseOnBalls          ?? null,
-      sb:   hasSb ? `${sb ?? 0}/${cs ?? 0}` : null,
+      sb:   hasSb ? ((cs ?? 0) > 0 ? `${sb ?? 0}/${cs}` : `${sb ?? 0}`) : null,
       sbNum: (sb ?? 0),
     };
   };
@@ -1114,47 +1114,29 @@ function renderTeamSituationalStats(boxData) {
   const awayLogo = awayId ? `<img src="${teamLogoSrc(awayId)}" width="14" height="14" alt="" loading="lazy">` : '';
   const homeLogo = homeId ? `<img src="${teamLogoSrc(homeId)}" width="14" height="14" alt="" loading="lazy">` : '';
 
-  const mkPct = (a, h) => {
-    const total = (Number(a) || 0) + (Number(h) || 0);
-    if (!total) return { aw: 50, hw: 50 };
-    return { aw: Math.round((Number(a) || 0) / total * 100), hw: Math.round((Number(h) || 0) / total * 100) };
-  };
-
-  const row = (label, awVal, hwVal, awNum, hwNum) => {
+  const line = (label, awVal, hwVal) => {
     if (awVal == null && hwVal == null) return '';
-    const { aw: ap, hw: hp } = mkPct(awNum ?? awVal, hwNum ?? hwVal);
-    return `<div class="gsum-row">
-      <div class="gsum-side gsum-side--away">
-        <div class="gsum-bar-wrap"><div class="gsum-bar gsum-bar--away" style="width:${ap}%"></div></div>
-        <span class="gsum-val">${awVal ?? '—'}</span>
-      </div>
-      <span class="gsum-label">${esc(label)}</span>
-      <div class="gsum-side gsum-side--home">
-        <span class="gsum-val">${hwVal ?? '—'}</span>
-        <div class="gsum-bar-wrap"><div class="gsum-bar gsum-bar--home" style="width:${hp}%"></div></div>
-      </div>
+    const parts = [];
+    if (awVal != null) parts.push(`<span class="gsum-team gsum-team--away">${esc(awayAbbr)}</span> <span class="gsum-tval">${esc(String(awVal))}</span>`);
+    if (hwVal != null) parts.push(`<span class="gsum-team gsum-team--home">${esc(homeAbbr)}</span> <span class="gsum-tval">${esc(String(hwVal))}</span>`);
+    return `<div class="gsum-line">
+      <span class="gsum-lbl">${esc(label)}</span>
+      <span class="gsum-line-vals">${parts.join('<span class="gsum-sep">,</span> ')}</span>
     </div>`;
   };
 
-  const rows = [
-    row('RISP', aw.risp, hw.risp, aw.rispNum, hw.rispNum),
-    row('LOB',  aw.lob,  hw.lob),
-    row('K',    aw.k,    hw.k),
-    row('BB',   aw.bb,   hw.bb),
-    row('GDP',  aw.gdp,  hw.gdp),
-    row('SB',   aw.sb,   hw.sb, aw.sbNum, hw.sbNum),
+  const lines = [
+    line('RISP', aw.risp, hw.risp),
+    line('LOB',  aw.lob,  hw.lob),
+    line('K',    aw.k,    hw.k),
+    line('BB',   aw.bb,   hw.bb),
+    line('GDP',  aw.gdp,  hw.gdp),
+    line('SB',   aw.sb,   hw.sb),
   ].filter(Boolean).join('');
 
-  if (!rows) return '';
+  if (!lines) return '';
 
-  return `<div class="gsum">
-    <div class="gsum-header">
-      <span class="gsum-team-name">${awayLogo}${esc(awayAbbr)}</span>
-      <span></span>
-      <span class="gsum-team-name gsum-team-name--home">${esc(homeAbbr)}${homeLogo}</span>
-    </div>
-    ${rows}
-  </div>`;
+  return `<div class="gsum">${lines}</div>`;
 }
 
 function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
@@ -1211,8 +1193,8 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
       </table>
       ${decisions}
     </div>
-    ${situational ? `<div class="box-section">${situational}</div>` : ''}
     ${pitchingLines}
+    ${situational ? `<div class="box-section">${situational}</div>` : ''}
     ${renderPopoverGameLink(g)}
   </div>`;
 }

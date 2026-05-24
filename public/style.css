@@ -786,72 +786,38 @@ img { display: block; max-width: 100%; }
   flex-direction: column;
   gap: 3px;
 }
-.gsum-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1px;
-}
-.gsum-team-name {
+.gsum-line {
   display: flex;
-  align-items: center;
-  gap: 5px;
+  align-items: baseline;
+  gap: 6px;
   font-size: var(--popover-meta-size);
+  line-height: 1.5;
+}
+.gsum-lbl {
   font-weight: 700;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-.gsum-team-name--home { justify-content: flex-end; }
-.gsum-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0 10px;
-  min-height: 18px;
-}
-.gsum-side {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-}
-.gsum-side--away { flex-direction: row-reverse; }
-.gsum-bar-wrap {
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--border) 50%, transparent);
-  min-width: 0;
-}
-.gsum-bar {
-  height: 100%;
-  border-radius: 3px;
-}
-.gsum-bar--away { background: #64748b; }
-.gsum-bar--home { background: var(--orange); }
-.gsum-val {
-  font-size: var(--popover-stat-size);
-  font-weight: 600;
-  color: var(--text-2);
-  font-variant-numeric: tabular-nums;
-  min-width: 26px;
-  text-align: center;
-  white-space: nowrap;
+  min-width: 34px;
   flex-shrink: 0;
 }
-.gsum-label {
-  font-size: calc(var(--popover-meta-size) - 0.02rem);
-  color: var(--text-3);
+.gsum-line-vals {
+  color: var(--text-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 0;
+}
+.gsum-team {
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-align: center;
-  white-space: nowrap;
-  min-width: 34px;
+}
+.gsum-team--away { color: #94a3b8; }
+.gsum-team--home { color: var(--orange); }
+.gsum-tval {
+  font-variant-numeric: tabular-nums;
+}
+.gsum-sep {
+  color: var(--text-3);
+  margin-right: 4px;
 }
 .box-decisions {
   display: flex;
