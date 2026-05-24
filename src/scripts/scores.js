@@ -62,6 +62,7 @@ export function getScoreChipStatus(g) {
       statusInner: isWeatherRelated ? '<span class="delay-emoji" aria-hidden="true">🌧️</span> Rain Delay' : detailedState || 'Delayed',
       isPreviewLike: abstractState === 'Preview',
       isFinal: false,
+      isWeatherRelated,
     };
   }
   if (abstractState === 'Live') {
@@ -86,25 +87,58 @@ function renderGameChip(g) {
   const away = g.teams.away;
   const home = g.teams.home;
   const hasOrioles = away.team.id === ORIOLES_ID || home.team.id === ORIOLES_ID;
-  const { stateClass, statusInner, isPreviewLike, isFinal } = getScoreChipStatus(g);
+  const { stateClass, isPreviewLike, isFinal, isWeatherRelated } = getScoreChipStatus(g);
+
   const awayScore = (!isPreviewLike && away.score != null) ? away.score : '';
   const homeScore = (!isPreviewLike && home.score != null) ? home.score : '';
   const awayWin = isFinal && Number(awayScore) > Number(homeScore);
   const homeWin = isFinal && Number(homeScore) > Number(awayScore);
-  const wx = getGameWeather(g);
-  const wxInline = (stateClass === 'preview' && wx) ? ` ${wx.emoji}${wx.temp}°` : '';
+  const awayRowClass = awayWin ? ' chip-team-row--winner' : (isFinal && homeWin) ? ' chip-team-row--loser' : '';
+  const homeRowClass = homeWin ? ' chip-team-row--winner' : (isFinal && awayWin) ? ' chip-team-row--loser' : '';
+
+  // Status stripe content
+  let statusBar = '';
+  if (stateClass === 'live') {
+    const half = g.linescore?.inningHalf === 'Top' ? '▲' : '▼';
+    const inn = g.linescore?.currentInning ?? '';
+    const outs = Math.min(g.linescore?.outs ?? 0, 2);
+    const offense = g.linescore?.offense ?? {};
+    const b1 = offense.first ? ' on' : '';
+    const b2 = offense.second ? ' on' : '';
+    const b3 = offense.third ? ' on' : '';
+    const bases = `<span class="bases-diamond"><span class="base b2${b2}"></span><span class="base b3${b3}"></span><span class="base b1${b1}"></span></span>`;
+    const outsHtml = `<span class="outs-indicator" aria-label="${outs} out${outs === 1 ? '' : 's'}"><span class="out-dot${outs >= 1 ? ' on' : ''}"></span><span class="out-dot${outs >= 2 ? ' on' : ''}"></span></span>`;
+    statusBar = `<span class="chip-live-dot"></span><span class="chip-inn">${half}${inn}</span>${outsHtml}${bases}`;
+  } else if (stateClass === 'final') {
+    statusBar = 'FINAL';
+  } else if (stateClass === 'postponed') {
+    statusBar = 'PPD';
+  } else if (stateClass === 'delay') {
+    statusBar = isWeatherRelated ? '🌧 RAIN DLY' : 'DELAY';
+  } else {
+    const wx = getGameWeather(g);
+    const wxTag = wx ? ` ${wx.emoji}${wx.temp}°` : '';
+    statusBar = `${formatGameTime(g.gameDate)}${wxTag}`;
+  }
+
+  const awayLogo = `<img class="chip-logo" src="${esc(teamLogoSrc(away.team.id))}" alt="" width="18" height="18" loading="lazy">`;
+  const homeLogo = `<img class="chip-logo" src="${esc(teamLogoSrc(home.team.id))}" alt="" width="18" height="18" loading="lazy">`;
 
   return `<button class="score-chip ${stateClass}${hasOrioles ? ' orioles' : ''}"
       data-gamepk="${g.gamePk}" type="button" aria-haspopup="dialog" aria-expanded="false">
-    <div class="chip-row${awayWin ? ' winner' : ''}">
-      <span class="chip-team">${esc(teamAbbr(away.team))}</span>
-      <span class="chip-score">${awayScore}</span>
+    <div class="chip-status-bar ${stateClass}">${statusBar}</div>
+    <div class="chip-matchup">
+      <div class="chip-team-row${awayRowClass}">
+        ${awayLogo}
+        <span class="chip-abbr">${esc(teamAbbr(away.team))}</span>
+        <span class="chip-score-num">${awayScore}</span>
+      </div>
+      <div class="chip-team-row${homeRowClass}">
+        ${homeLogo}
+        <span class="chip-abbr">${esc(teamAbbr(home.team))}</span>
+        <span class="chip-score-num">${homeScore}</span>
+      </div>
     </div>
-    <div class="chip-row${homeWin ? ' winner' : ''}">
-      <span class="chip-team">${esc(teamAbbr(home.team))}</span>
-      <span class="chip-score">${homeScore}</span>
-    </div>
-    <span class="chip-status ${stateClass}">${statusInner}${wxInline}</span>
   </button>`;
 }
 

@@ -8,6 +8,7 @@ function savantUrl(id) {
 }
 
 const IL_LABEL = { D10: '10-Day IL', D15: '15-Day IL', D60: '60-Day IL' };
+const IL_ORDER  = { D10: 0, D15: 1, D60: 2 };
 
 function lastName(fullName) {
   return fullName.trim().split(/\s+/).at(-1);
@@ -29,7 +30,7 @@ function renderFieldChip(posId, pos, players) {
   }
 
   const [starter, ...rest] = players;
-  const backups = rest.slice(0, 3);
+  const backups = rest.slice(0, 2);
 
   const backupHtml = backups.map(p => {
     const pill = ilPill(p);
@@ -59,6 +60,37 @@ function renderPitchCol(elId, label, players) {
   }).join('');
 
   el.innerHTML = `<div class="dc-pit-label">${esc(label)}</div>${rows}`;
+}
+
+function renderIlSection(players) {
+  const el = document.getElementById('dcIlSection');
+  if (!el) return;
+
+  const seen = new Set();
+  const ilPlayers = players
+    .filter(p => p.status?.code in IL_ORDER && !seen.has(p.person.id) && seen.add(p.person.id))
+    .sort((a, b) => {
+      const ao = IL_ORDER[a.status?.code] ?? 9;
+      const bo = IL_ORDER[b.status?.code] ?? 9;
+      return ao !== bo ? ao - bo : a.person.fullName.localeCompare(b.person.fullName);
+    });
+
+  if (!ilPlayers.length) {
+    el.style.display = 'none';
+    return;
+  }
+
+  const rows = ilPlayers.map(p => {
+    const label = IL_LABEL[p.status?.code] ?? '';
+    const pos   = p.position?.abbreviation ?? '';
+    return `<div class="dc-il-row">
+      <span class="dc-il-row-pos">${esc(pos)}</span>
+      <a class="dc-il-row-name" href="${esc(savantUrl(p.person.id))}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+      <span class="dc-il-pill">${esc(label)}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="dc-il-section-label">Injured List</div>${rows}`;
 }
 
 async function loadDepthChart() {
@@ -91,6 +123,9 @@ async function loadDepthChart() {
     renderFieldChip('dc-CF', 'CF', byPos['CF'] ?? byPos['OF']);
     renderFieldChip('dc-RF', 'RF', byPos['RF'] ?? byPos['OF']);
     renderFieldChip('dc-DH', 'DH', byPos['DH']);
+
+    // IL section (all positions, deduplicated, sorted by IL length)
+    renderIlSection(players);
 
     // Pitching
     renderPitchCol('dcRotation', 'Rotation', byPos['SP'] ?? []);

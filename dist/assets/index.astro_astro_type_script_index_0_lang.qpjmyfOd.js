@@ -1,0 +1,14 @@
+import{M as v,O as L,S as y,e as t}from"./utils.39cI29-2.js";function p(e){return`https://baseballsavant.mlb.com/savant-player/${e}`}const b={D10:"10-Day IL",D15:"15-Day IL",D60:"60-Day IL"},u={D10:0,D15:1,D60:2};function h(e){return e.trim().split(/\s+/).at(-1)}function m(e){const o=e.status?.code,a=b[o];return a?`<span class="dc-il-pill">${a}</span>`:""}function r(e,o,a){const n=document.getElementById(e);if(!n)return;if(!a?.length){n.innerHTML=`<span class="dc-chip-pos">${t(o)}</span><span class="dc-chip-empty">—</span>`;return}const[c,...s]=a,l=s.slice(0,2).map(d=>{const f=m(d);return`<a class="dc-chip-backup${f?" dc-chip-backup--il":""}" href="${t(p(d.person.id))}" target="_blank" rel="noopener">${t(h(d.person.fullName))}${f}</a>`}).join("");n.innerHTML=`
+    <span class="dc-chip-pos">${t(o)}</span>
+    <a class="dc-chip-starter" href="${t(p(c.person.id))}" target="_blank" rel="noopener">${t(h(c.person.fullName))}</a>
+    ${m(c)}
+    ${l?`<div class="dc-chip-backups">${l}</div>`:""}
+  `}function $(e,o,a){const n=document.getElementById(e);if(!n)return;const c=a.slice(0,10).map((s,i)=>{const l=i===0?" dc-pit-row--starter":"",d=m(s);return`<div class="dc-pit-row${l}">
+      <span class="dc-pit-rank">${i+1}</span>
+      <a class="dc-pit-name" href="${t(p(s.person.id))}" target="_blank" rel="noopener">${t(s.person.fullName)}</a>
+      ${d}
+    </div>`}).join("");n.innerHTML=`<div class="dc-pit-label">${t(o)}</div>${c}`}function B(e){const o=document.getElementById("dcIlSection");if(!o)return;const a=new Set,n=e.filter(s=>s.status?.code in u&&!a.has(s.person.id)&&a.add(s.person.id)).sort((s,i)=>{const l=u[s.status?.code]??9,d=u[i.status?.code]??9;return l!==d?l-d:s.person.fullName.localeCompare(i.person.fullName)});if(!n.length){o.style.display="none";return}const c=n.map(s=>{const i=b[s.status?.code]??"",l=s.position?.abbreviation??"";return`<div class="dc-il-row">
+      <span class="dc-il-row-pos">${t(l)}</span>
+      <a class="dc-il-row-name" href="${t(p(s.person.id))}" target="_blank" rel="noopener">${t(s.person.fullName)}</a>
+      <span class="dc-il-pill">${t(i)}</span>
+    </div>`}).join("");o.innerHTML=`<div class="dc-il-section-label">Injured List</div>${c}`}async function D(){const e=document.getElementById("dcOverlay");try{const a=(await fetch(`${v}/teams/${L}/roster?rosterType=depthChart&season=${y}`).then(c=>c.json())).roster??[];if(!a.length){e.innerHTML='<span class="dc-unavail">Depth chart unavailable</span>';return}const n={};for(const c of a){const s=c.position?.abbreviation??"UTIL";(n[s]??=[]).push(c)}r("dc-C","C",n.C),r("dc-1B","1B",n["1B"]),r("dc-2B","2B",n["2B"]),r("dc-3B","3B",n["3B"]),r("dc-SS","SS",n.SS),r("dc-LF","LF",n.LF??n.OF),r("dc-CF","CF",n.CF??n.OF),r("dc-RF","RF",n.RF??n.OF),r("dc-DH","DH",n.DH),B(a),$("dcRotation","Rotation",n.SP??[]),$("dcBullpen","Bullpen",[...n.RP??[],...n.P??[]])}catch{e.innerHTML='<span class="dc-unavail">Unavailable</span>'}}D();
