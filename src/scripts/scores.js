@@ -1088,17 +1088,20 @@ function renderTeamSituationalStats(boxData) {
   const getSit = side => {
     const batting = boxData.teams?.[side]?.teamStats?.batting ?? {};
     const info    = boxData.teams?.[side]?.info ?? [];
-    const risp    = info.find(i => i.label === 'RISP')?.value ?? null;
-    const sb      = batting.stolenBases ?? null;
-    const cs      = batting.caughtStealing ?? null;
-    const sbStr   = sb != null ? `${sb}${cs != null ? `/${cs}` : ''}` : null;
+    const rispStr = info.find(i => i.label === 'RISP')?.value ?? null;
+    let rispNum = null;
+    if (rispStr) { const m = rispStr.match(/^(\d+)-(\d+)$/); if (m) rispNum = Number(m[1]); }
+    const sb = batting.stolenBases ?? null;
+    const cs = batting.caughtStealing ?? null;
+    const hasSb = (sb ?? 0) > 0 || (cs ?? 0) > 0;
     return {
-      risp,
-      lob:  batting.leftOnBase ?? null,
+      risp: rispStr, rispNum,
+      lob:  batting.leftOnBase          ?? null,
       gdp:  batting.groundIntoDoublePlay ?? null,
-      k:    batting.strikeOuts ?? null,
-      bb:   batting.baseOnBalls ?? null,
-      sb:   sbStr,
+      k:    batting.strikeOuts           ?? null,
+      bb:   batting.baseOnBalls          ?? null,
+      sb:   hasSb ? `${sb ?? 0}/${cs ?? 0}` : null,
+      sbNum: (sb ?? 0),
     };
   };
 
@@ -1108,29 +1111,47 @@ function renderTeamSituationalStats(boxData) {
   const homeId = boxData.teams?.home?.team?.id;
   const awayAbbr = TEAM_ABBREV[awayId] ?? 'Away';
   const homeAbbr = TEAM_ABBREV[homeId] ?? 'Home';
+  const awayLogo = awayId ? `<img src="${teamLogoSrc(awayId)}" width="14" height="14" alt="" loading="lazy">` : '';
+  const homeLogo = homeId ? `<img src="${teamLogoSrc(homeId)}" width="14" height="14" alt="" loading="lazy">` : '';
 
-  const ROWS = [
-    { label: 'RISP',  aw: aw.risp, hw: hw.risp },
-    { label: 'LOB',   aw: aw.lob,  hw: hw.lob  },
-    { label: 'GDP',   aw: aw.gdp,  hw: hw.gdp  },
-    { label: 'K',     aw: aw.k,    hw: hw.k    },
-    { label: 'BB',    aw: aw.bb,   hw: hw.bb   },
-    { label: 'SB/CS', aw: aw.sb,   hw: hw.sb   },
-  ].filter(r => r.aw != null || r.hw != null);
+  const mkPct = (a, h) => {
+    const total = (Number(a) || 0) + (Number(h) || 0);
+    if (!total) return { aw: 50, hw: 50 };
+    return { aw: Math.round((Number(a) || 0) / total * 100), hw: Math.round((Number(h) || 0) / total * 100) };
+  };
 
-  if (!ROWS.length) return '';
+  const row = (label, awVal, hwVal, awNum, hwNum) => {
+    if (awVal == null && hwVal == null) return '';
+    const { aw: ap, hw: hp } = mkPct(awNum ?? awVal, hwNum ?? hwVal);
+    return `<div class="gsum-row">
+      <div class="gsum-side gsum-side--away">
+        <div class="gsum-bar-wrap"><div class="gsum-bar gsum-bar--away" style="width:${ap}%"></div></div>
+        <span class="gsum-val">${awVal ?? '—'}</span>
+      </div>
+      <span class="gsum-label">${esc(label)}</span>
+      <div class="gsum-side gsum-side--home">
+        <span class="gsum-val">${hwVal ?? '—'}</span>
+        <div class="gsum-bar-wrap"><div class="gsum-bar gsum-bar--home" style="width:${hp}%"></div></div>
+      </div>
+    </div>`;
+  };
 
-  const rows = ROWS.map(r => `<div class="box-sit-row">
-    <span class="box-sit-val">${r.aw ?? '—'}</span>
-    <span class="box-sit-key">${esc(r.label)}</span>
-    <span class="box-sit-val">${r.hw ?? '—'}</span>
-  </div>`).join('');
+  const rows = [
+    row('RISP', aw.risp, hw.risp, aw.rispNum, hw.rispNum),
+    row('LOB',  aw.lob,  hw.lob),
+    row('K',    aw.k,    hw.k),
+    row('BB',   aw.bb,   hw.bb),
+    row('GDP',  aw.gdp,  hw.gdp),
+    row('SB',   aw.sb,   hw.sb, aw.sbNum, hw.sbNum),
+  ].filter(Boolean).join('');
 
-  return `<div class="box-situational">
-    <div class="box-sit-row box-sit-header">
-      <span class="box-sit-val box-sit-abbr">${esc(awayAbbr)}</span>
-      <span class="box-sit-key"></span>
-      <span class="box-sit-val box-sit-abbr">${esc(homeAbbr)}</span>
+  if (!rows) return '';
+
+  return `<div class="gsum">
+    <div class="gsum-header">
+      <span class="gsum-team-name">${awayLogo}${esc(awayAbbr)}</span>
+      <span></span>
+      <span class="gsum-team-name gsum-team-name--home">${esc(homeAbbr)}${homeLogo}</span>
     </div>
     ${rows}
   </div>`;

@@ -781,46 +781,77 @@ img { display: block; max-width: 100%; }
   border-left: 2px solid color-mix(in srgb, var(--border) 74%, var(--orange) 26%);
   background: color-mix(in srgb, var(--card) 78%, #eef3f8 22%);
 }
-.box-situational {
+.gsum {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: var(--popover-meta-size);
-  font-variant-numeric: tabular-nums;
+  gap: 3px;
 }
-.box-sit-row {
+.gsum-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1px;
+}
+.gsum-team-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--popover-meta-size);
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.gsum-team-name--home { justify-content: flex-end; }
+.gsum-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 0 10px;
-  padding: 1px 0;
+  min-height: 18px;
 }
-.box-sit-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 3px;
-  margin-bottom: 1px;
+.gsum-side {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
 }
-.box-sit-val {
-  font-weight: 500;
-  color: var(--text-2);
+.gsum-side--away { flex-direction: row-reverse; }
+.gsum-bar-wrap {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--border) 50%, transparent);
+  min-width: 0;
 }
-.box-sit-val:first-child { text-align: right; }
-.box-sit-val:last-child  { text-align: left; }
-.box-sit-abbr {
-  font-weight: 700;
-  font-size: var(--popover-meta-size);
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.gsum-bar {
+  height: 100%;
+  border-radius: 3px;
 }
-.box-sit-key {
-  text-align: center;
-  color: var(--text-3);
+.gsum-bar--away { background: #64748b; }
+.gsum-bar--home { background: var(--orange); }
+.gsum-val {
+  font-size: var(--popover-stat-size);
   font-weight: 600;
-  font-size: calc(var(--popover-meta-size) - 0.03rem);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  min-width: 26px;
+  text-align: center;
   white-space: nowrap;
+  flex-shrink: 0;
+}
+.gsum-label {
+  font-size: calc(var(--popover-meta-size) - 0.02rem);
+  color: var(--text-3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 34px;
 }
 .box-decisions {
   display: flex;
