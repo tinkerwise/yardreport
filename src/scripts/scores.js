@@ -899,10 +899,9 @@ function renderBullpenRows(team, gameState = 'live') {
     <span class="score-lineup-pos"></span><span class="score-lineup-name"></span>
     <span class="score-lineup-box-cols score-lineup-box-cols--bullpen"><span>ERA</span><span>IP</span><span>H</span><span>BB</span><span>K</span></span>
   </div>`;
-  const content = header + rows;
   return entries.length > 5
-    ? `<div class="pitching-scroll-wrap"><div class="pitching-scroll">${content}</div></div>`
-    : content;
+    ? `<div class="pitching-scroll-wrap">${header}<div class="pitching-scroll">${rows}</div></div>`
+    : header + rows;
 }
 
 function renderPitchingLines(boxData, gameState = 'final') {
@@ -953,10 +952,9 @@ function renderPitchingLines(boxData, gameState = 'final') {
         <span class="score-lineup-box-cols score-lineup-box-cols--pitch">${cols}</span>
       </div>`;
     }).join('');
-    const content = header + rows;
     return pitchers.length > 4
-      ? `<div class="pitching-scroll-wrap"><div class="pitching-scroll">${content}</div></div>`
-      : content;
+      ? `<div class="pitching-scroll-wrap">${header}<div class="pitching-scroll">${rows}</div></div>`
+      : header + rows;
   };
 
   const renderSide = side => {
