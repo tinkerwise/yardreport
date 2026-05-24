@@ -245,10 +245,9 @@ function renderWeek() {
 }
 
 // ── Record bar ────────────────────────────────────────────────
-function computeRecords() {
-  const now = new Date();
-  const curMonth = now.getMonth();
-  const curYear  = now.getFullYear();
+function computeRecords(forDate = viewDate) {
+  const curMonth = forDate.getMonth();
+  const curYear  = forDate.getFullYear();
 
   const finalGames = allGames
     .filter(g => g.status?.abstractGameState === 'Final')
@@ -305,6 +304,7 @@ function computeRecords() {
 function render() {
   if (viewMode === 'month') renderMonth();
   else renderWeek();
+  computeRecords();
 }
 
 document.getElementById('prevBtn').addEventListener('click', () => {
@@ -344,7 +344,6 @@ async function loadSchedule() {
     const data = await fetch(url).then(r => r.json());
     allGames = (data.dates ?? []).flatMap(d => d.games ?? []);
     buildSeries(allGames);
-    computeRecords();
 
     const now     = Date.now();
     const tenDays = 10 * 24 * 60 * 60 * 1000;
