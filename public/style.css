@@ -924,20 +924,34 @@ img { display: block; max-width: 100%; }
   line-height: 1;
   font-size: 0.7rem;
 }
+.pitching-scroll-wrap {
+  position: relative;
+}
 .pitching-scroll {
   max-height: 110px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  /* fade out bottom edge to hint scrollability */
-  mask-image: linear-gradient(to bottom, black calc(100% - 14px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 14px), transparent 100%);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
 .pitching-scroll::-webkit-scrollbar { width: 4px; }
 .pitching-scroll::-webkit-scrollbar-track { background: transparent; }
 .pitching-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.scroll-ind {
+  position: absolute;
+  right: 0;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--text-3);
+  pointer-events: none;
+  padding: 0 3px;
+  background: var(--surface);
+  border-radius: 2px;
+  z-index: 1;
+}
+.scroll-ind--down { bottom: 0; }
+.scroll-ind--up   { top: 0; }
 .box-legend {
   display: flex;
   flex-wrap: wrap;

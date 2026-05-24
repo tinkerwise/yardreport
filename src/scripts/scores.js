@@ -860,16 +860,20 @@ function renderBenchRows(team) {
   return header + rows;
 }
 
-function renderBullpenRows(team) {
+function renderBullpenRows(team, gameState = 'live') {
   const bullpenIds = team?.bullpen ?? [];
   const roster = team?.players ?? {};
   if (!bullpenIds.length) return '';
+  const isFinalState = gameState === 'final';
   const entries = bullpenIds.map(id => {
     const p = roster[`ID${id}`];
     if (!p) return null;
+    // In a final game, skip bullpen members who never appeared
+    if (isFinalState && p.stats?.pitching?.inningsPitched == null) return null;
     const fullName = p.person?.fullName ?? 'TBD';
     const name = compactBoxName(fullName);
     const pitchHand = p.person?.pitchHand?.code ?? '';
+    const handDisplay = pitchHand ? `<span class="score-lineup-hand">(${pitchHand})</span>` : '';
     const isWarm = p.gameStatus?.isCurrentPitcher || p.gameStatus?.isWarmingUp || false;
     const ss = p.seasonStats?.pitching ?? {};
     const cols = [
@@ -880,8 +884,8 @@ function renderBullpenRows(team) {
       ss.strikeOuts ?? '—',
     ].map(v => `<span>${v}</span>`).join('');
     return { isWarm, html: `<div class="score-lineup-row${isWarm ? ' score-lineup-row--current' : ''}">
-      <span class="score-lineup-pos">${esc(pitchHand)}</span>
-      <span class="score-lineup-name">${isWarm ? '<span class="bullpen-warm-dot" aria-label="Warming Up"></span>' : ''}${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}</span>
+      <span class="score-lineup-pos">RP</span>
+      <span class="score-lineup-name">${isWarm ? '<span class="bullpen-warm-dot" aria-label="Warming Up"></span>' : ''}${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}${handDisplay}</span>
       <span class="score-lineup-box-cols score-lineup-box-cols--bullpen">${cols}</span>
     </div>` };
   }).filter(Boolean);
@@ -896,7 +900,9 @@ function renderBullpenRows(team) {
     <span class="score-lineup-box-cols score-lineup-box-cols--bullpen"><span>ERA</span><span>IP</span><span>H</span><span>BB</span><span>K</span></span>
   </div>`;
   const content = header + rows;
-  return bullpenIds.length > 5 ? `<div class="pitching-scroll">${content}</div>` : content;
+  return entries.length > 5
+    ? `<div class="pitching-scroll-wrap"><div class="pitching-scroll">${content}</div></div>`
+    : content;
 }
 
 function renderPitchingLines(boxData, gameState = 'final') {
@@ -948,7 +954,9 @@ function renderPitchingLines(boxData, gameState = 'final') {
       </div>`;
     }).join('');
     const content = header + rows;
-    return pitchers.length > 4 ? `<div class="pitching-scroll">${content}</div>` : content;
+    return pitchers.length > 4
+      ? `<div class="pitching-scroll-wrap"><div class="pitching-scroll">${content}</div></div>`
+      : content;
   };
 
   const renderSide = side => {
@@ -957,7 +965,7 @@ function renderPitchingLines(boxData, gameState = 'final') {
     const teamName = team.team?.teamName ?? team.team?.name ?? (side === 'away' ? 'Away' : 'Home');
     const teamId = team.team?.id;
     const logoHtml = teamId ? `<img class="score-lineup-logo" src="${teamLogoSrc(teamId)}" alt="${esc(teamName)}" width="20" height="20">` : '';
-    const bullpenHtml = renderBullpenRows(team);
+    const bullpenHtml = renderBullpenRows(team, gameState);
     const benchHtml = renderBenchRows(team);
     return `<div class="team-detail-card">
       <div class="score-lineup-head">${logoHtml}<span class="score-lineup-label">${esc(teamName)}</span></div>
@@ -981,6 +989,27 @@ function renderPitchingLines(boxData, gameState = 'final') {
   };
 
   return `<div class="score-lineups"><div class="score-lineups-grid score-lineups-grid--details">${renderSide('away')}${renderSide('home')}</div></div>`;
+}
+
+function initScrollIndicators(container) {
+  container.querySelectorAll('.pitching-scroll-wrap').forEach(wrap => {
+    const el = wrap.querySelector('.pitching-scroll');
+    if (!el) return;
+    const down = document.createElement('div');
+    down.className = 'scroll-ind scroll-ind--down';
+    down.textContent = '▾';
+    const up = document.createElement('div');
+    up.className = 'scroll-ind scroll-ind--up';
+    up.textContent = '▴';
+    wrap.appendChild(down);
+    wrap.appendChild(up);
+    const update = () => {
+      up.hidden = el.scrollTop <= 2;
+      down.hidden = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+    };
+    el.addEventListener('scroll', update, { passive: true });
+    update();
+  });
 }
 
 function syncPopoverTeamDetailHeights(popover) {
@@ -1232,6 +1261,7 @@ export async function loadScores() {
       boxPopover.style.left = '-9999px'; boxPopover.style.top = '0';
       boxPopover.classList.remove('hidden');
       syncPopoverTeamDetailHeights(boxPopover);
+      initScrollIndicators(boxPopover);
       positionPopover(chip);
 
       const missing = [
@@ -1251,6 +1281,7 @@ export async function loadScores() {
           if (boxPopover.classList.contains('hidden')) return;
           boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
           syncPopoverTeamDetailHeights(boxPopover);
+          initScrollIndicators(boxPopover);
           positionPopover(chip);
         });
       }
