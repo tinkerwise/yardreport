@@ -262,30 +262,42 @@ function computeRecords() {
   }, { w: 0, l: 0 });
 
   const overall  = tally(finalGames);
+  const home     = tally(finalGames.filter(g => oriIsHome(g)));
+  const away     = tally(finalGames.filter(g => !oriIsHome(g)));
   const monthly  = tally(finalGames.filter(g => {
     const d = new Date(g.gameDate);
     return d.getFullYear() === curYear && d.getMonth() === curMonth;
   }));
   const last10   = tally(finalGames.slice(-10));
-  const home     = tally(finalGames.filter(g => oriIsHome(g)));
-  const away     = tally(finalGames.filter(g => !oriIsHome(g)));
+
+  // Longest win streak of the season
+  let longestStreak = 0;
+  let currentStreak = 0;
+  for (const g of finalGames) {
+    const r = getResult(g);
+    if (r?.result === 'W') { currentStreak++; longestStreak = Math.max(longestStreak, currentStreak); }
+    else { currentStreak = 0; }
+  }
 
   const monthLabel = MONTHS[curMonth].slice(0, 3);
   const fmt = ({ w, l }) => `${w}–${l}`;
+  const sep = '<span class="sch-record-sep">·</span>';
 
   const el = document.getElementById('schRecord');
   if (el) {
-    el.innerHTML = `
-      <span class="sch-record-item"><span class="sch-record-label">Overall</span><span class="sch-record-val">${fmt(overall)}</span></span>
-      <span class="sch-record-sep">·</span>
-      <span class="sch-record-item"><span class="sch-record-label">${monthLabel}</span><span class="sch-record-val">${fmt(monthly)}</span></span>
-      <span class="sch-record-sep">·</span>
-      <span class="sch-record-item"><span class="sch-record-label">L10</span><span class="sch-record-val">${fmt(last10)}</span></span>
-      <span class="sch-record-sep">·</span>
-      <span class="sch-record-item"><span class="sch-record-label">Home</span><span class="sch-record-val">${fmt(home)}</span></span>
-      <span class="sch-record-sep">·</span>
-      <span class="sch-record-item"><span class="sch-record-label">Away</span><span class="sch-record-val">${fmt(away)}</span></span>
-    `;
+    el.innerHTML = [
+      `<span class="sch-record-item"><span class="sch-record-label">Overall</span><span class="sch-record-val">${fmt(overall)}</span></span>`,
+      sep,
+      `<span class="sch-record-item"><span class="sch-record-label">Home</span><span class="sch-record-val">${fmt(home)}</span></span>`,
+      sep,
+      `<span class="sch-record-item"><span class="sch-record-label">Away</span><span class="sch-record-val">${fmt(away)}</span></span>`,
+      sep,
+      `<span class="sch-record-item"><span class="sch-record-label">${monthLabel}</span><span class="sch-record-val">${fmt(monthly)}</span></span>`,
+      sep,
+      `<span class="sch-record-item"><span class="sch-record-label">L10</span><span class="sch-record-val">${fmt(last10)}</span></span>`,
+      sep,
+      `<span class="sch-record-item"><span class="sch-record-label">W Streak</span><span class="sch-record-val">${longestStreak}</span></span>`,
+    ].join('');
   }
 }
 
