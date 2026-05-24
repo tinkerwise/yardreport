@@ -34,7 +34,7 @@ function renderFieldChip(posId, pos, players) {
   const backupHtml = backups.map(p => {
     const pill = ilPill(p);
     return `<a class="dc-chip-backup${pill ? ' dc-chip-backup--il' : ''}" href="${esc(savantUrl(p.person.id))}" target="_blank" rel="noopener">${esc(lastName(p.person.fullName))}${pill}</a>`;
-  }).join('<span class="dc-chip-dot">·</span>');
+  }).join('');
 
   el.innerHTML = `
     <span class="dc-chip-pos">${esc(pos)}</span>

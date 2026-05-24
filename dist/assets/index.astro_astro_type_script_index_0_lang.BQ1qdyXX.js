@@ -1,0 +1,10 @@
+import{M as f,O as b,S as L,e as c}from"./utils.39cI29-2.js";function d(a){return`https://baseballsavant.mlb.com/savant-player/${a}`}const v={D10:"10-Day IL",D15:"15-Day IL",D60:"60-Day IL"};function $(a){return a.trim().split(/\s+/).at(-1)}function u(a){const r=a.status?.code,s=v[r];return s?`<span class="dc-il-pill">${s}</span>`:""}function e(a,r,s){const n=document.getElementById(a);if(!n)return;if(!s?.length){n.innerHTML=`<span class="dc-chip-pos">${c(r)}</span><span class="dc-chip-empty">—</span>`;return}const[t,...l]=s,i=l.slice(0,3).map(o=>{const h=u(o);return`<a class="dc-chip-backup${h?" dc-chip-backup--il":""}" href="${c(d(o.person.id))}" target="_blank" rel="noopener">${c($(o.person.fullName))}${h}</a>`}).join("");n.innerHTML=`
+    <span class="dc-chip-pos">${c(r)}</span>
+    <a class="dc-chip-starter" href="${c(d(t.person.id))}" target="_blank" rel="noopener">${c($(t.person.fullName))}</a>
+    ${u(t)}
+    ${i?`<div class="dc-chip-backups">${i}</div>`:""}
+  `}function m(a,r,s){const n=document.getElementById(a);if(!n)return;const t=s.slice(0,10).map((l,p)=>{const i=p===0?" dc-pit-row--starter":"",o=u(l);return`<div class="dc-pit-row${i}">
+      <span class="dc-pit-rank">${p+1}</span>
+      <a class="dc-pit-name" href="${c(d(l.person.id))}" target="_blank" rel="noopener">${c(l.person.fullName)}</a>
+      ${o}
+    </div>`}).join("");n.innerHTML=`<div class="dc-pit-label">${c(r)}</div>${t}`}async function B(){const a=document.getElementById("dcOverlay");try{const s=(await fetch(`${f}/teams/${b}/roster?rosterType=depthChart&season=${L}`).then(t=>t.json())).roster??[];if(!s.length){a.innerHTML='<span class="dc-unavail">Depth chart unavailable</span>';return}const n={};for(const t of s){const l=t.position?.abbreviation??"UTIL";(n[l]??=[]).push(t)}e("dc-C","C",n.C),e("dc-1B","1B",n["1B"]),e("dc-2B","2B",n["2B"]),e("dc-3B","3B",n["3B"]),e("dc-SS","SS",n.SS),e("dc-LF","LF",n.LF??n.OF),e("dc-CF","CF",n.CF??n.OF),e("dc-RF","RF",n.RF??n.OF),e("dc-DH","DH",n.DH),m("dcRotation","Rotation",n.SP??[]),m("dcBullpen","Bullpen",[...n.RP??[],...n.P??[]])}catch{a.innerHTML='<span class="dc-unavail">Unavailable</span>'}}B();
