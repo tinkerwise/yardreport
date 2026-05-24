@@ -254,7 +254,8 @@ export async function loadRoster() {
     const active = all.filter(p => p.status?.code === 'A');
     const il     = all.filter(p => ['D10', 'D15', 'D60'].includes(p.status?.code));
     const minors = all.filter(p => p.status?.code === 'RM');
-    const taxi   = taxiData.roster ?? [];
+    const rosterIds = new Set(all.map(p => p.person.id));
+    const taxi   = (taxiData.roster ?? []).filter(p => !rosterIds.has(p.person.id));
 
     const posOrder = { C: 0, '1B': 1, '2B': 2, '3B': 3, SS: 4, LF: 5, CF: 5, RF: 5, OF: 5, DH: 6 };
     const sortByPos = list => list.slice().sort((a, b) => {
