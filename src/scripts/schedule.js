@@ -35,11 +35,10 @@ function getResult(g) {
   if (g.status?.abstractGameState !== 'Final') return null;
   const ori = oriSide(g);
   const opp = oppSide(g);
-  return {
-    result: g.isTie ? 'T' : (ori.isWinner ? 'W' : 'L'),
-    oriScore: ori.score ?? 0,
-    oppScore: opp.score ?? 0,
-  };
+  const oriScore = ori.score ?? 0;
+  const oppScore = opp.score ?? 0;
+  const result = oriScore === oppScore ? 'T' : oriScore > oppScore ? 'W' : 'L';
+  return { result, oriScore, oppScore };
 }
 
 function oriProbable(g) {
@@ -268,6 +267,8 @@ function computeRecords() {
     return d.getFullYear() === curYear && d.getMonth() === curMonth;
   }));
   const last10   = tally(finalGames.slice(-10));
+  const home     = tally(finalGames.filter(g => oriIsHome(g)));
+  const away     = tally(finalGames.filter(g => !oriIsHome(g)));
 
   const monthLabel = MONTHS[curMonth].slice(0, 3);
   const fmt = ({ w, l }) => `${w}–${l}`;
@@ -280,6 +281,10 @@ function computeRecords() {
       <span class="sch-record-item"><span class="sch-record-label">${monthLabel}</span><span class="sch-record-val">${fmt(monthly)}</span></span>
       <span class="sch-record-sep">·</span>
       <span class="sch-record-item"><span class="sch-record-label">L10</span><span class="sch-record-val">${fmt(last10)}</span></span>
+      <span class="sch-record-sep">·</span>
+      <span class="sch-record-item"><span class="sch-record-label">Home</span><span class="sch-record-val">${fmt(home)}</span></span>
+      <span class="sch-record-sep">·</span>
+      <span class="sch-record-item"><span class="sch-record-label">Away</span><span class="sch-record-val">${fmt(away)}</span></span>
     `;
   }
 }

@@ -1299,12 +1299,11 @@ img { display: block; max-width: 100%; }
 .score-lineup-state.available { color: #22c55e; }
 .score-lineup-state.unavailable { color: #f59e0b; }
 .score-lineup-row {
-  display: grid;
-  grid-template-columns: 18px 7rem 1fr;
-  column-gap: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-size: var(--popover-name-size);
   padding: 3px 0;
-  align-items: baseline;
 }
 .team-detail-card .box-perf-row {
   display: flex;
@@ -1334,6 +1333,7 @@ img { display: block; max-width: 100%; }
 .score-lineup-name {
   font-size: var(--popover-name-size);
   color: var(--text);
+  flex: 1;
   min-width: 0;
   display: flex;
   align-items: baseline;
@@ -1346,6 +1346,15 @@ img { display: block; max-width: 100%; }
   font-weight: 400;
   flex-shrink: 0;
 }
+.score-lineup-stat-line {
+  font-size: var(--popover-meta-size);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: right;
+}
+.score-lineup-stat-sep { color: var(--border-light); }
 .score-lineup-slash {
   font-size: var(--popover-stat-size);
   font-weight: 600;

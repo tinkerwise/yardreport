@@ -448,7 +448,7 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
   const isOriolesLineup = Number(lineupTeamId) === ORIOLES_ID;
   if (!players.length) return '<div class="score-lineups-empty">Lineup not yet posted</div>';
 
-  if (gameState === 'final') {
+  if (gameState === 'final' || gameState === 'live') {
     const entries = getInGameLineupEntries(team);
     const header = `<div class="score-lineup-row score-lineup-row--header">
       <span class="score-lineup-pos"></span>
@@ -465,35 +465,9 @@ function renderLineupRows(team, gameState = 'preview', teamId = null) {
         ss.avg != null ? formatSlashStat(ss.avg) : '—', ss.ops != null ? formatSlashStat(ss.ops) : '—']
         .map(v => `<span>${v}</span>`).join('');
       const hasActivity = (bs.atBats ?? 0) > 0 || (bs.baseOnBalls ?? 0) > 0;
+      const isCurrentBatter = gameState === 'live' && p.gameStatus?.isCurrentBatter;
       const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
-      return `<div class="score-lineup-row${hasActivity ? '' : ' score-lineup-row--dnp'}${isSubstitution ? ' score-lineup-row--sub' : ''}">
-        <span class="score-lineup-pos">${esc(pos)}</span>
-        <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls, isOriolesLineup ? fullName : '')}</span>
-        <span class="score-lineup-box-cols">${cols}</span>
-      </div>`;
-    }).join('');
-    return header + rows;
-  }
-
-  if (gameState === 'live') {
-    const entries = getInGameLineupEntries(team);
-    const header = `<div class="score-lineup-row score-lineup-row--header">
-      <span class="score-lineup-pos"></span>
-      <span class="score-lineup-name"></span>
-      <span class="score-lineup-box-cols"><span>AB</span><span>R</span><span>H</span><span>RBI</span><span>BB</span><span>K</span><span>AVG</span><span>OPS</span></span>
-    </div>`;
-    const rows = entries.map(({ player: p, isSubstitution }) => {
-      const fullName = p.person?.fullName ?? 'TBD';
-      const name = compactBoxName(fullName);
-      const pos = isSubstitution ? 'ph' : (p.position?.abbreviation ?? '');
-      const bs = p.stats?.batting ?? {};
-      const ss = p.seasonStats?.batting ?? {};
-      const cols = [bs.atBats ?? 0, bs.runs ?? 0, bs.hits ?? 0, bs.rbi ?? 0, bs.baseOnBalls ?? 0, bs.strikeOuts ?? 0,
-        ss.avg != null ? formatSlashStat(ss.avg) : '—', ss.ops != null ? formatSlashStat(ss.ops) : '—']
-        .map(v => `<span>${v}</span>`).join('');
-      const isCurrentBatter = p.gameStatus?.isCurrentBatter;
-      const walkupUrls = isOriolesLineup ? getWalkupSongUrls(p.person?.id, fullName) : [];
-      return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}${isSubstitution ? ' score-lineup-row--sub' : ''}">
+      return `<div class="score-lineup-row${isCurrentBatter ? ' score-lineup-row--current' : ''}${!hasActivity ? ' score-lineup-row--dnp' : ''}${isSubstitution ? ' score-lineup-row--sub' : ''}">
         <span class="score-lineup-pos">${esc(pos)}</span>
         <span class="score-lineup-name">${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', walkupUrls, isOriolesLineup ? fullName : '')}</span>
         <span class="score-lineup-box-cols">${cols}</span>
@@ -856,6 +830,11 @@ function renderBenchRows(team) {
   const benchIds = team?.bench ?? [];
   const roster = team?.players ?? {};
   if (!benchIds.length) return '';
+  const header = `<div class="score-lineup-row score-lineup-row--header">
+    <span class="score-lineup-pos"></span>
+    <span class="score-lineup-name"></span>
+    <span class="score-lineup-box-cols score-lineup-box-cols--bench"><span>AVG</span><span>G</span><span>R</span><span>H</span><span>HR</span><span>RBI</span></span>
+  </div>`;
   const rows = benchIds.map(id => {
     const p = roster[`ID${id}`];
     if (!p) return '';
@@ -864,18 +843,20 @@ function renderBenchRows(team) {
     const batSide = p.person?.batSide?.code ?? '';
     const pos = p.position?.abbreviation ?? '';
     const ss = p.seasonStats?.batting ?? {};
-    const avg = ss.avg != null ? formatSlashStat(ss.avg) : '—';
+    const cols = [
+      ss.avg != null ? formatSlashStat(ss.avg) : '—',
+      ss.gamesPlayed ?? '—',
+      ss.runs ?? '—',
+      ss.hits ?? '—',
+      ss.homeRuns ?? '—',
+      ss.rbi ?? '—',
+    ].map(v => `<span>${v}</span>`).join('');
     return `<div class="score-lineup-row">
       <span class="score-lineup-pos">${esc(batSide)}</span>
       <span class="score-lineup-name"><span class="score-lineup-hand">${esc(pos)}</span>${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}</span>
-      <span class="score-lineup-box-cols score-lineup-box-cols--bench"><span>${esc(String(avg))}</span><span>${ss.gamesPlayed ?? '—'}</span><span>${ss.runs ?? '—'}</span><span>${ss.hits ?? '—'}</span><span>${ss.homeRuns ?? '—'}</span><span>${ss.rbi ?? '—'}</span></span>
+      <span class="score-lineup-box-cols score-lineup-box-cols--bench">${cols}</span>
     </div>`;
   }).filter(Boolean).join('');
-  if (!rows) return '';
-  const header = `<div class="score-lineup-row score-lineup-row--header">
-    <span class="score-lineup-pos"></span><span class="score-lineup-name"></span>
-    <span class="score-lineup-box-cols score-lineup-box-cols--bench"><span>AVG</span><span>G</span><span>R</span><span>H</span><span>HR</span><span>RBI</span></span>
-  </div>`;
   return header + rows;
 }
 
@@ -891,11 +872,17 @@ function renderBullpenRows(team) {
     const pitchHand = p.person?.pitchHand?.code ?? '';
     const isWarm = p.gameStatus?.isCurrentPitcher || p.gameStatus?.isWarmingUp || false;
     const ss = p.seasonStats?.pitching ?? {};
-    const era = ss.era ?? '—';
+    const cols = [
+      ss.era ?? '—',
+      ss.inningsPitched ?? '—',
+      ss.hits ?? '—',
+      ss.baseOnBalls ?? '—',
+      ss.strikeOuts ?? '—',
+    ].map(v => `<span>${v}</span>`).join('');
     return { isWarm, html: `<div class="score-lineup-row${isWarm ? ' score-lineup-row--current' : ''}">
       <span class="score-lineup-pos">${esc(pitchHand)}</span>
       <span class="score-lineup-name">${isWarm ? '<span class="bullpen-warm-dot" aria-label="Warming Up"></span>' : ''}${renderPlayerNameLink(name, p.person?.id ?? null, 'popover-player-link', [])}</span>
-      <span class="score-lineup-box-cols score-lineup-box-cols--bullpen"><span>${esc(String(era))}</span><span>${ss.inningsPitched ?? '—'}</span><span>${ss.hits ?? '—'}</span><span>${ss.baseOnBalls ?? '—'}</span><span>${ss.strikeOuts ?? '—'}</span></span>
+      <span class="score-lineup-box-cols score-lineup-box-cols--bullpen">${cols}</span>
     </div>` };
   }).filter(Boolean);
 
@@ -943,14 +930,16 @@ function renderPitchingLines(boxData, gameState = 'final') {
     if (!pitchers.length) return '<div class="score-lineups-empty">Pitching lines unavailable</div>';
     const spIndex = pitchers[0].ipNum >= 2 ? 0 : -1;
     const header = `<div class="score-lineup-row score-lineup-row--header">
-      <span class="score-lineup-pos"></span><span class="score-lineup-name"></span>
+      <span class="score-lineup-pos"></span>
+      <span class="score-lineup-name"></span>
       <span class="score-lineup-box-cols score-lineup-box-cols--pitch"><span>IP</span><span>H</span><span>R</span><span>ER</span><span>BB</span><span>K</span><span>HR</span><span>ERA</span></span>
     </div>`;
+    const isOriolesPitching = Number(team.team?.id) === ORIOLES_ID;
     const rows = pitchers.map((p, i) => {
       const role = i === spIndex ? 'SP' : 'RP';
       const handDisplay = p.pitchHand ? `<span class="score-lineup-hand">(${p.pitchHand})</span>` : '';
-      const cols = [p.ip, p.h, p.r, p.er, p.bb, p.k, p.hr, p.era].map(v => `<span>${esc(String(v))}</span>`).join('');
-      const isOriolesPitching = Number(team.team?.id) === ORIOLES_ID;
+      const cols = [p.ip, p.h, p.r, p.er, p.bb, p.k, p.hr, p.era]
+        .map(v => `<span>${v}</span>`).join('');
       const walkupUrls = isOriolesPitching ? getWalkupSongUrls(p.playerId, p.name) : [];
       return `<div class="score-lineup-row">
         <span class="score-lineup-pos">${role}</span>
