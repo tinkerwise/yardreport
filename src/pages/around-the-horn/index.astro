@@ -17,7 +17,9 @@ import Layout from '../../layouts/Layout.astro';
     </div>
   </main>
 
-  <script type="module">
+  <script>
+    import { relativeDate } from '../../scripts/utils.js';
+
     const grid = document.getElementById('athStoryGrid');
     const title = document.getElementById('athPageTitle');
     const subtitle = document.getElementById('athPageSubtitle');
@@ -36,19 +38,6 @@ import Layout from '../../layouts/Layout.astro';
       } catch {
         return '';
       }
-    }
-
-    function relativeDate(dateStr) {
-      const d = new Date(dateStr);
-      if (Number.isNaN(d.getTime())) return '';
-      const diff = Date.now() - d.getTime();
-      const minutes = Math.floor(diff / 60000);
-      if (minutes < 60) return `${Math.max(minutes, 1)}m ago`;
-      const hours = Math.floor(minutes / 60);
-      if (hours < 24) return `${hours}h ago`;
-      const days = Math.floor(hours / 24);
-      if (days < 7) return `${days}d ago`;
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
     function renderStoryCard(article) {
@@ -76,8 +65,11 @@ import Layout from '../../layouts/Layout.astro';
 
     if (!bundle) {
       title.textContent = 'Story bundle unavailable';
-      subtitle.textContent = 'Open an Around the Horn card from the homepage first so this page can load the saved related-coverage bundle.';
-      grid.innerHTML = '<div class="feed-msg">No saved Around the Horn bundle was found for this story yet.</div>';
+      subtitle.textContent = 'This bundle was generated during a previous session and is no longer available.';
+      grid.innerHTML = `<div class="ath-dead-end">
+        <p class="ath-dead-end-msg">This bundle was generated during a previous session and is no longer available.</p>
+        <a class="ath-dead-end-link" href="${import.meta.env.BASE_URL}">← Back to YardReport</a>
+      </div>`;
     } else {
       title.textContent = bundle.label || 'Around the Horn';
       subtitle.textContent = `${bundle.sourceCount || 0} sources • ${(bundle.articles || []).length} related articles`;

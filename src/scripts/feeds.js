@@ -725,9 +725,11 @@ function setupThumbObserver() {
 // ── Render articles ───────────────────────────────────────────────
 export function renderArticles() {
   const list = $('articleList');
+  const athContainer = $('athBundleContainer');
   const arts = getFilteredArticles();
 
   if (!arts.length) {
+    if (athContainer) athContainer.innerHTML = '';
     list.innerHTML = '<div class="feed-msg">No articles match your filters.</div>';
     return;
   }
@@ -753,14 +755,19 @@ export function renderArticles() {
     limit: MAX_VISIBLE_ARTICLES,
   });
 
-  if (bundles.length) {
-    html += `<section class="ath-section">
-      <div class="ath-section-head">
-        <span class="ath-section-kicker">Featured Stories</span>
-        <h2 class="ath-section-title">Around the Horn</h2>
-      </div>
-      <div class="ath-bundle-grid">${(() => { const used = new Set(); return bundles.map(b => renderBundle(b, arts, used)).join(''); })()}</div>
-    </section>`;
+  // Render ATH bundle cards into the dedicated container above the toolbar
+  if (athContainer) {
+    if (bundles.length) {
+      athContainer.innerHTML = `<section class="ath-section">
+        <div class="ath-section-head">
+          <span class="ath-section-kicker">Featured Stories</span>
+          <h2 class="ath-section-title">Around the Horn</h2>
+        </div>
+        <div class="ath-bundle-grid">${(() => { const used = new Set(); return bundles.map(b => renderBundle(b, arts, used)).join(''); })()}</div>
+      </section>`;
+    } else {
+      athContainer.innerHTML = '';
+    }
   }
 
   const useGroups = state.sortBy === 'dateGroup' || state.sortBy === 'source';
@@ -787,7 +794,9 @@ export function renderArticles() {
   list.innerHTML = html;
   setupThumbObserver();
 
-  list.querySelectorAll('.ath-card-link').forEach(link => {
+  // Wire up ATH bundle click handlers from the dedicated container
+  const athSource = athContainer || list;
+  athSource.querySelectorAll('.ath-card-link').forEach(link => {
     link.addEventListener('click', () => {
       const slug = link.dataset.bundleSlug;
       const bundle = bundles.find(item => item.slug === slug);

@@ -3234,6 +3234,34 @@ a.il-name:hover { color: var(--orange); }
   line-height: 1.55;
   font-size: 0.88rem;
 }
+.ath-dead-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 0 8px;
+}
+.ath-dead-end-msg {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.ath-dead-end-link {
+  display: inline-block;
+  color: var(--orange);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border: 2px solid var(--orange);
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+.ath-dead-end-link:hover {
+  background: var(--orange);
+  color: #fff;
+}
 [data-theme="light"] .bundle-card-overlay {
   background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(43,36,27,0.08) 46%, rgba(43,36,27,0.18) 100%);
 }
