@@ -1,13 +1,18 @@
 // ── Scores, box score popover, lineup, scout notes, arsenal ───────
 import {
-  MLB,
   ORIOLES_ID,
   PITCH_NAMES,
   PROXY,
-  SEASON,
   TEAM_ABBREV,
   TEAM_SLUG,
 } from './config.js';
+import {
+  fetchScheduleByDate,
+  fetchBoxscore as apiFetchBoxscore,
+  fetchArsenal as apiFetchArsenal,
+  fetchTeamStats as apiFetchTeamStats,
+  fetchPitcherVsTeam as apiFetchPitcherVsTeam,
+} from './mlbApi.js';
 import { $, esc, localDateStr, dayLabel, formatGameTime, teamLogoSrc } from './utils.js';
 import { ensureWalkupSongsLoaded, getWalkupSongUrls } from './walkup-songs.js';
 import { triggerOriolesMagic } from './easter-eggs.js';
@@ -189,7 +194,7 @@ function maybeTriggerOriolesWinMagic(games) {
 export async function fetchBoxscore(gamePk) {
   if (boxscoreCache[gamePk]) return boxscoreCache[gamePk];
   try {
-    const data = await fetch(`${MLB}/game/${gamePk}/boxscore`).then(r => r.json());
+    const data = await apiFetchBoxscore(gamePk);
     boxscoreCache[gamePk] = data;
     return data;
   } catch { return null; }
@@ -199,9 +204,7 @@ export async function fetchArsenal(playerId) {
   if (!playerId) return null;
   if (arsenalCache[playerId]) return arsenalCache[playerId];
   try {
-    const data = await fetch(
-      `${MLB}/people/${playerId}/stats?stats=pitchArsenal&season=${SEASON}&group=pitching`
-    ).then(r => r.json());
+    const data = await apiFetchArsenal(playerId);
     arsenalCache[playerId] = data;
     return data;
   } catch { return null; }
@@ -211,10 +214,7 @@ export async function fetchTeamStats(teamId) {
   if (!teamId) return null;
   if (teamStatsCache[teamId]) return teamStatsCache[teamId];
   try {
-    const data = await fetch(
-      `${MLB}/teams/${teamId}/stats?stats=season&season=${SEASON}&group=hitting`
-    ).then(r => r.json());
-    const result = data.stats?.[0]?.splits?.[0]?.stat ?? null;
+    const result = await apiFetchTeamStats(teamId);
     teamStatsCache[teamId] = result;
     return result;
   } catch { return null; }
@@ -225,10 +225,7 @@ export async function fetchPitcherVsTeam(pitcherId, oppTeamId) {
   const key = `${pitcherId}_vs_${oppTeamId}`;
   if (pitcherVsCache[key] !== undefined) return pitcherVsCache[key];
   try {
-    const data = await fetch(
-      `${MLB}/people/${pitcherId}/stats?stats=vsTeamTotal&group=pitching&opposingTeamId=${oppTeamId}`
-    ).then(r => r.json());
-    const result = data.stats?.[0]?.splits?.[0]?.stat ?? null;
+    const result = await apiFetchPitcherVsTeam(pitcherId, oppTeamId);
     pitcherVsCache[key] = result;
     return result;
   } catch { return null; }
@@ -1146,9 +1143,9 @@ export async function loadScores() {
     const tomorrow = localDateStr(1);
 
     const [ydData, todayData, tmData] = await Promise.all([
-      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
+      fetchScheduleByDate(yesterday),
+      fetchScheduleByDate(today),
+      fetchScheduleByDate(tomorrow),
     ]);
 
     const allGames = [
@@ -1226,7 +1223,7 @@ export async function loadScores() {
       pinnedChip = null; setChipExpandedState(null);
       boxPopover.classList.add('hidden');
     }
-    function showBoxScore(chip) {
+    async function showBoxScore(chip) {
       const pk = chip.dataset.gamepk;
       const g = state.gamesMap[pk];
       if (!g) return;
@@ -1263,34 +1260,39 @@ export async function loadScores() {
         };
       }
 
+      // Build the list of fetches that still need to complete before rendering.
+      const pending = [
+        !boxscoreCache[pk]                                                              && fetchBoxscore(pk),
+        isOriolesGame                                                                   && ensureWalkupSongsLoaded(PROXY),
+        isPreview && !arsenalCache[awayPitcherId]                                      && fetchArsenal(awayPitcherId),
+        isPreview && !arsenalCache[homePitcherId]                                      && fetchArsenal(homePitcherId),
+        isLive && livePitcherId && !arsenalCache[livePitcherId]                        && fetchArsenal(livePitcherId),
+        isPreview && isOriolesGame && pitcherVsCache[awayVsKey] === undefined          && fetchPitcherVsTeam(awayPitcherId, homeTeamId),
+        isPreview && isOriolesGame && pitcherVsCache[homeVsKey] === undefined          && fetchPitcherVsTeam(homePitcherId, awayTeamId),
+        isPreview && isOriolesGame && !teamStatsCache[awayTeamId]                      && fetchTeamStats(awayTeamId),
+        isPreview && isOriolesGame && !teamStatsCache[homeTeamId]                      && fetchTeamStats(homeTeamId),
+      ].filter(Boolean);
+
+      if (pending.length) {
+        // Show a loading skeleton while all data is in flight, then render once.
+        boxPopover.innerHTML = '<div class="box-score-loading">Loading…</div>';
+        boxPopover.style.left = '-9999px'; boxPopover.style.top = '0';
+        boxPopover.classList.remove('hidden');
+        positionPopover(chip);
+
+        await Promise.allSettled(pending);
+
+        // If the user dismissed the popover while we were loading, bail out.
+        if (boxPopover.classList.contains('hidden')) return;
+      }
+
+      // All data is now in the caches — single render with complete data.
       boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
       boxPopover.style.left = '-9999px'; boxPopover.style.top = '0';
       boxPopover.classList.remove('hidden');
       syncPopoverTeamDetailHeights(boxPopover);
       initScrollIndicators(boxPopover);
       positionPopover(chip);
-
-      const missing = [
-        !boxscoreCache[pk]                                         && fetchBoxscore(pk),
-        isOriolesGame                                              && ensureWalkupSongsLoaded(PROXY),
-        isPreview && !arsenalCache[awayPitcherId]                 && fetchArsenal(awayPitcherId),
-        isPreview && !arsenalCache[homePitcherId]                 && fetchArsenal(homePitcherId),
-        isLive && livePitcherId && !arsenalCache[livePitcherId]   && fetchArsenal(livePitcherId),
-        isPreview && isOriolesGame && pitcherVsCache[awayVsKey] === undefined && fetchPitcherVsTeam(awayPitcherId, homeTeamId),
-        isPreview && isOriolesGame && pitcherVsCache[homeVsKey] === undefined && fetchPitcherVsTeam(homePitcherId, awayTeamId),
-        isPreview && isOriolesGame && !teamStatsCache[awayTeamId] && fetchTeamStats(awayTeamId),
-        isPreview && isOriolesGame && !teamStatsCache[homeTeamId] && fetchTeamStats(homeTeamId),
-      ].filter(Boolean);
-
-      if (missing.length) {
-        Promise.all(missing).then(() => {
-          if (boxPopover.classList.contains('hidden')) return;
-          boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
-          syncPopoverTeamDetailHeights(boxPopover);
-          initScrollIndicators(boxPopover);
-          positionPopover(chip);
-        });
-      }
     }
     function scheduleShowBoxScore(chip) {
       if (pinnedChip) return;
