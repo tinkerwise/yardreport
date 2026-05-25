@@ -250,9 +250,13 @@ function setupEvents() {
   });
 
   // Auto-refresh scores and transactions every 5 minutes
+  // Skip fetches during off-hours (midnight through 8am local time)
   setInterval(() => {
-    loadScores();
-    loadTransactions();
+    const hour = new Date().getHours();
+    if (hour >= 9) {
+      loadScores();
+      loadTransactions();
+    }
   }, 5 * 60 * 1000);
 
   // ── Easter Eggs ──────────────────────────────────────────────────
