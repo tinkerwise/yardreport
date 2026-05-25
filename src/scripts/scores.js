@@ -1223,7 +1223,7 @@ export async function loadScores() {
       pinnedChip = null; setChipExpandedState(null);
       boxPopover.classList.add('hidden');
     }
-    function showBoxScore(chip) {
+    async function showBoxScore(chip) {
       const pk = chip.dataset.gamepk;
       const g = state.gamesMap[pk];
       if (!g) return;
@@ -1260,34 +1260,39 @@ export async function loadScores() {
         };
       }
 
+      // Build the list of fetches that still need to complete before rendering.
+      const pending = [
+        !boxscoreCache[pk]                                                              && fetchBoxscore(pk),
+        isOriolesGame                                                                   && ensureWalkupSongsLoaded(PROXY),
+        isPreview && !arsenalCache[awayPitcherId]                                      && fetchArsenal(awayPitcherId),
+        isPreview && !arsenalCache[homePitcherId]                                      && fetchArsenal(homePitcherId),
+        isLive && livePitcherId && !arsenalCache[livePitcherId]                        && fetchArsenal(livePitcherId),
+        isPreview && isOriolesGame && pitcherVsCache[awayVsKey] === undefined          && fetchPitcherVsTeam(awayPitcherId, homeTeamId),
+        isPreview && isOriolesGame && pitcherVsCache[homeVsKey] === undefined          && fetchPitcherVsTeam(homePitcherId, awayTeamId),
+        isPreview && isOriolesGame && !teamStatsCache[awayTeamId]                      && fetchTeamStats(awayTeamId),
+        isPreview && isOriolesGame && !teamStatsCache[homeTeamId]                      && fetchTeamStats(homeTeamId),
+      ].filter(Boolean);
+
+      if (pending.length) {
+        // Show a loading skeleton while all data is in flight, then render once.
+        boxPopover.innerHTML = '<div class="box-score-loading">Loading…</div>';
+        boxPopover.style.left = '-9999px'; boxPopover.style.top = '0';
+        boxPopover.classList.remove('hidden');
+        positionPopover(chip);
+
+        await Promise.allSettled(pending);
+
+        // If the user dismissed the popover while we were loading, bail out.
+        if (boxPopover.classList.contains('hidden')) return;
+      }
+
+      // All data is now in the caches — single render with complete data.
       boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
       boxPopover.style.left = '-9999px'; boxPopover.style.top = '0';
       boxPopover.classList.remove('hidden');
       syncPopoverTeamDetailHeights(boxPopover);
       initScrollIndicators(boxPopover);
       positionPopover(chip);
-
-      const missing = [
-        !boxscoreCache[pk]                                         && fetchBoxscore(pk),
-        isOriolesGame                                              && ensureWalkupSongsLoaded(PROXY),
-        isPreview && !arsenalCache[awayPitcherId]                 && fetchArsenal(awayPitcherId),
-        isPreview && !arsenalCache[homePitcherId]                 && fetchArsenal(homePitcherId),
-        isLive && livePitcherId && !arsenalCache[livePitcherId]   && fetchArsenal(livePitcherId),
-        isPreview && isOriolesGame && pitcherVsCache[awayVsKey] === undefined && fetchPitcherVsTeam(awayPitcherId, homeTeamId),
-        isPreview && isOriolesGame && pitcherVsCache[homeVsKey] === undefined && fetchPitcherVsTeam(homePitcherId, awayTeamId),
-        isPreview && isOriolesGame && !teamStatsCache[awayTeamId] && fetchTeamStats(awayTeamId),
-        isPreview && isOriolesGame && !teamStatsCache[homeTeamId] && fetchTeamStats(homeTeamId),
-      ].filter(Boolean);
-
-      if (missing.length) {
-        Promise.all(missing).then(() => {
-          if (boxPopover.classList.contains('hidden')) return;
-          boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
-          syncPopoverTeamDetailHeights(boxPopover);
-          initScrollIndicators(boxPopover);
-          positionPopover(chip);
-        });
-      }
     }
     function scheduleShowBoxScore(chip) {
       if (pinnedChip) return;

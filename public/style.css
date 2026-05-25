@@ -2893,31 +2893,6 @@ a.il-name:hover { color: var(--orange); }
   font-size: 0.9rem;
 }
 
-/* ── Load More button ──────────────────────────────────────────── */
-.load-more-wrap {
-  display: flex;
-  justify-content: center;
-  padding: 24px 0 8px;
-}
-
-.load-more-btn {
-  background: transparent;
-  border: 1.5px solid #df4601;
-  color: #df4601;
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 9px 28px;
-  border-radius: 6px;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: background 0.15s, color 0.15s;
-}
-
-.load-more-btn:hover {
-  background: #df4601;
-  color: #fff;
-}
-
 /* ── Around the Horn Bundles ───────────────────────────────────── */
 .ath-bundle {
   display: flex;
