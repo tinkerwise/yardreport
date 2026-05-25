@@ -2,6 +2,7 @@
 import { PROXY } from './config.js';
 import {
   MAX_VISIBLE_ARTICLES,
+  LOAD_MORE_BATCH,
   selectDisplayArticles,
   selectDisplayBundles,
 } from './feedDisplay.js';
@@ -45,6 +46,29 @@ export function setViewMode(view, { render = true } = {}) {
   if (render) renderArticles();
 }
 
+// ── Feed cache ────────────────────────────────────────────────────
+const FEED_CACHE_KEY = 'yardreport_feed_cache';
+const FEED_CACHE_TTL = 1200000; // 20 minutes
+
+function readFeedCache() {
+  try {
+    const raw = sessionStorage.getItem(FEED_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.articles)) return null;
+    if (Date.now() - parsed.timestamp > FEED_CACHE_TTL) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeFeedCache(articles) {
+  try {
+    sessionStorage.setItem(FEED_CACHE_KEY, JSON.stringify({ articles, timestamp: Date.now() }));
+  } catch { /* ignore storage failures */ }
+}
+
 // ── Feed fetching ─────────────────────────────────────────────────
 async function fetchFeed(source) {
   try {
@@ -67,7 +91,6 @@ async function fetchFeed(source) {
 }
 
 export async function loadFeeds() {
-  $('articleList').innerHTML = '<div class="feed-msg">Loading news…</div>';
   let FEEDS;
   try {
     FEEDS = await fetch(`${import.meta.env.BASE_URL}feeds.json`).then(r => r.json());
@@ -75,6 +98,16 @@ export async function loadFeeds() {
   } catch {
     $('articleList').innerHTML = '<div class="feed-msg">Could not load feeds.json</div>';
     return [];
+  }
+
+  // ── Serve cached articles immediately if available ────────────
+  const cached = readFeedCache();
+  if (cached) {
+    state.articles = cached.articles;
+    renderSourceFilters();
+    renderArticles();
+  } else {
+    $('articleList').innerHTML = '<div class="feed-msg">Loading news…</div>';
   }
 
   const disabled = getDisabledSources();
@@ -92,7 +125,7 @@ export async function loadFeeds() {
 
   const results = await Promise.allSettled(activeFEEDS.map(fetchFeed));
 
-  state.articles = [];
+  const freshArticles = [];
   const successfulSources = [];
 
   for (const r of results) {
@@ -104,12 +137,23 @@ export async function loadFeeds() {
       const effectiveSource = isMiLB(article)
         ? { ...source, category: 'milb' }
         : source;
-      state.articles.push({ ...article, source: effectiveSource });
+      freshArticles.push({ ...article, source: effectiveSource });
     }
   }
 
-  renderSourceFilters();
-  renderArticles();
+  // Always update cache with fresh data
+  writeFeedCache(freshArticles);
+
+  // Only re-render if the fresh data differs from what's already showing
+  const freshLinks = freshArticles.map(a => a.link).join(',');
+  const currentLinks = state.articles.map(a => a.link).join(',');
+  if (freshLinks !== currentLinks) {
+    state.loadMoreVisible = 0;
+    state.articles = freshArticles;
+    renderSourceFilters();
+    renderArticles();
+  }
+
   return successfulSources;
 }
 
@@ -306,7 +350,7 @@ function renderCard(a, i) {
     <span class="article-date">${relativeDate(a.pubDate)}</span>
     ${paywallBadge}
     ${hasFullContent ? '<span class="full-badge">Full</span>' : ''}
-    <button class="share-btn" data-url="${esc(a.link)}" data-title="${esc(a.title)}" title="Share" onclick="event.stopPropagation();if(navigator.share)navigator.share({title:this.dataset.title,url:this.dataset.url});else{navigator.clipboard.writeText(this.dataset.url);this.textContent='Copied!';setTimeout(()=>this.innerHTML='<svg width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><path d=\\'M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8\\'/><polyline points=\\'16 6 12 2 8 6\\'/><line x1=\\'12\\' y1=\\'2\\' x2=\\'12\\' y2=\\'15\\'/></svg>',1500)}">
+    <button class="share-btn" data-action="share" data-url="${esc(a.link)}" data-title="${esc(a.title)}" title="Share">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
     </button>
     ${readTick}
@@ -722,6 +766,9 @@ function setupThumbObserver() {
   for (const node of nodes) thumbObserver.observe(node);
 }
 
+// ── Share button SVG ─────────────────────────────────────────────
+const SHARE_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+
 // ── Render articles ───────────────────────────────────────────────
 export function renderArticles() {
   const list = $('articleList');
@@ -746,12 +793,19 @@ export function renderArticles() {
     }) : [];
   const bundledSet = new Set(bundles.flatMap(b => b.articles));
   const unbundled = arts.filter(a => !bundledSet.has(a));
-  const displayArts = selectDisplayArticles(bundles.length ? unbundled : arts, {
+
+  // Determine how many articles to show (initial + any load-more batches)
+  const visibleLimit = MAX_VISIBLE_ARTICLES + state.loadMoreVisible;
+
+  const candidateArts = bundles.length ? unbundled : arts;
+  const allDisplayArts = selectDisplayArticles(candidateArts, {
     sortBy: state.sortBy,
     showRead: state.showRead,
     readArticles: getReadArticles(),
-    limit: MAX_VISIBLE_ARTICLES,
+    limit: candidateArts.length, // get all, we'll slice below
   });
+  const displayArts = allDisplayArts.slice(0, visibleLimit);
+  const hasMore = allDisplayArts.length > visibleLimit;
 
   if (bundles.length) {
     html += `<section class="ath-section">
@@ -784,8 +838,40 @@ export function renderArticles() {
     html += `</div>`;
   }
 
+  if (hasMore) {
+    html += `<div class="load-more-wrap">
+      <button class="load-more-btn" id="loadMoreBtn">Load More</button>
+    </div>`;
+  }
+
   list.innerHTML = html;
   setupThumbObserver();
+
+  // ── Load More button ──────────────────────────────────────────
+  const loadMoreBtn = list.querySelector('#loadMoreBtn');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => {
+      state.loadMoreVisible += LOAD_MORE_BATCH;
+      renderArticles();
+    });
+  }
+
+  // ── Share button — delegated listener on list ─────────────────
+  list.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action="share"]');
+    if (!btn) return;
+    e.stopPropagation();
+    const url = btn.dataset.url;
+    const title = btn.dataset.title;
+    if (navigator.share) {
+      navigator.share({ title, url });
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.innerHTML = SHARE_SVG; }, 1500);
+      });
+    }
+  });
 
   list.querySelectorAll('.ath-card-link').forEach(link => {
     link.addEventListener('click', () => {
@@ -801,6 +887,7 @@ export function renderArticles() {
   list.querySelectorAll('.article-card').forEach(el => {
     el.addEventListener('click', e => {
       if (e.target.tagName === 'A') return;
+      if (e.target.closest('[data-action="share"]')) return;
       const idx = Number(el.dataset.idx);
       const article = arts[idx];
       if (el.dataset.paywall) {

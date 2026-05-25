@@ -1,7 +1,6 @@
 // ── Sidebars ──────────────────────────────────────────────────────
 import {
   DIVISION_NAMES,
-  MLB,
   ORIOLES_ID,
   PROXY,
   SEASON,
@@ -9,6 +8,17 @@ import {
   TEAM_PAGE,
   TEAM_SLUG,
 } from './config.js';
+import {
+  fetchScheduleByDate,
+  fetchTeamSchedule,
+  fetchTeamScheduleWithMedia,
+  fetchStandings,
+  fetchRoster,
+  fetchRosterCurrent,
+  fetchTransactions,
+  fetchTeamLeaders,
+  fetchLeagueLeaders,
+} from './mlbApi.js';
 import { state } from './state.js';
 import {
   $,
@@ -27,9 +37,7 @@ import { WALKUP_ICON_SVG } from './scores.js';
 // ── Standings ─────────────────────────────────────────────────────
 export async function loadStandings() {
   try {
-    const data = await fetch(
-      `${MLB}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=regularSeason`
-    ).then(r => r.json());
+    const data = await fetchStandings();
 
     state.standings = data.records.map(div => ({
       divisionId: div.division.id,

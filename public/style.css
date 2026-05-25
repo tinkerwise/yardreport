@@ -3259,7 +3259,7 @@ a.il-name:hover { color: var(--orange); }
 
 .reader-modal {
   width: min(800px, 100%);
-  background: #fff;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -3270,8 +3270,8 @@ a.il-name:hover { color: var(--orange); }
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
   gap: 12px;
   flex-shrink: 0;
 }
@@ -3284,7 +3284,7 @@ a.il-name:hover { color: var(--orange); }
   color: #fff;
   flex-shrink: 0;
 }
-.reader-date { font-size: 0.73rem; color: #777; }
+.reader-date { font-size: 0.73rem; color: var(--text-3); }
 .reader-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .btn-original-reader {
   font-size: 0.78rem;
@@ -3299,21 +3299,21 @@ a.il-name:hover { color: var(--orange); }
 .btn-close-reader {
   padding: 5px 9px;
   background: transparent;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 5px;
-  color: #666;
+  color: var(--text-2);
   font-size: 1rem;
   transition: all 0.15s;
 }
-.btn-close-reader:hover { background: #eee; color: #333; }
+.btn-close-reader:hover { background: var(--border-light); color: var(--text); }
 
 .reader-title {
   padding: 16px 20px 14px;
   font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.4;
-  color: #111;
-  border-bottom: 1px solid #eee;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .reader-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -3328,7 +3328,7 @@ a.il-name:hover { color: var(--orange); }
   overflow-y: auto;
 }
 .reader-fallback.hidden { display: none; }
-.reader-excerpt { font-size: 1rem; line-height: 1.75; color: #333; }
+.reader-excerpt { font-size: 1rem; line-height: 1.75; color: var(--text-2); }
 .btn-read-full {
   align-self: flex-start;
   padding: 11px 22px;

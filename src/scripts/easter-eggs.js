@@ -2,12 +2,14 @@
 import { applyTheme } from './theme.js';
 import { loadPrefs } from './storage.js';
 
+const BASE = '/yardreport';
+
 export function triggerOriolesMagic() {
   const container = document.createElement('div');
   container.className = 'magic-confetti';
   document.body.appendChild(container);
 
-  const audio = new Audio('/yardreport/audio/orioles_magic_short.mp3');
+  const audio = new Audio(`${BASE}/audio/orioles_magic_short.mp3`);
   audio.volume = 0.7;
   let confettiInterval = null;
   let confettiKickoff = null;

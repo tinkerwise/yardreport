@@ -16,4 +16,5 @@ export const state = {
   standings: [],
   activeDiv: null,
   gamesMap: {},
+  loadMoreVisible: 0,
 };

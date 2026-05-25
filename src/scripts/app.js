@@ -125,6 +125,7 @@ function setupEvents() {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
       state.searchQuery = e.target.value.trim();
+      state.loadMoreVisible = 0;
       renderArticles();
     }, 220);
   });
@@ -132,11 +133,13 @@ function setupEvents() {
   // Sort
   $('sortSelect').addEventListener('change', e => {
     state.sortBy = e.target.value;
+    state.loadMoreVisible = 0;
     renderArticles();
   });
 
   $('showReadBtn').addEventListener('click', () => {
     state.showRead = !state.showRead;
+    state.loadMoreVisible = 0;
     savePrefs({ showRead: state.showRead });
     syncShowReadButton();
     renderArticles();
@@ -145,6 +148,7 @@ function setupEvents() {
   // Date range filter
   $('dateRangeSelect').addEventListener('change', e => {
     state.dateRange = Number(e.target.value);
+    state.loadMoreVisible = 0;
     renderArticles();
   });
 
@@ -166,6 +170,7 @@ function setupEvents() {
     const pill = e.target.closest('.pill');
     if (!pill) return;
     state.activeCategory = pill.dataset.category;
+    state.loadMoreVisible = 0;
     $('categoryFilters').querySelectorAll('.pill').forEach(p =>
       p.classList.toggle('active', p.dataset.category === state.activeCategory));
     renderArticles();
@@ -250,9 +255,13 @@ function setupEvents() {
   });
 
   // Auto-refresh scores and transactions every 5 minutes
+  // Skip fetches during off-hours (midnight through 8am local time)
   setInterval(() => {
-    loadScores();
-    loadTransactions();
+    const hour = new Date().getHours();
+    if (hour >= 9) {
+      loadScores();
+      loadTransactions();
+    }
   }, 5 * 60 * 1000);
 
   // ── Easter Eggs ──────────────────────────────────────────────────
