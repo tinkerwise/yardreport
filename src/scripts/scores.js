@@ -144,6 +144,7 @@ function renderGameChip(g) {
 
 // ── API fetch caches ──────────────────────────────────────────────
 export const boxscoreCache = {};
+export const scoringPlaysCache = {};
 export const arsenalCache = {};
 export const teamStatsCache = {};
 export const pitcherVsCache = {};
@@ -193,6 +194,20 @@ export async function fetchBoxscore(gamePk) {
     boxscoreCache[gamePk] = data;
     return data;
   } catch { return null; }
+}
+
+export async function fetchScoringPlays(gamePk) {
+  if (scoringPlaysCache[gamePk] !== undefined) return scoringPlaysCache[gamePk];
+  try {
+    const data = await fetch(
+      `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`
+    ).then(r => r.json());
+    const allPlays = data.liveData?.plays?.allPlays ?? [];
+    const indices  = data.liveData?.plays?.scoringPlays ?? [];
+    const plays    = indices.map(i => allPlays[i]).filter(Boolean);
+    scoringPlaysCache[gamePk] = plays;
+    return plays;
+  } catch { scoringPlaysCache[gamePk] = []; return []; }
 }
 
 export async function fetchArsenal(playerId) {
@@ -1139,6 +1154,110 @@ function renderTeamSituationalStats(boxData) {
   return `<div class="gsum">${lines}</div>`;
 }
 
+function renderScoringSummary(plays, g) {
+  if (!plays?.length) return '';
+  const awayId = g.teams?.away?.team?.id;
+  const homeId = g.teams?.home?.team?.id;
+  const awayAbbr = TEAM_ABBREV[awayId] ?? teamAbbr(g.teams.away.team);
+  const homeAbbr = TEAM_ABBREV[homeId] ?? teamAbbr(g.teams.home.team);
+  const awayLogo = awayId ? `<img class="scr-logo" src="${teamLogoSrc(awayId)}" width="13" height="13" alt="" loading="lazy">` : '<span class="scr-logo"></span>';
+  const homeLogo = homeId ? `<img class="scr-logo" src="${teamLogoSrc(homeId)}" width="13" height="13" alt="" loading="lazy">` : '<span class="scr-logo"></span>';
+  const rows = plays.map(p => {
+    const { about, result } = p;
+    const isTop = about.halfInning === 'top';
+    const inn = `${isTop ? 'T' : 'B'}${about.inning}`;
+    const logo = isTop ? awayLogo : homeLogo;
+    const score = `${awayAbbr} ${result.awayScore ?? '?'}, ${homeAbbr} ${result.homeScore ?? '?'}`;
+    return `<div class="scr-play">
+      <span class="scr-inn">${esc(inn)}</span>
+      ${logo}
+      <span class="scr-desc">${esc(result.description ?? '')}</span>
+      <span class="scr-score">${esc(score)}</span>
+    </div>`;
+  }).join('');
+  return `<div class="box-section scr-wrap">
+    <div class="box-sum-hdr">Scoring Summary</div>
+    ${rows}
+  </div>`;
+}
+
+function renderBattingSummary(boxData, g) {
+  if (!boxData?.teams) return '';
+
+  const awayId   = boxData.teams?.away?.team?.id;
+  const homeId   = boxData.teams?.home?.team?.id;
+  const awayAbbr = TEAM_ABBREV[awayId] ?? teamAbbr(g.teams.away.team);
+  const homeAbbr = TEAM_ABBREV[homeId] ?? teamAbbr(g.teams.home.team);
+
+  const getFieldList = (side) => {
+    const info = boxData.teams[side]?.info ?? [];
+    return info.find(s => s.title === 'BATTING')?.fieldList ?? [];
+  };
+  const awayFields = getFieldList('away');
+  const homeFields = getFieldList('home');
+
+  // Player batting events — combined both teams per label
+  const EVENTS = ['HR', '2B', '3B', 'RBI', '2-out RBI', 'GIDP'];
+  const eventRows = EVENTS.map(label => {
+    const aw = awayFields.find(f => f.label === label);
+    const hw = homeFields.find(f => f.label === label);
+    if (!aw && !hw) return '';
+    const parts = [];
+    if (aw) parts.push(`<span class="bat-team bat-team--away">${esc(awayAbbr)}</span> ${esc(aw.value)}`);
+    if (hw) parts.push(`<span class="bat-team bat-team--home">${esc(homeAbbr)}</span> ${esc(hw.value)}`);
+    return `<div class="bat-row">
+      <span class="bat-lbl">${esc(label)}</span>
+      <span class="bat-val">${parts.join(' ')}</span>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  // Team stats — one row per stat, both teams side by side
+  const getSit = (side) => {
+    const bat = boxData.teams[side]?.teamStats?.batting ?? {};
+    const fields = getFieldList(side);
+    const sb  = bat.stolenBases ?? null;
+    const cs  = bat.caughtStealing ?? null;
+    const hasSb = (sb ?? 0) > 0 || (cs ?? 0) > 0;
+    return {
+      lob:  fields.find(f => f.label === 'Team LOB')?.value  ?? null,
+      risp: fields.find(f => f.label === 'Team RISP')?.value ?? null,
+      k:    bat.strikeOuts  != null ? String(bat.strikeOuts)  : null,
+      bb:   bat.baseOnBalls != null ? String(bat.baseOnBalls) : null,
+      sb:   hasSb ? ((cs ?? 0) > 0 ? `${sb ?? 0}/${cs}` : `${sb ?? 0}`) : null,
+    };
+  };
+  const aw = getSit('away');
+  const hw = getSit('home');
+
+  const teamRow = (label, awVal, hwVal) => {
+    if (awVal == null && hwVal == null) return '';
+    const parts = [];
+    if (awVal != null) parts.push(`<span class="bat-team bat-team--away">${esc(awayAbbr)}</span> ${esc(awVal)}`);
+    if (hwVal != null) parts.push(`<span class="bat-team bat-team--home">${esc(homeAbbr)}</span> ${esc(hwVal)}`);
+    return `<div class="bat-row">
+      <span class="bat-lbl">${esc(label)}</span>
+      <span class="bat-val">${parts.join(', ')}</span>
+    </div>`;
+  };
+
+  const teamRows = [
+    teamRow('LOB',  aw.lob,  hw.lob),
+    teamRow('RISP', aw.risp, hw.risp),
+    teamRow('K',    aw.k,    hw.k),
+    teamRow('BB',   aw.bb,   hw.bb),
+    teamRow('SB',   aw.sb,   hw.sb),
+  ].filter(Boolean).join('');
+
+  if (!eventRows && !teamRows) return '';
+
+  return `<div class="box-section bat-wrap">
+    <div class="box-sum-hdr">Batting Summary</div>
+    ${eventRows}
+    ${eventRows && teamRows ? '<div class="bat-col-divider"></div>' : ''}
+    ${teamRows}
+  </div>`;
+}
+
 function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const isPreview = g.status.abstractGameState === 'Preview';
   if (isPreview) {
@@ -1179,7 +1298,8 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const decisions = renderDecisionStrip(g);
   const pitchingLines = renderPitchingLines(boxData, gameState);
   const scoutNotes = renderScoutNotes(g, arsenals, null);
-  const situational = renderTeamSituationalStats(boxData);
+  const scoring = renderScoringSummary(scoringPlaysCache[g.gamePk] ?? null, g);
+  const batting = renderBattingSummary(boxData, g);
 
   return `<div class="box-popover-stack">
     ${scoutNotes}
@@ -1194,7 +1314,8 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
       ${decisions}
     </div>
     ${pitchingLines}
-    ${situational ? `<div class="box-section">${situational}</div>` : ''}
+    ${batting}
+    ${scoring}
     ${renderPopoverGameLink(g)}
   </div>`;
 }
@@ -1334,6 +1455,7 @@ export async function loadScores() {
 
       const missing = [
         !boxscoreCache[pk]                                         && fetchBoxscore(pk),
+        !isPreview && scoringPlaysCache[pk] === undefined          && fetchScoringPlays(pk),
         isOriolesGame                                              && ensureWalkupSongsLoaded(PROXY),
         isPreview && !arsenalCache[awayPitcherId]                 && fetchArsenal(awayPitcherId),
         isPreview && !arsenalCache[homePitcherId]                 && fetchArsenal(homePitcherId),
