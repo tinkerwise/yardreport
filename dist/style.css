@@ -2109,7 +2109,7 @@ a.leader-name:hover { color: var(--orange); }
 .roster-name { flex: 1; color: var(--text); font-weight: 500; transition: color 0.15s; }
 a.roster-name:hover { color: var(--orange); }
 .roster-pos { color: var(--text-3); font-size: 0.68rem; flex-shrink: 0; }
-.roster-badge { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+.roster-badge { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 6px; border-radius: 3px; flex-shrink: 0; }
 .roster-badge--il { background: rgba(239,68,68,0.15); color: #ef4444; }
 .roster-badge--taxi { background: rgba(234,179,8,0.15); color: #ca8a04; }
 
@@ -2242,11 +2242,11 @@ a.roster-name:hover { color: var(--orange); }
 .dc-chip-empty { font-size: 0.7rem; color: var(--text-3); }
 .dc-il-pill {
   display: inline-block;
-  font-size: 0.46rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 1px 4px;
+  padding: 2px 6px;
   border-radius: 3px;
   background: rgba(239,68,68,0.15);
   color: #ef6060;
@@ -2352,7 +2352,7 @@ a.roster-name:hover { color: var(--orange); }
 }
 .dc-pit-row--starter .dc-pit-name { color: var(--text); font-weight: 600; }
 .dc-pit-name:hover { color: var(--orange); }
-.dc-pit-row .dc-il-pill { font-size: 0.5rem; padding: 1px 4px; }
+
 
 .dc-page-footer { margin-top: 14px; text-align: center; }
 
