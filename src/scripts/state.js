@@ -15,5 +15,6 @@ export const state = {
   viewMode: window.innerWidth <= 600 ? 'list' : defaultView,
   standings: [],
   activeDiv: null,
+  activeLeague: 'AL',
   gamesMap: {},
 };

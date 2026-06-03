@@ -79,6 +79,11 @@ import Layout from '../layouts/Layout.astro';
           <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </h3>
         <div class="section-body">
+          <div class="standings-league-switch" id="standingsLeagueSwitch">
+            <button class="stnd-league-btn active" data-league="AL">American League</button>
+            <span class="stnd-league-sep">|</span>
+            <button class="stnd-league-btn" data-league="NL">National League</button>
+          </div>
           <div class="div-tabs" id="divTabs"></div>
           <div id="standingsWrap">
             <span class="sidebar-msg">Loading…</span>

@@ -180,6 +180,8 @@
 [data-theme="city-connect"] .div-tab.active { background: #2D5A3D; border-color: #2D5A3D; color: #fff; }
 [data-theme="city-connect"] .leaders-scope-btn:hover { border-color: #2D5A3D; color: #2D5A3D; }
 [data-theme="city-connect"] .leaders-scope-btn.active { background: #2D5A3D; border-color: #2D5A3D; }
+[data-theme="city-connect"] .stnd-league-btn:hover { color: #2D5A3D; }
+[data-theme="city-connect"] .stnd-league-btn.active { color: #1E4A30; }
 /* Buttons */
 [data-theme="city-connect"] .btn-settings:hover { color: #2D5A3D; border-color: #2D5A3D; }
 [data-theme="city-connect"] .theme-btn:hover { border-color: #2D5A3D; color: #2D5A3D; }
@@ -1865,6 +1867,21 @@ img { display: block; max-width: 100%; }
   filter: drop-shadow(0 1px 4px rgba(255,255,255,0.25));
 }
 .standings-section { display: flex; flex-direction: column; gap: 10px; }
+.standings-league-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.stnd-league-btn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 0.72rem; font-weight: 600; color: var(--text-3);
+  transition: color 0.15s; white-space: nowrap;
+}
+.stnd-league-btn:hover { color: var(--orange); }
+.stnd-league-btn.active { color: var(--text); }
+.stnd-league-sep { color: var(--border-light); font-size: 0.72rem; user-select: none; }
+
 .div-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
 .div-tab {
   padding: 4px 11px;
@@ -1872,7 +1889,7 @@ img { display: block; max-width: 100%; }
   border-radius: 20px;
   background: transparent;
   color: var(--text-2);
-  font-size: 0.72rem;
+  font-size: 0.77rem;
   font-weight: 600;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
   white-space: nowrap;
@@ -2038,16 +2055,16 @@ img { display: block; max-width: 100%; }
 }
 .leaders-roy-league:first-child { border-top: none; margin-top: 0; padding-top: 2px; }
 .leaders-scope-btn {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px;
-  background: transparent; color: var(--text-3); font-size: 0.58rem; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border: 1px solid var(--border-light); border-radius: 20px;
+  background: transparent; color: var(--text-2); font-size: 0.77rem; font-weight: 600;
   cursor: pointer; transition: all 0.15s;
 }
 .leaders-scope-btn:hover { border-color: var(--orange); color: var(--orange); }
 .leaders-scope-btn.active { background: var(--orange); border-color: var(--orange); color: #fff; }
 .leaders-scope-logo {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   object-fit: contain;
   filter: drop-shadow(0 1px 3px rgba(255,255,255,0.25));
@@ -2907,11 +2924,11 @@ a.il-name:hover { color: var(--orange); }
 .source-name { color: var(--text-2); font-weight: 600; }
 .article-date { font-size: 0.71rem; color: var(--text-3); }
 .full-badge {
-  font-size: 0.58rem; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+  font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 3px;
   background: rgba(34,197,94,0.15); color: #22c55e; text-transform: uppercase;
 }
 .paywall-badge {
-  font-size: 0.58rem; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+  font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 3px;
   background: rgba(100,116,139,0.15); color: var(--text-3); white-space: nowrap;
 }
 .share-btn {

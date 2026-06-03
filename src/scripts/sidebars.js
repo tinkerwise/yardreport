@@ -45,22 +45,45 @@ export async function loadStandings() {
       })),
     }));
 
-    const alEast = state.standings.find(d => d.divisionId === 201);
-    state.activeDiv = alEast?.divisionId ?? state.standings[0]?.divisionId ?? null;
+    state.activeLeague = 'AL';
+    state.activeDiv = state.standings.find(d => d.divisionId === 201)?.divisionId
+      ?? state.standings[0]?.divisionId ?? null;
 
+    renderLeagueSwitch();
     renderDivTabs();
     renderStandings();
+
+    $('standingsLeagueSwitch').querySelectorAll('.stnd-league-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.activeLeague = btn.dataset.league;
+        const eastId = state.activeLeague === 'AL' ? 201 : 204;
+        state.activeDiv = state.standings.find(d => d.divisionId === eastId)?.divisionId ?? null;
+        renderLeagueSwitch();
+        renderDivTabs();
+        renderStandings();
+      });
+    });
   } catch {
     $('standingsWrap').innerHTML = '<span class="sidebar-msg">Standings unavailable</span>';
   }
 }
 
+const AL_DIVS = [201, 202, 200]; // East, Central, West
+const NL_DIVS = [204, 205, 203];
+
+function renderLeagueSwitch() {
+  $('standingsLeagueSwitch').querySelectorAll('.stnd-league-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.league === state.activeLeague);
+  });
+}
+
 function renderDivTabs() {
+  const divIds = state.activeLeague === 'AL' ? AL_DIVS : NL_DIVS;
   const container = $('divTabs');
-  container.innerHTML = state.standings.map(d => {
-    const short = d.division.replace('American League ', 'AL ').replace('National League ', 'NL ');
-    return `<button class="div-tab${d.divisionId === state.activeDiv ? ' active' : ''}"
-      data-div="${d.divisionId}">${esc(short)}</button>`;
+  container.innerHTML = divIds.map(id => {
+    const d = state.standings.find(s => s.divisionId === id);
+    if (!d) return '';
+    return `<button class="div-tab${d.divisionId === state.activeDiv ? ' active' : ''}" data-div="${d.divisionId}">${esc(d.division)}</button>`;
   }).join('');
 
   container.querySelectorAll('.div-tab').forEach(btn => {
