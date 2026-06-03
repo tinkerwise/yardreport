@@ -1713,21 +1713,22 @@ img { display: block; max-width: 100%; }
   gap: 22px;
   max-height: calc(100vh - var(--header-h) - var(--scores-h) - 32px);
   overflow-y: auto;
-  overflow-x: visible;
+  overflow-x: hidden;
   z-index: 15;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
-  scrollbar-gutter: stable;
+  padding-right: 8px;
 }
 .sidebar-right {
   position: sticky;
   top: calc(var(--header-h) + var(--scores-h) + 16px);
   max-height: calc(100vh - var(--header-h) - var(--scores-h) - 32px);
   overflow-y: auto;
+  overflow-x: hidden;
   z-index: 10;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
-  scrollbar-gutter: stable;
+  padding-right: 8px;
 }
 
 .search-wrap {
