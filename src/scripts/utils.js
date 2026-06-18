@@ -214,6 +214,30 @@ export function shortGameDate(dateStr) {
 
 // Venue detail cache (shared by scores + sidebars)
 const venueCache = {};
+// ── Toast notifications ───────────────────────────────────────────
+export function showToast(message, { duration = 6000, icon = '🔔' } = {}) {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span class="toast-icon" aria-hidden="true">${icon}</span><span class="toast-msg">${esc(message)}</span><button class="toast-close" aria-label="Dismiss">✕</button>`;
+
+  const dismiss = () => {
+    toast.classList.add('toast--out');
+    toast.addEventListener('animationend', () => toast.remove(), { once: true });
+  };
+
+  toast.querySelector('.toast-close').addEventListener('click', dismiss);
+  container.appendChild(toast);
+  setTimeout(dismiss, duration);
+}
+
 export async function fetchVenueDetails(venueId) {
   if (!venueId) return null;
   if (venueCache[venueId]) return venueCache[venueId];

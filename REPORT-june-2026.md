@@ -65,10 +65,9 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 **Why it's great:** Orioles fans are deeply invested in the farm system. This gives the site a unique angle no other aggregator covers.  
 **Effort:** High. MiLB API is less documented; may require scraping or a third-party source.
 
-### 11. Transaction Alerts (Toast Notifications)
-**What:** When a new transaction appears (DFA, trade, call-up, IL move) that wasn't there on the last poll, pop a toast notification in the corner: "🚨 Jordan Westburg activated from 60-day IL." Dismissable, non-blocking.  
-**Why it's great:** The transactions widget already polls — this just makes it loud when something happens. No new data source needed.  
-**Effort:** Low. Delta-diff the transactions list between polls; fire a toast on new items.
+### ~~11. Transaction Alerts (Toast Notifications)~~ ✅ Done
+**What:** When a new transaction appears (DFA, trade, call-up, IL move) that wasn't in the previous poll, a toast slides in from the bottom-right with a type icon (🏥 IL, ⬆️ call-up, ⬇️ DFA, 🔄 trade, ✍️ signing) and the transaction description. Auto-dismisses after 6 seconds; has a manual ✕ button. First page load populates the known-ID set silently — toasts only fire on subsequent polls.  
+**Files:** `utils.js` (`showToast`), `sidebars.js` (`knownTxnIds`, `txnKey`, `txnIcon`, `loadTransactions`), `style.css` (`.toast-*`, `@keyframes toast-in/out`)
 
 ### 12. Historical Standings Comparison
 **What:** In the Standings widget, add a small sparkline or "+/– vs last year at this date" delta next to each team's record. Shows whether the Orioles are ahead of or behind last season's pace.  
@@ -98,7 +97,7 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 |---|---|---|---|---|
 | 1 | Stale-while-revalidate feed cache | ⭐⭐⭐ | Medium | ✅ Done |
 | 2 | ETag-based smart polling | ⭐⭐ | Medium | ✅ Done |
-| 11 | Transaction alerts (toasts) | ⭐⭐⭐ | Low | ✅ Yes |
+| 11 | Transaction alerts (toasts) | ⭐⭐⭐ | Low | ✅ Done |
 | 14 | Game countdown timer | ⭐⭐ | Very low | ✅ Yes |
 | 8 | Pitching matchup preview | ⭐⭐⭐ | Low-med | ✅ Yes |
 | 13 | Walk-up song in-app player | ⭐⭐ | Low | ✅ Yes |

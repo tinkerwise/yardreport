@@ -19,6 +19,7 @@ import {
   cleanFeedText,
   relativeDate,
   teamLogoSrc,
+  showToast,
 } from './utils.js';
 import { fetchWeatherForGames, getGameWeather } from './weather.js';
 import { ensureWalkupSongsLoaded, getWalkupSongUrls } from './walkup-songs.js';
@@ -392,6 +393,24 @@ export async function loadRoster() {
 }
 
 // ── Transactions ──────────────────────────────────────────────────
+// ── Transaction alert state ───────────────────────────────────────
+const knownTxnIds = new Set();
+let txnInitialized = false;
+
+function txnKey(t) {
+  return t.id ?? `${t.date ?? t.effectiveDate}-${t.person?.id}-${t.typeCode}`;
+}
+
+function txnIcon(t) {
+  const type = String(t.typeCode ?? t.typeDesc ?? '').toLowerCase();
+  if (/\bil\b|injur|disabled/.test(type)) return '🏥';
+  if (/activ|recall|select|reinstat/.test(type)) return '⬆️';
+  if (/dfa|designat|release|outrigh/.test(type)) return '⬇️';
+  if (/trade/.test(type)) return '🔄';
+  if (/sign|contract|extend/.test(type)) return '✍️';
+  return '🔔';
+}
+
 export async function loadTransactions() {
   const wrap = $('transactionsWrap');
   try {
@@ -407,6 +426,16 @@ export async function loadTransactions() {
     const txns = (data.transactions ?? [])
       .sort((a, b) => new Date(b.date || b.effectiveDate) - new Date(a.date || a.effectiveDate))
       .slice(0, 12);
+
+    // Diff against previously seen transactions; fire toasts for new ones
+    const newTxns = txnInitialized ? txns.filter(t => !knownTxnIds.has(txnKey(t))) : [];
+    for (const t of txns) knownTxnIds.add(txnKey(t));
+    txnInitialized = true;
+    for (const t of newTxns) {
+      const msg = (t.description ?? `${t.person?.fullName ?? 'Player'} — ${t.typeDesc ?? t.typeCode}`)
+        .replace(/<[^>]+>/g, '').trim();
+      showToast(msg.length > 120 ? msg.slice(0, 117) + '…' : msg, { icon: txnIcon(t) });
+    }
     if (!txns.length) {
       wrap.innerHTML = '<span class="sidebar-msg">No recent transactions</span>';
       return;
