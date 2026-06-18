@@ -1914,6 +1914,7 @@ img { display: block; max-width: 100%; }
 .standings-table td:first-child { text-align: left; }
 .standings-table tr.orioles-row td { color: var(--orange); font-weight: 700; }
 .standings-table tbody tr:hover td { background: rgba(255,255,255,0.025); }
+.standings-table tr.wc-cutoff td { border-bottom: 2px dashed var(--orange); }
 .team-abbrev { font-weight: 600; }
 .team-abbrev a { display: inline-flex; align-items: center; gap: 5px; color: var(--text); transition: color 0.15s; }
 .team-abbrev a:hover { color: var(--orange); }

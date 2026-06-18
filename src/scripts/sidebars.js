@@ -27,16 +27,17 @@ import { WALKUP_ICON_SVG } from './scores.js';
 // ── Standings ─────────────────────────────────────────────────────
 export async function loadStandings() {
   try {
-    const data = await fetch(
-      `${MLB}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=regularSeason`
-    ).then(r => r.json());
+    const [regData, wcData] = await Promise.all([
+      fetch(`${MLB}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=regularSeason`).then(r => r.json()),
+      fetch(`${MLB}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=wildCard`).then(r => r.json()),
+    ]);
 
-    state.standings = data.records.map(div => ({
+    state.standings = regData.records.map(div => ({
       divisionId: div.division.id,
       division: DIVISION_NAMES[div.division.id] ?? div.division.name ?? String(div.division.id),
       teams: div.teamRecords.map(t => ({
         id: t.team.id,
-        abbrev: TEAM_ABBREV[t.team.id] ?? t.team.abbreviation ?? t.team.name.slice(0, 3).toUpperCase(),
+        abbrev: TEAM_ABBREV[t.team.id] ?? t.team.name.slice(0, 3).toUpperCase(),
         wins: t.wins,
         losses: t.losses,
         gb: t.gamesBack === '0' ? '-' : t.gamesBack,
@@ -44,6 +45,20 @@ export async function loadStandings() {
         isOrioles: t.team.id === ORIOLES_ID,
       })),
     }));
+
+    // WC records: div.id < 203 = AL, else NL
+    for (const div of wcData.records) {
+      const league = div.division.id < 203 ? 'AL' : 'NL';
+      state.wildCard[league] = div.teamRecords.map(t => ({
+        id: t.team.id,
+        abbrev: TEAM_ABBREV[t.team.id] ?? t.team.name.slice(0, 3).toUpperCase(),
+        wins: t.wins,
+        losses: t.losses,
+        wcGb: t.wildCardGamesBack ?? '-',
+        streak: t.streak?.streakCode ?? '-',
+        isOrioles: t.team.id === ORIOLES_ID,
+      }));
+    }
 
     state.activeLeague = 'AL';
     state.activeDiv = state.standings.find(d => d.divisionId === 201)?.divisionId
@@ -84,11 +99,11 @@ function renderDivTabs() {
     const d = state.standings.find(s => s.divisionId === id);
     if (!d) return '';
     return `<button class="div-tab${d.divisionId === state.activeDiv ? ' active' : ''}" data-div="${d.divisionId}">${esc(d.division)}</button>`;
-  }).join('');
+  }).join('') + `<button class="div-tab${state.activeDiv === 'WC' ? ' active' : ''}" data-div="WC">Wild Card</button>`;
 
   container.querySelectorAll('.div-tab').forEach(btn => {
     btn.addEventListener('click', () => {
-      state.activeDiv = Number(btn.dataset.div);
+      state.activeDiv = btn.dataset.div === 'WC' ? 'WC' : Number(btn.dataset.div);
       renderDivTabs();
       renderStandings();
     });
@@ -96,6 +111,10 @@ function renderDivTabs() {
 }
 
 function renderStandings() {
+  if (state.activeDiv === 'WC') {
+    renderWildCard();
+    return;
+  }
   const div = state.standings.find(d => d.divisionId === state.activeDiv);
   if (!div) return;
   $('standingsWrap').innerHTML = `
@@ -109,6 +128,31 @@ function renderStandings() {
           <td class="team-abbrev"><a href="${teamUrl}" target="_blank" rel="noopener"><img class="standings-team-logo" src="${teamLogoSrc(t.id, 14)}" alt="" width="14" height="14" loading="lazy" decoding="async">${esc(t.abbrev)}</a></td>
           <td>${t.wins}</td><td>${t.losses}</td>
           <td>${esc(t.gb)}</td><td>${esc(t.streak)}</td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderWildCard() {
+  const teams = state.wildCard[state.activeLeague];
+  if (!teams?.length) {
+    $('standingsWrap').innerHTML = '<span class="sidebar-msg">Wild card data unavailable</span>';
+    return;
+  }
+  $('standingsWrap').innerHTML = `
+    <table class="standings-table">
+      <thead><tr>
+        <th>Team</th><th>W</th><th>L</th><th>WC</th><th>Str</th>
+      </tr></thead>
+      <tbody>${teams.map((t, i) => {
+        const teamUrl = TEAM_PAGE[t.id] ? `https://www.mlb.com/${TEAM_PAGE[t.id]}` : '#';
+        const cutoffClass = i === 2 ? ' wc-cutoff' : '';
+        const gbDisplay = t.wcGb;
+        return `<tr class="${t.isOrioles ? 'orioles-row' : ''}${cutoffClass}">
+          <td class="team-abbrev"><a href="${teamUrl}" target="_blank" rel="noopener"><img class="standings-team-logo" src="${teamLogoSrc(t.id, 14)}" alt="" width="14" height="14" loading="lazy" decoding="async">${esc(t.abbrev)}</a></td>
+          <td>${t.wins}</td><td>${t.losses}</td>
+          <td>${esc(gbDisplay)}</td><td>${esc(t.streak)}</td>
         </tr>`;
       }).join('')}
       </tbody>

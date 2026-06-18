@@ -14,6 +14,7 @@ export const state = {
   showRead: Boolean(prefs.showRead),
   viewMode: window.innerWidth <= 600 ? 'list' : defaultView,
   standings: [],
+  wildCard: { AL: [], NL: [] },
   activeDiv: null,
   activeLeague: 'AL',
   gamesMap: {},
