@@ -1,4 +1,4 @@
-import { loadPrefs, savePrefs, getDisabledSources, saveDisabledSources } from './storage.js';
+import { loadPrefs, savePrefs, getDisabledSources, saveDisabledSources, loadFeedCache } from './storage.js';
 import { state } from './state.js';
 import { applyTheme } from './theme.js';
 import { $, syncOriolesLogos } from './utils.js';
@@ -295,6 +295,13 @@ function setupEvents() {
 // ── Init ──────────────────────────────────────────────────────────
 async function init() {
   setupEvents();
+
+  // Show cached timestamp immediately if we have a feed cache to paint
+  const feedCache = loadFeedCache();
+  if (feedCache?.savedAt) {
+    const cachedTime = new Date(feedCache.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    $('cacheLabel').textContent = `Cached ${cachedTime}`;
+  }
 
   await Promise.allSettled([
     loadScores(),

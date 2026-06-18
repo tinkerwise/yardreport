@@ -1,6 +1,7 @@
 const PREFS_KEY = 'yr_prefs';
 const READ_KEY = 'yr_read';
 const READ_ATH_KEY = 'yr_read_ath';
+const FEED_CACHE_KEY = 'yr_feed_cache';
 
 export function loadPrefs() {
   try {
@@ -50,6 +51,25 @@ export function markReadAthBundle(slug) {
   read.add(slug);
   const arr = [...read].slice(-100);
   localStorage.setItem(READ_ATH_KEY, JSON.stringify(arr));
+}
+
+export function saveFeedCache(articles) {
+  try {
+    localStorage.setItem(FEED_CACHE_KEY, JSON.stringify({
+      savedAt: Date.now(),
+      // Strip content field — large and only needed for the reader modal
+      articles: articles.slice(0, 300).map(({ content: _c, ...a }) => a),
+    }));
+  } catch { /* quota exceeded — silently ignore */ }
+}
+
+export function loadFeedCache() {
+  try {
+    const raw = localStorage.getItem(FEED_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function getDisabledSources() {

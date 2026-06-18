@@ -13,6 +13,8 @@ import {
   unmarkRead,
   getDisabledSources,
   saveDisabledSources,
+  saveFeedCache,
+  loadFeedCache,
 } from './storage.js';
 import { state } from './state.js';
 import {
@@ -67,13 +69,23 @@ async function fetchFeed(source) {
 }
 
 export async function loadFeeds() {
-  $('articleList').innerHTML = '<div class="feed-msg">Loading news…</div>';
+  // Stale-while-revalidate: paint cached articles instantly, then always fetch fresh
+  const cache = loadFeedCache();
+  if (cache?.articles?.length) {
+    state.articles = cache.articles;
+    renderArticles();
+  } else {
+    $('articleList').innerHTML = '<div class="feed-msg">Loading news…</div>';
+  }
+
   let FEEDS;
   try {
     FEEDS = await fetch(`${import.meta.env.BASE_URL}feeds.json`).then(r => r.json());
     ALL_FEEDS = FEEDS;
   } catch {
-    $('articleList').innerHTML = '<div class="feed-msg">Could not load feeds.json</div>';
+    if (!cache?.articles?.length) {
+      $('articleList').innerHTML = '<div class="feed-msg">Could not load feeds.json</div>';
+    }
     return [];
   }
 
@@ -108,6 +120,7 @@ export async function loadFeeds() {
     }
   }
 
+  saveFeedCache(state.articles);
   renderSourceFilters();
   renderArticles();
   return successfulSources;
