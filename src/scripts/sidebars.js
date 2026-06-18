@@ -245,6 +245,53 @@ export async function loadOnDeck() {
       ? `<div class="sched-row-wrap">${scheduleBoxes}</div>`
       : '';
 
+    // ── Probable starters (today/tomorrow games only) ─────────────
+    let pitcherMatchupHtml = '';
+    if (nextIsToday || nextIsTomorrow) {
+      const awayPP = away.probablePitcher;
+      const homePP = home.probablePitcher;
+      if (awayPP?.id || homePP?.id) {
+        const fetchPitcherStats = async (id) => {
+          if (!id) return null;
+          try {
+            const d = await fetch(
+              `${MLB}/people/${id}/stats?stats=season&group=pitching&season=${SEASON}`
+            ).then(r => r.json());
+            return d.stats?.[0]?.splits?.[0]?.stat ?? null;
+          } catch { return null; }
+        };
+        const [awayStats, homeStats] = await Promise.all([
+          fetchPitcherStats(awayPP?.id),
+          fetchPitcherStats(homePP?.id),
+        ]);
+        const renderSP = (pp, stats) => {
+          if (!pp) return `<div class="matchup-sp"><span class="matchup-sp-name">TBD</span></div>`;
+          const era = stats?.era ?? '--';
+          const wl  = stats ? `${stats.wins ?? 0}-${stats.losses ?? 0}` : '--';
+          const k9  = stats?.strikeoutsPer9Inn ? parseFloat(stats.strikeoutsPer9Inn).toFixed(1) : '--';
+          const whip = stats?.whip ?? '--';
+          return `<div class="matchup-sp">
+            <span class="matchup-sp-name">${esc(pp.fullName)}</span>
+            <span class="matchup-sp-line">${era} ERA · ${wl} · ${k9} K/9 · ${whip} WHIP</span>
+          </div>`;
+        };
+        pitcherMatchupHtml = `<div class="matchup-pitchers">
+          <div class="matchup-pitchers-head">Probable Starters</div>
+          <div class="matchup-pitchers-row">
+            <div class="matchup-pitchers-side">
+              <img class="matchup-sp-logo" src="${teamLogoSrc(away.team.id, 14)}" alt="" width="14" height="14">
+              ${renderSP(awayPP, awayStats)}
+            </div>
+            <span class="matchup-vs">vs</span>
+            <div class="matchup-pitchers-side matchup-pitchers-side--right">
+              <img class="matchup-sp-logo" src="${teamLogoSrc(home.team.id, 14)}" alt="" width="14" height="14">
+              ${renderSP(homePP, homeStats)}
+            </div>
+          </div>
+        </div>`;
+      }
+    }
+
     const todayIsNotFinal = todayGame && todayGame.status?.abstractGameState !== 'Final';
     let gamedayMediaHtml = '';
     if (todayIsNotFinal) {
@@ -286,6 +333,7 @@ export async function loadOnDeck() {
         </a>
         ${gamedayMediaHtml}
       </div>
+      ${pitcherMatchupHtml}
       ${scheduleHtml}`;
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
@@ -340,7 +388,8 @@ export async function loadRoster() {
       const label = esc(fullName);
       let musicIcon;
       if (songUrls.length > 0) {
-        musicIcon = songUrls.map(songUrl => `<a class="walkup-song-link" href="${esc(songUrl)}" data-song-url="${esc(songUrl)}" data-player-name="${label}" target="_blank" rel="noopener" title="Play walk-up song" aria-label="Play walk-up song for ${label}">${WALKUP_ICON_SVG}</a>`).join('');
+        // Button (not link) — click expands inline Spotify embed below the row
+        musicIcon = `<button class="walkup-song-btn" data-song-urls="${esc(songUrls.join(','))}" data-player-name="${label}" title="Play walk-up song" aria-label="Play walk-up song for ${label}">${WALKUP_ICON_SVG}</button>`;
       } else {
         const searchUrl = `https://open.spotify.com/search/${encodeURIComponent(fullName + ' walk up song')}`;
         musicIcon = `<a class="walkup-song-link walkup-song-link--search" href="${esc(searchUrl)}" data-player-name="${label}" target="_blank" rel="noopener" title="Search walk-up song for ${label}" aria-label="Search walk-up song for ${label}">${WALKUP_ICON_SVG}</a>`;
@@ -383,6 +432,42 @@ export async function loadRoster() {
     };
 
     wrap.innerHTML = buildHtml();
+
+    // One-time delegated handler for inline Spotify embeds — survives innerHTML re-renders
+    // because it lives on `wrap` (the stable container), not on the replaced children.
+    if (!wrap.dataset.songHandlerAttached) {
+      wrap.dataset.songHandlerAttached = '1';
+      wrap.addEventListener('click', e => {
+        const btn = e.target.closest('.walkup-song-btn[data-song-urls]');
+        if (!btn) return;
+        e.preventDefault();
+        const row = btn.closest('.roster-item');
+        if (!row) return;
+
+        // Toggle: if embed already open, close it
+        const existing = row.nextElementSibling;
+        if (existing?.classList.contains('spotify-embed-row')) {
+          existing.remove();
+          btn.classList.remove('walkup-song-btn--active');
+          return;
+        }
+
+        // Build iframes lazily — one per track URL
+        const urls = btn.dataset.songUrls.split(',').filter(Boolean);
+        const iframes = urls.map(url => {
+          const trackId = url.match(/\/track\/([A-Za-z0-9]+)/)?.[1];
+          if (!trackId) return '';
+          return `<iframe src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+        }).join('');
+        if (!iframes) return;
+
+        const embedRow = document.createElement('div');
+        embedRow.className = 'spotify-embed-row';
+        embedRow.innerHTML = iframes;
+        row.insertAdjacentElement('afterend', embedRow);
+        btn.classList.add('walkup-song-btn--active');
+      });
+    }
 
     // If songs were still loading, re-render once they arrive so grey icons
     // flip to green without the user having to wait for the initial render.

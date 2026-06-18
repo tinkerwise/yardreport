@@ -45,15 +45,13 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 
 ## Exciting New Features
 
-### 7. Live Play-by-Play Ticker ⚡
-**What:** During active Orioles games, a scrolling ticker above (or replacing) the scores bar shows the live at-bat: batter, count, pitch-by-pitch results, and the last play description. MLB Stats API's `/game/{gamePk}/feed/live` endpoint delivers this in real time.  
-**Why it's great:** The score bug shows the score — this shows the *game*. Fans who can't watch can follow along pitch by pitch.  
-**Effort:** Medium. The live feed endpoint is already being used for score bugs; this extends it.
+### ~~7. Live Play-by-Play Ticker~~ ✅ Done
+**What:** A thin orange-tinted strip below the scores bar appears when an Orioles game goes live. Shows current inning/half, outs, batter vs pitcher matchup, count, and the last play description. Polls `feed/live` every 30 seconds via a dedicated `setInterval`; stops and hides itself when the game ends or no Orioles game is live.  
+**Files:** `scores.js` (`startLiveTicker`, `updateTicker`, `stopLiveTicker`), `index.astro` (`#playTicker`), `style.css` (`.play-ticker`, `.ticker-*`)
 
-### 8. Pitching Matchup Preview Card
-**What:** When the next Orioles game is 24 hours out, the "On Deck" widget expands to show the probable pitchers for both teams — ERA, last 3 starts, WHIP, K/9, opponent batting average. Pulled from the MLB API's `/schedule` probable pitcher fields.  
-**Why it's great:** "On Deck" currently shows weather and broadcast — this makes it a pregame scout card.  
-**Effort:** Low-medium. Probable pitchers are already in the schedule API response.
+### ~~8. Pitching Matchup Preview Card~~ ✅ Done
+**What:** For today's and tomorrow's games, a "Probable Starters" section appears below the On Deck card showing both probable pitchers side-by-side with ERA, W-L, K/9, and WHIP. Pitcher season stats are fetched in parallel from the MLB People API. Falls back to "TBD" if no probable pitcher is announced.  
+**Files:** `sidebars.js` (`loadOnDeck`), `style.css` (`.matchup-pitchers`, `.matchup-sp-*`)
 
 ### 9. Player Stat Cards (Click-to-Expand)
 **What:** Clicking any player chip — in the roster widget, depth chart, or score popover — opens a compact card showing: current season slash line or ERA, last 7 days stats, Statcast percentile bars (exit velo, sprint speed, etc. from Baseball Savant), and the walk-up song Spotify embed.  
@@ -74,10 +72,9 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 **Why it's great:** Raw record doesn't tell you if 34-40 is good or bad relative to expectations. Historical context makes the number meaningful.  
 **Effort:** Medium. MLB Stats API has historical season data; requires storing/fetching last-year's standings at the same game number.
 
-### 13. Walk-Up Song Spotify Player (In-App)
-**What:** In the 40-Man Roster widget, replace the Spotify link icon with an inline Spotify embed (the compact player) so fans can hear the song without leaving the page. Already have all the track IDs.  
-**Why it's great:** The walk-up song feature is already there — this makes it *experiential* rather than just a link.  
-**Effort:** Low. Swap the `<a>` tags for `<iframe src="https://open.spotify.com/embed/track/{id}?utm_source=...">` in the roster render. Lazy-load the iframes (only mount when the Roster accordion is open).
+### ~~13. Walk-Up Song Spotify Player (In-App)~~ ✅ Done
+**What:** The walkup song icon in the 40-Man Roster is now a toggle button. Clicking it lazily injects a compact Spotify embed (`height=80`) directly below that player's row; clicking again removes it. Multi-song players (e.g., Gunnar Henderson) get stacked embeds. The handler is attached once via event delegation on the roster container so it survives the post-song-load innerHTML re-render.  
+**Files:** `sidebars.js` (`loadRoster`, delegated click handler), `style.css` (`.walkup-song-btn`, `.spotify-embed-row`)
 
 ### 14. Game Countdown Timer
 **What:** When no game is live, the scores bar or On Deck widget shows a live countdown: "Next game in 4h 23m." Flips to live mode when the game starts.  
@@ -99,9 +96,9 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 | 2 | ETag-based smart polling | ⭐⭐ | Medium | ✅ Done |
 | 11 | Transaction alerts (toasts) | ⭐⭐⭐ | Low | ✅ Done |
 | 14 | Game countdown timer | ⭐⭐ | Very low | ✅ Yes |
-| 8 | Pitching matchup preview | ⭐⭐⭐ | Low-med | ✅ Yes |
-| 13 | Walk-up song in-app player | ⭐⭐ | Low | ✅ Yes |
-| 7 | Live play-by-play ticker | ⭐⭐⭐⭐ | Medium | Next |
+| 8 | Pitching matchup preview | ⭐⭐⭐ | Low-med | ✅ Done |
+| 13 | Walk-up song in-app player | ⭐⭐ | Low | ✅ Done |
+| 7 | Live play-by-play ticker | ⭐⭐⭐⭐ | Medium | ✅ Done |
 | 9 | Player stat cards | ⭐⭐⭐⭐ | Med-high | Next |
 | 3 | Progressive article rendering | ⭐⭐⭐ | Medium | ✅ Done |
 | 12 | Historical standings comparison | ⭐⭐ | Medium | Later |

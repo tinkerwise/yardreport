@@ -2062,6 +2062,68 @@ img { display: block; max-width: 100%; }
   border: 1px solid var(--border); line-height: 1;
 }
 
+/* ── #8 Probable starters matchup ────────────────────────────── */
+.matchup-pitchers {
+  margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px;
+}
+.matchup-pitchers-head {
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 6px;
+}
+.matchup-pitchers-row { display: flex; align-items: flex-start; gap: 8px; }
+.matchup-pitchers-side { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.matchup-pitchers-side--right { align-items: flex-end; text-align: right; }
+.matchup-sp-logo { flex-shrink: 0; }
+.matchup-sp-name {
+  font-size: 0.75rem; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.matchup-sp-line { font-size: 0.67rem; color: var(--text-3); line-height: 1.4; }
+.matchup-vs {
+  font-size: 0.65rem; color: var(--text-3); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  flex-shrink: 0; padding-top: 14px;
+}
+
+/* ── #13 Walk-up song inline Spotify player ──────────────────── */
+.walkup-song-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 12px; height: 12px; padding: 0; border: none; background: none;
+  color: #1db954; cursor: pointer; flex-shrink: 0; line-height: 1;
+  opacity: 0.95; transform: translateY(-0.25px);
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+.walkup-song-btn:hover, .walkup-song-btn:focus-visible {
+  transform: translateY(-0.8px) scale(1.06);
+  filter: saturate(1.1) brightness(1.06); opacity: 1; outline: none;
+}
+.walkup-song-btn--active { color: var(--orange); filter: none; }
+.spotify-embed-row {
+  padding: 4px 0 6px; border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.spotify-embed-row iframe { border-radius: 8px; display: block; }
+
+/* ── #7 Live play-by-play ticker ─────────────────────────────── */
+.play-ticker {
+  background: color-mix(in srgb, var(--orange) 12%, var(--bg) 88%);
+  border-bottom: 1px solid color-mix(in srgb, var(--orange) 30%, transparent 70%);
+  padding: 5px 16px; font-size: 0.72rem; color: var(--text-2);
+  display: flex; align-items: center; flex-wrap: wrap;
+  overflow: hidden; white-space: nowrap; min-height: 28px;
+}
+.play-ticker.hidden { display: none; }
+.ticker-inn { font-weight: 700; color: var(--orange); }
+.ticker-sep { margin: 0 6px; color: var(--text-3); }
+.ticker-outs { color: var(--text-3); }
+.ticker-matchup { font-weight: 600; color: var(--text); }
+.ticker-count { font-family: monospace; color: var(--text-2); }
+.ticker-desc { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 460px; }
+@media (max-width: 600px) {
+  .play-ticker { font-size: 0.68rem; padding: 5px 10px; }
+  .ticker-desc { max-width: 200px; }
+}
+
 /* ── Yard Leaders ─────────────────────────────────────────────── */
 .leaders-controls { display: flex; gap: 3px; align-items: center; margin-bottom: 6px; }
 .leaders-controls-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; }

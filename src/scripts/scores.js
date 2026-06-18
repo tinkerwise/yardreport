@@ -1535,7 +1535,77 @@ export async function loadScores() {
       const bar = track.parentElement;
       bar.scrollLeft = scrollTarget.offsetLeft - 12;
     }
+
+    // Start live ticker if an Orioles game is currently live
+    const liveOriGame = allGames.find(g =>
+      g.status?.abstractGameState === 'Live' &&
+      (g.teams.away.team.id === ORIOLES_ID || g.teams.home.team.id === ORIOLES_ID)
+    );
+    if (liveOriGame) {
+      startLiveTicker(liveOriGame.gamePk);
+    } else {
+      stopLiveTicker();
+    }
   } catch {
     track.innerHTML = '<span class="scores-msg">Scores unavailable</span>';
   }
+}
+
+// ── Live play-by-play ticker ──────────────────────────────────────
+let tickerInterval = null;
+let tickerGamePk = null;
+
+function stopLiveTicker() {
+  if (tickerInterval) { clearInterval(tickerInterval); tickerInterval = null; }
+  tickerGamePk = null;
+  const el = document.getElementById('playTicker');
+  if (el) el.classList.add('hidden');
+}
+
+async function updateTicker(gamePk) {
+  const el = document.getElementById('playTicker');
+  if (!el) return;
+  try {
+    const data = await fetch(
+      `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live` +
+      `?fields=liveData,plays,currentPlay,result,description,event,matchup,batter,pitcher,fullName,count,balls,strikes,outs,about,inning,halfInning,gameData,status,abstractGameState`
+    ).then(r => r.json());
+
+    const status = data.gameData?.status?.abstractGameState;
+    if (status !== 'Live') { stopLiveTicker(); return; }
+
+    const cp = data.liveData?.plays?.currentPlay;
+    const about = cp?.about ?? {};
+    const result = cp?.result ?? {};
+    const count = cp?.count ?? {};
+    const matchup = cp?.matchup ?? {};
+
+    const half = about.halfInning === 'top' ? '▲' : '▼';
+    const inn = about.inning ?? '';
+    const outs = count.outs ?? 0;
+    const balls = count.balls ?? 0;
+    const strikes = count.strikes ?? 0;
+    const batter = matchup.batter?.fullName ?? '';
+    const pitcher = matchup.pitcher?.fullName ?? '';
+    const desc = result.description ?? result.event ?? '';
+
+    const outsLabel = outs === 1 ? '1 out' : `${outs} outs`;
+    const countStr = `${balls}-${strikes}`;
+
+    el.classList.remove('hidden');
+    el.innerHTML = `<span class="ticker-inn">${half}${inn}</span>` +
+      `<span class="ticker-sep">·</span>` +
+      `<span class="ticker-outs">${outsLabel}</span>` +
+      (batter ? `<span class="ticker-sep">·</span><span class="ticker-matchup">${esc(batter)} vs ${esc(pitcher)}</span>` : '') +
+      (batter ? `<span class="ticker-sep">·</span><span class="ticker-count">${countStr}</span>` : '') +
+      (desc ? `<span class="ticker-sep">·</span><span class="ticker-desc">${esc(desc)}</span>` : '');
+  } catch { /* silent — ticker is non-critical */ }
+}
+
+function startLiveTicker(gamePk) {
+  if (tickerGamePk === gamePk && tickerInterval) return; // already running
+  stopLiveTicker();
+  tickerGamePk = gamePk;
+  updateTicker(gamePk);
+  tickerInterval = setInterval(() => updateTicker(gamePk), 30_000);
 }
