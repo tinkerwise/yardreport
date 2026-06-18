@@ -396,7 +396,7 @@ export async function loadRoster() {
       }
       return `<div class="roster-item${opts.muted ? ' roster-item--muted' : ''}">
         <span class="roster-num">${esc(p.jerseyNumber ?? '')}</span>
-        <a class="roster-name" href="${url}" target="_blank" rel="noopener">${esc(fullName)}</a>${musicIcon}
+        <a class="roster-name" href="${url}" target="_blank" rel="noopener" data-pid="${p.person.id}" data-pname="${label}">${esc(fullName)}</a>${musicIcon}
         <span class="roster-pos">${esc(pos)}</span>
         ${badge}
       </div>`;

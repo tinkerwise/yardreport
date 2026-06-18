@@ -4221,3 +4221,63 @@ a.il-name:hover { color: var(--orange); }
   .toast-container { left: 12px; right: 12px; max-width: none; }
   .toast { padding: 10px 12px; }
 }
+
+/* ── Player stat card modal ───────────────────────────────────── */
+.player-card-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.player-card-overlay.hidden { display: none; }
+.player-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 1.5);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  width: 100%; max-width: 320px;
+  padding: 16px;
+  position: relative;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.pc-close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); font-size: 0.85rem; line-height: 1;
+  transition: color 0.15s;
+}
+.pc-close:hover { color: var(--text); }
+.pc-loading { font-size: 0.82rem; color: var(--text-3); padding: 8px 0; }
+.pc-header { display: flex; gap: 12px; align-items: flex-start; }
+.pc-photo {
+  width: 64px; height: 64px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+  border: 2px solid var(--border);
+  background: var(--bg);
+}
+.pc-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-top: 2px; }
+.pc-name { font-size: 0.92rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.pc-meta { font-size: 0.72rem; color: var(--text-3); }
+.pc-savant-link { font-size: 0.68rem; color: var(--orange); text-decoration: none; margin-top: 2px; }
+.pc-savant-link:hover { text-decoration: underline; }
+.pc-stats {
+  display: flex; flex-wrap: wrap; gap: 6px 0;
+  border-top: 1px solid var(--border); padding-top: 10px;
+}
+.pc-stat {
+  flex: 1; min-width: 54px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 4px 2px;
+}
+.pc-stat-val { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+.pc-stat-lbl { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.pc-song {
+  border-top: 1px solid var(--border); padding-top: 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pc-song-head { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.pc-song iframe { border-radius: 8px; display: block; }
+/* Indicate that player name links are clickable */
+[data-pid] { cursor: pointer; }
+.roster-name[data-pid]:hover { color: var(--orange); }

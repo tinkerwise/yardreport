@@ -356,8 +356,9 @@ export function renderPlayerNameLink(name, playerId, className = 'popover-player
   } else {
     musicIcon = '';
   }
-  if (!href) return `<span class="${className}">${label}</span>${musicIcon}`;
-  return `<a class="${className}" href="${href}" target="_blank" rel="noopener">${label}</a>${musicIcon}`;
+  const pidAttr = playerId ? ` data-pid="${playerId}" data-pname="${label}"` : '';
+  if (!href) return `<span class="${className}"${pidAttr}>${label}</span>${musicIcon}`;
+  return `<a class="${className}" href="${href}" target="_blank" rel="noopener"${pidAttr}>${label}</a>${musicIcon}`;
 }
 
 export { WALKUP_ICON_SVG };

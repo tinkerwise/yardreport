@@ -34,12 +34,12 @@ function renderFieldChip(posId, pos, players) {
 
   const backupHtml = backups.map(p => {
     const pill = ilPill(p);
-    return `<a class="dc-chip-backup${pill ? ' dc-chip-backup--il' : ''}" href="${esc(savantUrl(p.person.id))}" target="_blank" rel="noopener">${esc(lastName(p.person.fullName))}${pill}</a>`;
+    return `<a class="dc-chip-backup${pill ? ' dc-chip-backup--il' : ''}" href="${esc(savantUrl(p.person.id))}" target="_blank" rel="noopener" data-pid="${p.person.id}" data-pname="${esc(p.person.fullName)}">${esc(lastName(p.person.fullName))}${pill}</a>`;
   }).join('');
 
   el.innerHTML = `
     <span class="dc-chip-pos">${esc(pos)}</span>
-    <a class="dc-chip-starter" href="${esc(savantUrl(starter.person.id))}" target="_blank" rel="noopener">${esc(lastName(starter.person.fullName))}</a>
+    <a class="dc-chip-starter" href="${esc(savantUrl(starter.person.id))}" target="_blank" rel="noopener" data-pid="${starter.person.id}" data-pname="${esc(starter.person.fullName)}">${esc(lastName(starter.person.fullName))}</a>
     ${ilPill(starter)}
     ${backupHtml ? `<div class="dc-chip-backups">${backupHtml}</div>` : ''}
   `;
@@ -54,7 +54,7 @@ function renderPitchCol(elId, label, players) {
     const pill = ilPill(p);
     return `<div class="dc-pit-row${cls}">
       <span class="dc-pit-rank">${i + 1}</span>
-      <a class="dc-pit-name" href="${esc(savantUrl(p.person.id))}" target="_blank" rel="noopener">${esc(p.person.fullName)}</a>
+      <a class="dc-pit-name" href="${esc(savantUrl(p.person.id))}" target="_blank" rel="noopener" data-pid="${p.person.id}" data-pname="${esc(p.person.fullName)}">${esc(p.person.fullName)}</a>
       ${pill}
     </div>`;
   }).join('');

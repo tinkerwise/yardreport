@@ -1,4 +1,5 @@
 import { loadPrefs, savePrefs, getDisabledSources, saveDisabledSources, loadFeedCache } from './storage.js';
+import { showPlayerCard, closePlayerCard } from './playerCard.js';
 import { state } from './state.js';
 import { applyTheme } from './theme.js';
 import { $, syncOriolesLogos } from './utils.js';
@@ -246,7 +247,15 @@ function setupEvents() {
     if (e.target === $('readerOverlay')) closeReader();
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeReader();
+    if (e.key === 'Escape') { closeReader(); closePlayerCard(); }
+  });
+
+  // Global player stat card — any [data-pid] element opens the card
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-pid]');
+    if (!el) return;
+    e.preventDefault();
+    showPlayerCard(el.dataset.pid, el.dataset.pname || el.textContent.trim());
   });
 
   // Auto-refresh scores and transactions every 5 minutes

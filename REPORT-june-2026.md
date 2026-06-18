@@ -53,10 +53,9 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 **What:** For today's and tomorrow's games, a "Probable Starters" section appears below the On Deck card showing both probable pitchers side-by-side with ERA, W-L, K/9, and WHIP. Pitcher season stats are fetched in parallel from the MLB People API. Falls back to "TBD" if no probable pitcher is announced.  
 **Files:** `sidebars.js` (`loadOnDeck`), `style.css` (`.matchup-pitchers`, `.matchup-sp-*`)
 
-### 9. Player Stat Cards (Click-to-Expand)
-**What:** Clicking any player chip — in the roster widget, depth chart, or score popover — opens a compact card showing: current season slash line or ERA, last 7 days stats, Statcast percentile bars (exit velo, sprint speed, etc. from Baseball Savant), and the walk-up song Spotify embed.  
-**Why it's great:** Every player name in the app becomes a discovery surface. Ties together the walk-up song work with actual stats.  
-**Effort:** Medium-high. Baseball Savant has a public Statcast API.
+### ~~9. Player Stat Cards (Click-to-Expand)~~ ✅ Done
+**What:** Clicking any player name in the roster widget, depth chart, or score popover opens a blurred-backdrop modal showing the player headshot, season stats (AVG/OBP/SLG/OPS/HR/RBI for batters; ERA/W-L/IP/WHIP/K9 for pitchers), a Statcast ↗ link, and their inline Spotify walk-up song embed. Stats are fetched from the MLB People API with hydrated season stats; results are cached in a Map to avoid re-fetching. A single global delegated click handler on `document` catches any `[data-pid]` element sitewide — added to `.roster-name`, `.dc-chip-starter`, `.dc-chip-backup`, `.dc-pit-name`, and `.popover-player-link`.  
+**Files:** `playerCard.js` (new), `app.js` (global delegation + Escape), `sidebars.js` / `depth-chart.js` / `scores.js` (data-pid attributes), `style.css` (`.player-card-overlay`, `.pc-*`)
 
 ### 10. Prospect Pipeline Page
 **What:** A fifth page: `/pipeline/`. Shows the top 10 Orioles prospects with their current minor league team, level, stats, and ETA to the majors. Pulls from MiLB data and Baseball America/FanGraphs rankings (RSS/API). A "Watch List" toggle lets users star prospects.  
@@ -99,7 +98,7 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 | 8 | Pitching matchup preview | ⭐⭐⭐ | Low-med | ✅ Done |
 | 13 | Walk-up song in-app player | ⭐⭐ | Low | ✅ Done |
 | 7 | Live play-by-play ticker | ⭐⭐⭐⭐ | Medium | ✅ Done |
-| 9 | Player stat cards | ⭐⭐⭐⭐ | Med-high | Next |
+| 9 | Player stat cards | ⭐⭐⭐⭐ | Med-high | ✅ Done |
 | 3 | Progressive article rendering | ⭐⭐⭐ | Medium | ✅ Done |
 | 12 | Historical standings comparison | ⭐⭐ | Medium | Later |
 | 15 | This Week in O's History | ⭐⭐ | Low-med | Later |
