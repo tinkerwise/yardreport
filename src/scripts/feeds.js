@@ -71,7 +71,8 @@ async function fetchFeed(source) {
 export async function loadFeeds() {
   // Stale-while-revalidate: paint cached articles instantly, then always fetch fresh
   const cache = loadFeedCache();
-  if (cache?.articles?.length) {
+  const hasCache = Boolean(cache?.articles?.length);
+  if (hasCache) {
     state.articles = cache.articles;
     renderArticles();
   } else {
@@ -83,7 +84,7 @@ export async function loadFeeds() {
     FEEDS = await fetch(`${import.meta.env.BASE_URL}feeds.json`).then(r => r.json());
     ALL_FEEDS = FEEDS;
   } catch {
-    if (!cache?.articles?.length) {
+    if (!hasCache) {
       $('articleList').innerHTML = '<div class="feed-msg">Could not load feeds.json</div>';
     }
     return [];
@@ -102,21 +103,51 @@ export async function loadFeeds() {
     return [];
   }
 
-  const results = await Promise.allSettled(activeFEEDS.map(fetchFeed));
-
   state.articles = [];
   const successfulSources = [];
 
-  for (const r of results) {
-    if (r.status !== 'fulfilled') continue;
-    const { source, articles } = r.value;
-    successfulSources.push(source);
-    for (const article of articles) {
-      if (isOffTopic(article)) continue;
-      const effectiveSource = isMiLB(article)
-        ? { ...source, category: 'milb' }
-        : source;
-      state.articles.push({ ...article, source: effectiveSource });
+  if (!hasCache) {
+    // Progressive rendering: no cached content to protect, so paint each feed
+    // as it resolves. rAF debounce collapses rapid arrivals into one render.
+    renderSourceFilters();
+    let renderPending = false;
+    const scheduleRender = () => {
+      if (renderPending) return;
+      renderPending = true;
+      requestAnimationFrame(() => {
+        renderPending = false;
+        renderArticles();
+      });
+    };
+
+    await Promise.allSettled(activeFEEDS.map(source =>
+      fetchFeed(source).then(({ articles }) => {
+        successfulSources.push(source);
+        for (const article of articles) {
+          if (isOffTopic(article)) continue;
+          state.articles.push({
+            ...article,
+            source: isMiLB(article) ? { ...source, category: 'milb' } : source,
+          });
+        }
+        scheduleRender();
+      })
+    ));
+  } else {
+    // Cache is showing: collect all fresh data first, then do a single swap.
+    // Avoids disrupting articles the user may already be reading.
+    const results = await Promise.allSettled(activeFEEDS.map(fetchFeed));
+    for (const r of results) {
+      if (r.status !== 'fulfilled') continue;
+      const { source, articles } = r.value;
+      successfulSources.push(source);
+      for (const article of articles) {
+        if (isOffTopic(article)) continue;
+        state.articles.push({
+          ...article,
+          source: isMiLB(article) ? { ...source, category: 'milb' } : source,
+        });
+      }
     }
   }
 

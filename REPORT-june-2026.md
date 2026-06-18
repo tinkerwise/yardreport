@@ -21,10 +21,10 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 **Fix:** PHP proxy now (a) forwards client `If-None-Match`/`If-Modified-Since` headers to the upstream RSS source, (b) relays any upstream `304 Not Modified` directly back to the browser, (c) emits upstream `ETag`/`Last-Modified` on every response, and (d) falls back to an `md5` hash of the raw response body as a self-generated ETag for feeds that don't provide cache validators — so the proxy can still return 304 when content is byte-for-byte identical. No JS changes needed; `fetch()`'s default `cache: 'default'` mode handles conditional requests transparently via the browser's HTTP cache.  
 **Files:** `rss-proxy.php`
 
-### 3. Progressive Article Rendering
+### ~~3. Progressive Article Rendering~~ ✅ Done
 **Problem:** The feed waits for all sources to resolve before rendering anything.  
-**Fix:** Render each feed as it resolves (Promise-by-promise, not `allSettled`). First feed appears in ~300ms; the rest fill in. The interleave/sort step can run incrementally.  
-**Effort:** Medium. Requires refactoring `feedDisplay.js` to accept partial updates.
+**Fix:** On first visit (no cache), each feed renders as it resolves via individual `.then()` callbacks, with a `requestAnimationFrame` debounce to collapse rapid arrivals into a single DOM update per frame. First articles appear in ~300ms. On subsequent visits the cache is already showing, so a single final swap is used instead — avoids disrupting articles the user may already be reading.  
+**Files:** `feeds.js` (`loadFeeds`)
 
 ### 4. Virtual Scroll for Long Article Lists
 **Problem:** Filtering to "All" with 30 days of content can produce hundreds of DOM nodes.  
@@ -104,7 +104,7 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 | 13 | Walk-up song in-app player | ⭐⭐ | Low | ✅ Yes |
 | 7 | Live play-by-play ticker | ⭐⭐⭐⭐ | Medium | Next |
 | 9 | Player stat cards | ⭐⭐⭐⭐ | Med-high | Next |
-| 3 | Progressive article rendering | ⭐⭐⭐ | Medium | Next |
+| 3 | Progressive article rendering | ⭐⭐⭐ | Medium | ✅ Done |
 | 12 | Historical standings comparison | ⭐⭐ | Medium | Later |
 | 15 | This Week in O's History | ⭐⭐ | Low-med | Later |
 | 10 | Prospect pipeline page | ⭐⭐⭐⭐ | High | Later |
