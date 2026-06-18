@@ -72,6 +72,13 @@ $headers = [
 if ($format === 'audio' && !empty($_SERVER['HTTP_RANGE'])) {
     $headers[] = 'Range: ' . $_SERVER['HTTP_RANGE'];
 }
+// Forward conditional cache headers from the browser to the upstream source
+if (!empty($_SERVER['HTTP_IF_NONE_MATCH'])) {
+    $headers[] = 'If-None-Match: ' . $_SERVER['HTTP_IF_NONE_MATCH'];
+}
+if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+    $headers[] = 'If-Modified-Since: ' . $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+}
 
 $ctx = stream_context_create([
     'http' => [
@@ -93,6 +100,43 @@ if ($xml_raw === false) {
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'Failed to fetch feed']);
     exit;
+}
+
+// ── Parse upstream response headers ──────────────────────────────
+$upstream_status = 200;
+$upstream_etag = null;
+$upstream_last_modified = null;
+foreach ($http_response_header ?? [] as $rh) {
+    if (preg_match('#^HTTP/\S+\s+(\d{3})#i', $rh, $m)) {
+        $upstream_status = (int)$m[1];
+    } elseif (stripos($rh, 'ETag:') === 0) {
+        $upstream_etag = trim(substr($rh, 5));
+    } elseif (stripos($rh, 'Last-Modified:') === 0) {
+        $upstream_last_modified = trim(substr($rh, 14));
+    }
+}
+
+// Upstream says nothing changed — relay 304 immediately
+if ($upstream_status === 304) {
+    http_response_code(304);
+    exit;
+}
+
+// Compute ETag: use upstream's if provided, otherwise hash the raw body
+$etag = $upstream_etag ?? ('"' . md5($xml_raw) . '"');
+
+// Hash-based 304: upstream returned 200 but content is identical to what the
+// browser already has (common for feeds that don't emit their own ETags)
+$client_inm = trim($_SERVER['HTTP_IF_NONE_MATCH'] ?? '');
+if ($client_inm && ($client_inm === $etag || $client_inm === '*')) {
+    http_response_code(304);
+    exit;
+}
+
+// Emit cache validators so the browser can make conditional requests next time
+header('ETag: ' . $etag);
+if ($upstream_last_modified) {
+    header('Last-Modified: ' . $upstream_last_modified);
 }
 
 if ($format === 'audio') {
