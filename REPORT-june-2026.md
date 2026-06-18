@@ -26,10 +26,10 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 **Fix:** On first visit (no cache), each feed renders as it resolves via individual `.then()` callbacks, with a `requestAnimationFrame` debounce to collapse rapid arrivals into a single DOM update per frame. First articles appear in ~300ms. On subsequent visits the cache is already showing, so a single final swap is used instead — avoids disrupting articles the user may already be reading.  
 **Files:** `feeds.js` (`loadFeeds`)
 
-### 4. Virtual Scroll for Long Article Lists
-**Problem:** Filtering to "All" with 30 days of content can produce hundreds of DOM nodes.  
-**Fix:** Render only the ~20 articles visible in the viewport; recycle DOM nodes as the user scrolls. Libraries aren't needed — a simple intersection observer sentinel at the bottom works.  
-**Effort:** Low-medium.
+### ~~4. Infinite Scroll for Long Article Lists~~ ✅ Done
+**Problem:** The article list was capped hard at 10 items with no way to see more.  
+**Fix:** `renderArticles()` (exported, resets count) wraps `_renderArticles()` (internal). After each render, if there are more articles beyond the current `visibleCount`, a `div.load-more-sentinel` is appended and observed with `IntersectionObserver (rootMargin: 200px)`. When it enters the viewport, `loadMoreArticles()` increments `visibleCount` by 10 and re-renders. Swipe-to-mark-read handlers call `_renderArticles()` directly so the current visible count is preserved while scrolling deep.  
+**Files:** `feeds.js` (`renderArticles`, `_renderArticles`, `loadMoreArticles`), `style.css` (`.load-more-sentinel`)
 
 ### 5. CSS Architecture
 **Problem:** `style.css` is 4,095 lines — one file, no scope. Every theme variable, animation, and page layout is mixed together.  
@@ -109,7 +109,7 @@ The site is in strong shape. Four polished pages, 15 RSS sources, live MLB Stats
 | 15 | This Week in O's History | ⭐⭐ | Low-med | Later |
 | 10 | Prospect pipeline page | ⭐⭐⭐⭐ | High | Later |
 | 6 | PWA / installable app | ⭐⭐⭐ | Low-med | Later |
-| 4 | Virtual scroll | ⭐ | Low-med | Later |
+| 4 | Infinite scroll | ⭐ | Low-med | ✅ Done |
 | 5 | CSS architecture refactor | ⭐ | Med-high | Later |
 
 ---

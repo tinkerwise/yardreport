@@ -1921,6 +1921,19 @@ img { display: block; max-width: 100%; }
 
 .sidebar-msg { font-size: 0.8rem; color: var(--text-3); }
 
+.load-more-sentinel {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  grid-column: 1 / -1;
+}
+.load-more-sentinel::after { content: '· · ·'; }
+
 /* ── On Deck ──────────────────────────────────────────────────── */
 .on-deck-card {
   display: flex; flex-direction: column; gap: 8px;

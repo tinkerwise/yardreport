@@ -767,7 +767,20 @@ function setupThumbObserver() {
 }
 
 // ── Render articles ───────────────────────────────────────────────
+let visibleCount = MAX_VISIBLE_ARTICLES;
+
+// Exported entry point — always resets visible count so filter/sort/load changes start fresh.
 export function renderArticles() {
+  visibleCount = MAX_VISIBLE_ARTICLES;
+  _renderArticles();
+}
+
+function loadMoreArticles() {
+  visibleCount += MAX_VISIBLE_ARTICLES;
+  _renderArticles();
+}
+
+function _renderArticles() {
   const list = $('articleList');
   const arts = getFilteredArticles();
 
@@ -794,7 +807,7 @@ export function renderArticles() {
     sortBy: state.sortBy,
     showRead: state.showRead,
     readArticles: getReadArticles(),
-    limit: MAX_VISIBLE_ARTICLES,
+    limit: visibleCount,
   });
 
   if (bundles.length) {
@@ -830,6 +843,19 @@ export function renderArticles() {
 
   list.innerHTML = html;
   setupThumbObserver();
+
+  // Infinite scroll: observe a sentinel below the last card; load more when it enters viewport
+  if (displayArts.length >= visibleCount) {
+    const sentinel = document.createElement('div');
+    sentinel.className = 'load-more-sentinel';
+    list.appendChild(sentinel);
+    const obs = new IntersectionObserver(entries => {
+      if (!entries[0].isIntersecting) return;
+      obs.disconnect();
+      loadMoreArticles();
+    }, { rootMargin: '200px' });
+    obs.observe(sentinel);
+  }
 
   list.querySelectorAll('.ath-card-link').forEach(link => {
     link.addEventListener('click', () => {
@@ -868,10 +894,10 @@ export function renderArticles() {
       if (!a) return;
       if (dx < -60) {
         markRead(a.link);
-        renderArticles();
+        _renderArticles();
       } else if (dx > 60) {
         unmarkRead(a.link);
-        renderArticles();
+        _renderArticles();
       }
     }, { passive: true });
   });
