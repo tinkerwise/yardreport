@@ -99,8 +99,9 @@ function renderDivTabs() {
   container.innerHTML = divIds.map(id => {
     const d = state.standings.find(s => s.divisionId === id);
     if (!d) return '';
-    return `<button class="div-tab${d.divisionId === state.activeDiv ? ' active' : ''}" data-div="${d.divisionId}">${esc(d.division)}</button>`;
-  }).join('') + `<button class="div-tab${state.activeDiv === 'WC' ? ' active' : ''}" data-div="WC">Wild Card</button>`;
+    const label = d.division.replace(/^[AN]L\s+/i, ''); // strip "AL " / "NL " — league already shown above
+    return `<button class="div-tab${d.divisionId === state.activeDiv ? ' active' : ''}" data-div="${d.divisionId}">${esc(label)}</button>`;
+  }).join('') + `<button class="div-tab${state.activeDiv === 'WC' ? ' active' : ''}" data-div="WC">WC</button>`;
 
   container.querySelectorAll('.div-tab').forEach(btn => {
     btn.addEventListener('click', () => {
