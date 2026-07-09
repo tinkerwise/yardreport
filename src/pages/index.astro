@@ -55,6 +55,15 @@ import Layout from '../layouts/Layout.astro';
         <input class="search-input" id="searchInput" type="search" placeholder="Search all articles…" autocomplete="off" />
       </div>
 
+      <!-- All-Star Game (seasonal) -->
+      <a class="asg-promo-banner" href={`${import.meta.env.BASE_URL}all-star/`} id="asgPromoBanner">
+        <img class="asg-promo-thumb" src="https://img.mlbstatic.com/mlb-images/image/upload/t_1x1/t_w1536/mlb/xq1pwjo1igqxjqdsj416.jpg" alt="" width="40" height="40" loading="lazy" />
+        <div class="asg-promo-text">
+          <span class="asg-promo-title">All-Star Game</span>
+          <span class="asg-promo-date">July 14 · Rosters &amp; Countdown →</span>
+        </div>
+      </a>
+
       <!-- On Deck + Schedule -->
       <div class="sidebar-section collapsible" data-section="ondeck">
         <h3 class="section-label section-toggle" data-target="ondeck">
@@ -174,6 +183,14 @@ import Layout from '../layouts/Layout.astro';
     <aside class="sidebar sidebar-right">
       <!-- Front Office -->
       <div class="sidebar-group">
+        <a class="asg-promo-banner draft-promo-banner" href={`${import.meta.env.BASE_URL}draft/`} id="draftPromoBanner">
+          <img class="asg-promo-thumb" src="https://img.mlbstatic.com/mlb-images/image/upload/t_1x1/t_w1536/mlb/o7zjfvmeji2fcq2gvhcf.jpg" alt="" width="40" height="40" loading="lazy" />
+          <div class="asg-promo-text">
+            <span class="asg-promo-title">MLB Draft</span>
+            <span class="asg-promo-date">July 11–12 · Orioles pick #7 →</span>
+          </div>
+        </a>
+
         <div class="sidebar-group-label">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
           Front Office
@@ -232,6 +249,14 @@ import Layout from '../layouts/Layout.astro';
           <h3 class="section-label">
             <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 0-3 3m3-3 3 3M6 12H3m3 0-3 3m3-3-3-3M18 12h3m-3 0 3 3m-3-3 3-3M12 18v3"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
             <a class="section-label-link" href={`${import.meta.env.BASE_URL}depth-chart/`}>Depth Chart →</a>
+          </h3>
+        </div>
+
+        <!-- Draft -->
+        <div class="sidebar-section">
+          <h3 class="section-label">
+            <svg class="section-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7m0 0V5a2 2 0 0 1 2-2h9l1 2h5v9h-6l-1-2H6"/></svg>
+            <a class="section-label-link" href={`${import.meta.env.BASE_URL}draft/`}>MLB Draft →</a>
           </h3>
         </div>
 

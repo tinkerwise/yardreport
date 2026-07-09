@@ -1047,14 +1047,22 @@ function syncPopoverTeamDetailHeights(popover) {
   sections.forEach(s => { s.style.minHeight = `${maxH}px`; });
 }
 
+function renderDecisionPill(cls, label, person) {
+  const name = esc(compactBoxName(person.fullName || person.lastInitName || playerLabel(person)));
+  const nameHtml = person.id
+    ? `<a href="${mlbPlayerUrl(person.id)}" target="_blank" rel="noopener">${name}</a>`
+    : name;
+  return `<span class="decision-pill ${cls}">${label}: ${nameHtml}</span>`;
+}
+
 function renderDecisionStrip(g) {
   const parts = [];
   const wp = g.decisions?.winner;
   const lp = g.decisions?.loser;
   const sv = g.decisions?.save;
-  if (wp) parts.push(`<span class="decision-pill win">W: ${esc(compactBoxName(wp.fullName || wp.lastInitName || playerLabel(wp)))}</span>`);
-  if (lp) parts.push(`<span class="decision-pill loss">L: ${esc(compactBoxName(lp.fullName || lp.lastInitName || playerLabel(lp)))}</span>`);
-  if (sv) parts.push(`<span class="decision-pill save">SV: ${esc(compactBoxName(sv.fullName || sv.lastInitName || playerLabel(sv)))}</span>`);
+  if (wp) parts.push(renderDecisionPill('win', 'W', wp));
+  if (lp) parts.push(renderDecisionPill('loss', 'L', lp));
+  if (sv) parts.push(renderDecisionPill('save', 'SV', sv));
   if (!parts.length) return '';
   return `<div class="box-decisions">${parts.join('')}</div>`;
 }
@@ -1156,29 +1164,32 @@ function renderTeamSituationalStats(boxData) {
 }
 
 function renderScoringSummary(plays, g) {
-  if (!plays?.length) return '';
   const awayId = g.teams?.away?.team?.id;
   const homeId = g.teams?.home?.team?.id;
   const awayAbbr = TEAM_ABBREV[awayId] ?? teamAbbr(g.teams.away.team);
   const homeAbbr = TEAM_ABBREV[homeId] ?? teamAbbr(g.teams.home.team);
   const awayLogo = awayId ? `<img class="scr-logo" src="${teamLogoSrc(awayId)}" width="13" height="13" alt="" loading="lazy">` : '<span class="scr-logo"></span>';
   const homeLogo = homeId ? `<img class="scr-logo" src="${teamLogoSrc(homeId)}" width="13" height="13" alt="" loading="lazy">` : '<span class="scr-logo"></span>';
-  const rows = plays.map(p => {
-    const { about, result } = p;
-    const isTop = about.halfInning === 'top';
-    const inn = `${isTop ? 'T' : 'B'}${about.inning}`;
-    const logo = isTop ? awayLogo : homeLogo;
-    const score = `${awayAbbr} ${result.awayScore ?? '?'}, ${homeAbbr} ${result.homeScore ?? '?'}`;
-    return `<div class="scr-play">
-      <span class="scr-inn">${esc(inn)}</span>
-      ${logo}
-      <span class="scr-desc">${esc(result.description ?? '')}</span>
-      <span class="scr-score">${esc(score)}</span>
-    </div>`;
-  }).join('');
+
+  const body = plays?.length
+    ? plays.map(p => {
+      const { about, result } = p;
+      const isTop = about.halfInning === 'top';
+      const inn = `${isTop ? 'T' : 'B'}${about.inning}`;
+      const logo = isTop ? awayLogo : homeLogo;
+      const score = `${awayAbbr} ${result.awayScore ?? '?'}, ${homeAbbr} ${result.homeScore ?? '?'}`;
+      return `<div class="scr-play">
+        <span class="scr-inn">${esc(inn)}</span>
+        ${logo}
+        <span class="scr-desc">${esc(result.description ?? '')}</span>
+        <span class="scr-score">${esc(score)}</span>
+      </div>`;
+    }).join('')
+    : '<div class="scr-empty">Scoreless so far</div>';
+
   return `<div class="box-section scr-wrap">
-    <div class="box-sum-hdr">Scoring Summary</div>
-    ${rows}
+    <div class="box-sum-hdr">Game Summary</div>
+    ${body}
   </div>`;
 }
 
@@ -1302,8 +1313,12 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
   const scoring = renderScoringSummary(scoringPlaysCache[g.gamePk] ?? null, g);
   const batting = renderBattingSummary(boxData, g);
 
+  const topRow = scoutNotes
+    ? `<div class="box-top-row">${scoutNotes}${scoring}</div>`
+    : scoring;
+
   return `<div class="box-popover-stack">
-    ${scoutNotes}
+    ${topRow}
     <div class="box-section box-linescore">
       <table class="box-score-table">
         <thead><tr>${hdr}</tr></thead>
@@ -1316,7 +1331,6 @@ function renderBoxScore(g, boxData, arsenals, matchupCtx = null) {
     </div>
     ${pitchingLines}
     ${batting}
-    ${scoring}
     ${renderPopoverGameLink(g)}
   </div>`;
 }

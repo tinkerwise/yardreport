@@ -20,6 +20,7 @@ import {
   relativeDate,
   teamLogoSrc,
   showToast,
+  mlbPlayerUrl,
 } from './utils.js';
 import { fetchWeatherForGames, getGameWeather } from './weather.js';
 import { ensureWalkupSongsLoaded, getWalkupSongUrls } from './walkup-songs.js';
@@ -272,7 +273,7 @@ export async function loadOnDeck() {
           const k9  = stats?.strikeoutsPer9Inn ? parseFloat(stats.strikeoutsPer9Inn).toFixed(1) : '--';
           const whip = stats?.whip ?? '--';
           return `<div class="matchup-sp">
-            <span class="matchup-sp-name">${esc(pp.fullName)}</span>
+            <a class="matchup-sp-name" href="${mlbPlayerUrl(pp.id)}" target="_blank" rel="noopener">${esc(pp.fullName)}</a>
             <span class="matchup-sp-line">${era} ERA · ${wl} · ${k9} K/9 · ${whip} WHIP</span>
           </div>`;
         };

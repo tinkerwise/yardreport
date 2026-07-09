@@ -1,5 +1,5 @@
 // ── Shared utilities ──────────────────────────────────────────────
-import { MLB } from './config.js';
+import { MLB, PROXY } from './config.js';
 
 export function $(id) { return document.getElementById(id); }
 
@@ -146,6 +146,81 @@ export function syncOriolesLogos() {
 
 export function normalizeText(str) {
   return String(str ?? '').replace(/\s+/g, ' ').trim();
+}
+
+// og:image fallback for articles whose RSS feed supplies no thumbnail —
+// shared by the main feed (lazy, on scroll) and the bounded sidebar news
+// lists (ASG, Draft), so both benefit from one cache.
+const ogCache = new Map();
+export async function fetchOgImage(articleUrl) {
+  if (ogCache.has(articleUrl)) return ogCache.get(articleUrl);
+  try {
+    const key = 'yr_og:' + articleUrl;
+    const stored = sessionStorage.getItem(key);
+    if (stored !== null) { const v = stored || null; ogCache.set(articleUrl, v); return v; }
+  } catch {}
+  try {
+    const data = await fetch(`${PROXY}?url=${encodeURIComponent(articleUrl)}&format=og`)
+      .then(r => r.ok ? r.json() : { image: null });
+    const img = typeof data.image === 'string' && data.image ? data.image : null;
+    ogCache.set(articleUrl, img);
+    try { sessionStorage.setItem('yr_og:' + articleUrl, img ?? ''); } catch {}
+    return img;
+  } catch { return null; }
+}
+
+// Compact thumbnail + headline card for narrow sidebar news lists (ASG,
+// Draft) — same visual language as the homepage's video-item cards.
+export function renderNewsThumbCard(article) {
+  const thumb = article.thumbnail || PLACEHOLDER_IMG;
+  const favicon = faviconUrl(article.link);
+  return `<a class="news-thumb-card" href="${esc(article.link)}" target="_blank" rel="noopener">
+    <img class="news-thumb-img" src="${esc(thumb)}" alt="" loading="lazy" onerror="this.src='${PLACEHOLDER_IMG}'">
+    <div class="news-thumb-info">
+      <span class="news-thumb-source">
+        <img class="news-thumb-favicon" src="${esc(favicon)}" alt="" onerror="this.style.display='none'">
+        ${esc(article.sourceName)} · ${relativeDate(article.pubDate)}
+      </span>
+      <span class="news-thumb-title">${esc(article.title)}</span>
+    </div>
+  </a>`;
+}
+
+export function stripAccents(str) {
+  return String(str ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+export function savantUrl(playerId) {
+  return `https://baseballsavant.mlb.com/savant-player/${playerId}`;
+}
+
+export function mlbPlayerUrl(playerId) {
+  return `https://www.mlb.com/player/${playerId}`;
+}
+
+// Resolves player full names to MLB person ids for pages that only have a
+// name (e.g. hand-curated roster/draft JSON with no id on file). Fetches the
+// full active-player list once and caches it — cheap relative to a
+// per-player search call, and covers the whole season's active players.
+let playerIdMapPromise = null;
+export function fetchPlayerIdMap() {
+  if (!playerIdMapPromise) {
+    playerIdMapPromise = fetch(`${MLB}/sports/1/players?season=${new Date().getFullYear()}`)
+      .then(r => r.json())
+      .then(data => {
+        const map = new Map();
+        for (const p of data.people ?? []) {
+          if (p.fullName && p.id) map.set(stripAccents(p.fullName).toLowerCase(), p.id);
+        }
+        return map;
+      })
+      .catch(() => new Map());
+  }
+  return playerIdMapPromise;
+}
+
+export function lookupPlayerId(map, name) {
+  return map.get(stripAccents(name ?? '').toLowerCase()) ?? null;
 }
 
 export function decodeHtmlEntities(str) {

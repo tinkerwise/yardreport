@@ -1,0 +1,91 @@
+{
+  "season": 2026,
+  "lastUpdated": "2026-07-08",
+  "sources": [
+    "https://www.mlb.com/news/2026-mlb-all-star-game-rosters-announcement",
+    "https://www.mlb.com/news/2026-all-star-game-roster-replacements",
+    "https://en.wikipedia.org/wiki/2026_Major_League_Baseball_All-Star_Game",
+    "https://www.cbssports.com/mlb/news/2026-mlb-all-star-game-rosters-unveiled/"
+  ],
+  "al": {
+    "starters": [
+      { "name": "Shea Langeliers", "pos": "C", "teamId": 133 },
+      { "name": "Nick Kurtz", "pos": "1B", "teamId": 133, "note": "Replaced Vladimir Guerrero Jr. as starter" },
+      { "name": "Ernie Clement", "pos": "2B", "teamId": 141 },
+      { "name": "Junior Caminero", "pos": "3B", "teamId": 139 },
+      { "name": "Bobby Witt Jr.", "pos": "SS", "teamId": 118 },
+      { "name": "Mike Trout", "pos": "OF", "teamId": 108 },
+      { "name": "Byron Buxton", "pos": "OF", "teamId": 142 },
+      { "name": "Aaron Judge", "pos": "OF", "teamId": 147 },
+      { "name": "Yordan Alvarez", "pos": "DH", "teamId": 117 }
+    ],
+    "reserves": [
+      { "name": "Dillon Dingler", "pos": "C", "teamId": 116 },
+      { "name": "Adley Rutschman", "pos": "C", "teamId": 110, "playerId": 668939 },
+      { "name": "Willson Contreras", "pos": "IF", "teamId": 111, "note": "Replacement for Vladimir Guerrero Jr." },
+      { "name": "Travis Bazzana", "pos": "2B", "teamId": 114 },
+      { "name": "Ben Rice", "pos": "1B", "teamId": 147 },
+      { "name": "Miguel Vargas", "pos": "3B", "teamId": 145 },
+      { "name": "Kevin McGonigle", "pos": "SS", "teamId": 116 },
+      { "name": "Randy Arozarena", "pos": "OF", "teamId": 136 },
+      { "name": "Cody Bellinger", "pos": "OF", "teamId": 147 },
+      { "name": "Riley Greene", "pos": "OF", "teamId": 116 },
+      { "name": "Yandy Díaz", "pos": "DH", "teamId": 139 }
+    ],
+    "pitchers": [
+      { "name": "Bryan Baker", "teamId": 139 },
+      { "name": "Dylan Cease", "teamId": 141 },
+      { "name": "Aroldis Chapman", "teamId": 111 },
+      { "name": "Jacob Latz", "teamId": 140 },
+      { "name": "Parker Messick", "teamId": 114 },
+      { "name": "Drew Rasmussen", "teamId": 139 },
+      { "name": "Joe Ryan", "teamId": 142 },
+      { "name": "Cam Schlittler", "teamId": 147 },
+      { "name": "Cade Smith", "teamId": 114 },
+      { "name": "Ranger Suárez", "teamId": 111 },
+      { "name": "Louis Varland", "teamId": 141 },
+      { "name": "Michael Wacha", "teamId": 118 }
+    ]
+  },
+  "nl": {
+    "starters": [
+      { "name": "Drake Baldwin", "pos": "C", "teamId": 144 },
+      { "name": "Freddie Freeman", "pos": "1B", "teamId": 119 },
+      { "name": "Ozzie Albies", "pos": "2B", "teamId": 144 },
+      { "name": "Max Muncy", "pos": "3B", "teamId": 119 },
+      { "name": "CJ Abrams", "pos": "SS", "teamId": 120 },
+      { "name": "Brandon Marsh", "pos": "OF", "teamId": 143 },
+      { "name": "Juan Soto", "pos": "OF", "teamId": 121 },
+      { "name": "Andy Pages", "pos": "OF", "teamId": 119 },
+      { "name": "Shohei Ohtani", "pos": "DH", "teamId": 119 }
+    ],
+    "reserves": [
+      { "name": "William Contreras", "pos": "C", "teamId": 158 },
+      { "name": "Hunter Goodman", "pos": "C", "teamId": 115 },
+      { "name": "Bryce Harper", "pos": "1B", "teamId": 143 },
+      { "name": "Matt Olson", "pos": "1B", "teamId": 144 },
+      { "name": "Luis Arráez", "pos": "2B", "teamId": 137 },
+      { "name": "Sal Stewart", "pos": "3B", "teamId": 113 },
+      { "name": "Otto López", "pos": "SS", "teamId": 146 },
+      { "name": "Corbin Carroll", "pos": "OF", "teamId": 109 },
+      { "name": "Pete Crow-Armstrong", "pos": "OF", "teamId": 112 },
+      { "name": "Jordan Walker", "pos": "OF", "teamId": 138 },
+      { "name": "James Wood", "pos": "OF", "teamId": 120 },
+      { "name": "Kyle Schwarber", "pos": "DH", "teamId": 143 }
+    ],
+    "pitchers": [
+      { "name": "Chase Burns", "teamId": 113 },
+      { "name": "Jhoan Durán", "teamId": 143 },
+      { "name": "Raisel Iglesias", "teamId": 144 },
+      { "name": "Jesús Luzardo", "teamId": 143, "note": "Replaced Max Meyer (Meyer scheduled to start first-half finale)" },
+      { "name": "Mason Miller", "teamId": 135 },
+      { "name": "Braxton Ashcraft", "teamId": 134, "note": "Replaced Jacob Misiorowski (pitching schedule)" },
+      { "name": "Eduardo Rodríguez", "teamId": 109 },
+      { "name": "Chris Sale", "teamId": 144 },
+      { "name": "Cristopher Sánchez", "teamId": 143 },
+      { "name": "Riley O'Brien", "teamId": 138, "note": "Replaced Paul Skenes (Skenes scheduled to start Sunday)" },
+      { "name": "Logan Webb", "teamId": 137 },
+      { "name": "Yoshinobu Yamamoto", "teamId": 119 }
+    ]
+  }
+}

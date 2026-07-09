@@ -30,6 +30,7 @@ import {
   buildReaderDoc,
   cleanFeedText,
   teamLogoSrc,
+  fetchOgImage,
 } from './utils.js';
 
 // ── Source registry (populated on first load) ─────────────────────
@@ -710,25 +711,6 @@ function groupArticles(arts, keyFn) {
 }
 
 // ── Lazy og:image fetching ────────────────────────────────────────
-const ogCache = new Map();
-
-async function fetchOgImage(articleUrl) {
-  if (ogCache.has(articleUrl)) return ogCache.get(articleUrl);
-  try {
-    const key = 'yr_og:' + articleUrl;
-    const stored = sessionStorage.getItem(key);
-    if (stored !== null) { const v = stored || null; ogCache.set(articleUrl, v); return v; }
-  } catch {}
-  try {
-    const data = await fetch(`${PROXY}?url=${encodeURIComponent(articleUrl)}&format=og`)
-      .then(r => r.ok ? r.json() : { image: null });
-    const img = typeof data.image === 'string' && data.image ? data.image : null;
-    ogCache.set(articleUrl, img);
-    try { sessionStorage.setItem('yr_og:' + articleUrl, img ?? ''); } catch {}
-    return img;
-  } catch { return null; }
-}
-
 let thumbObserver = null;
 
 function setupThumbObserver() {

@@ -301,9 +301,24 @@ function setupEvents() {
   });
 }
 
+// ── Seasonal promo banners ──────────────────────────────────────────
+// Remove themselves once their event has passed so they don't need to
+// be manually pulled after the fact.
+function expireSeasonalBanners() {
+  const asgBanner = $('asgPromoBanner');
+  if (asgBanner && Date.now() > new Date('2026-07-15T12:00:00-04:00').getTime()) {
+    asgBanner.remove();
+  }
+  const draftBanner = $('draftPromoBanner');
+  if (draftBanner && Date.now() > new Date('2026-07-13T12:00:00-04:00').getTime()) {
+    draftBanner.remove();
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────────────
 async function init() {
   setupEvents();
+  expireSeasonalBanners();
 
   // Show cached timestamp immediately if we have a feed cache to paint
   const feedCache = loadFeedCache();

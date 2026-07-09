@@ -1,0 +1,92 @@
+---
+import Layout from '../../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="All-Star Game | Yard Report">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href={base}>
+        <img class="logo-img" src={`${base}logo.png`} alt="Yard Report logo" height="36" />
+        <span class="logo-wordmark" aria-label="Yard Report">
+          <span class="logo-word">Yard</span>
+          <strong class="logo-word logo-word-accent">Report</strong>
+        </span>
+      </a>
+      <nav class="header-right header-breadcrumb" aria-label="Breadcrumb">
+        <a class="breadcrumb-link" href={base}>← Yard Report</a>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="breadcrumb-current">All-Star Game</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="asg-page">
+    <div class="asg-container">
+
+      <div class="asg-main">
+        <div class="asg-main-head">
+          <h1 class="asg-title">2026 All-Star Rosters</h1>
+          <span class="asg-updated" id="asgUpdated"></span>
+        </div>
+
+        <div id="asgOriolesSpotlight"></div>
+
+        <div class="asg-rosters">
+          <div class="asg-team-col">
+            <div class="asg-team-head asg-team-head--al">American League</div>
+            <div id="asgAL"><span class="sidebar-msg">Loading…</span></div>
+          </div>
+          <div class="asg-team-col">
+            <div class="asg-team-head asg-team-head--nl">National League</div>
+            <div id="asgNL"><span class="sidebar-msg">Loading…</span></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sidebar asg-sidebar">
+        <div class="sidebar-section" data-section="asg-game">
+          <h3 class="section-label">Game Info</h3>
+          <div class="section-body" id="asgGameInfo">
+            <span class="sidebar-msg">Loading…</span>
+          </div>
+        </div>
+
+        <div class="sidebar-section collapsible" data-section="asg-news">
+          <h3 class="section-label section-toggle" data-target="asg-news">
+            All-Star News
+            <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </h3>
+          <div class="section-body" id="asgNews">
+            <span class="sidebar-msg">Loading…</span>
+          </div>
+        </div>
+
+        <div class="sidebar-section collapsible" data-section="asg-media">
+          <h3 class="section-label section-toggle" data-target="asg-media">
+            Media
+            <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </h3>
+          <div class="section-body" id="asgMedia">
+            <span class="sidebar-msg">Loading…</span>
+          </div>
+        </div>
+
+        <div class="sidebar-section collapsible collapsed" data-section="asg-history">
+          <h3 class="section-label section-toggle" data-target="asg-history">
+            All-Star History
+            <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </h3>
+          <div class="section-body" id="asgHistory">
+            <span class="sidebar-msg">Loading…</span>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import '../../scripts/all-star.js';
+</script>

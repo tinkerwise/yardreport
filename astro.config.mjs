@@ -22,7 +22,7 @@ function rssProxyDevPlugin() {
           const response = await fetch(feedUrl, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (compatible; OriolesNews/1.0)',
-              Accept: format === 'text'
+              Accept: format === 'text' || format === 'og'
                 ? 'text/html, text/plain, */*'
                 : format === 'audio'
                   ? 'audio/*,*/*;q=0.8'
@@ -53,6 +53,18 @@ function rssProxyDevPlugin() {
               'Access-Control-Allow-Origin': '*',
             });
             res.end(JSON.stringify({ text: xml }));
+            return;
+          }
+
+          if (format === 'og') {
+            const image = xml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/)?.[1]
+              ?? xml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/)?.[1]
+              ?? null;
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            });
+            res.end(JSON.stringify({ image }));
             return;
           }
 
