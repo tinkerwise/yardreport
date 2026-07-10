@@ -22,7 +22,7 @@ const base = import.meta.env.BASE_URL;
   </header>
 
   <div class="draft-ticker-wrap" aria-label="Baltimore Orioles draft picks">
-    <span class="draft-ticker-label">O's Picks</span>
+    <span class="draft-ticker-label" id="draftTickerLabel">O's Picks</span>
     <div class="draft-ticker-viewport">
       <div class="draft-ticker-track" id="draftTickerTrack"><span class="draft-ticker-item">Loading…</span></div>
     </div>
@@ -36,6 +36,23 @@ const base = import.meta.env.BASE_URL;
           <h1 class="asg-title">2026 MLB Draft News</h1>
           <span class="asg-updated" id="draftUpdated"></span>
         </div>
+
+        <section class="draft-hero" id="draftHero">
+          <div class="draft-hero-diamond" aria-hidden="true">
+            <svg viewBox="0 0 200 200" fill="none">
+              <path d="M100 20 L180 100 L100 180 L20 100 Z" stroke="currentColor" stroke-width="2"/>
+              <circle cx="100" cy="100" r="8" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="draft-hero-body">
+            <span class="draft-hero-badge" id="draftHeroBadge">Loading…</span>
+            <div class="draft-hero-facts" id="draftHeroFacts"></div>
+          </div>
+        </section>
+
+        <div class="draft-highlights-grid" id="draftHighlights"></div>
+
+        <div class="draft-broadcast" id="draftBroadcast"></div>
 
         <div class="asg-team-col">
           <div class="asg-team-head">Draft News</div>

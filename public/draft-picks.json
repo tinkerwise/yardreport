@@ -1,12 +1,52 @@
 {
   "season": 2026,
-  "lastUpdated": "2026-07-09",
+  "lastUpdated": "2026-07-10",
   "dates": "July 11–12, 2026",
   "location": "Pennsylvania Convention Center, Philadelphia, PA",
+  "startTime": "2026-07-11T13:00:00-04:00",
+  "endTime": "2026-07-12T19:30:00-04:00",
+  "broadcast": [
+    {
+      "day": "Saturday, July 11 — Rounds 1–4",
+      "blocks": [
+        { "time": "1:00–2:30 PM ET", "desc": "Picks 1–10", "network": "NBC · Peacock" },
+        { "time": "2:30–4:30 PM ET", "desc": "Picks 11–40", "network": "MLB Network · MLB.com" },
+        { "time": "4:30–7:45 PM ET", "desc": "Picks 41–135", "network": "MLB.com · MLB.TV" }
+      ]
+    },
+    {
+      "day": "Sunday, July 12 — Rounds 5–20",
+      "blocks": [
+        { "time": "11:30 AM–7:30 PM ET", "desc": "Remaining rounds", "network": "MLB.com · MLB.TV" }
+      ]
+    }
+  ],
+  "highlights": [
+    {
+      "title": "Earliest pick since Holliday",
+      "body": "At #7 overall, the Orioles are drafting this early for the first time since taking Jackson Holliday #1 in 2022."
+    },
+    {
+      "title": "Position player likely",
+      "body": "Scouts expect Baltimore to lean toward a college position player at #7, continuing the front office's recent draft philosophy."
+    },
+    {
+      "title": "Top of the class",
+      "body": "The consensus top tier: prep shortstops Grady Emerson and Jacob Lombard, UCLA SS Roch Cholowsky, Georgia Tech C Vahn Lackey, UCSB RHP Jackson Flora, and prep OF Eric Booth Jr."
+    },
+    {
+      "title": "Mock draft buzz",
+      "body": "Recent mocks have linked the O's to Kentucky SS Tyler Bell (FanGraphs), do-it-all hitter Chris Hacopian (Just Baseball), and Drew Burress, once a top-five candidate (Bleacher Report)."
+    }
+  ],
   "sources": [
     "https://en.wikipedia.org/wiki/2026_Major_League_Baseball_draft",
     "https://birdswatcher.com/complete-list-of-the-baltimore-orioles-2026-mlb-draft-picks",
-    "https://www.mlb.com/news/orioles-2026-draft-preview"
+    "https://www.mlb.com/news/orioles-2026-draft-preview",
+    "https://blogs.fangraphs.com/2026-mock-draft-1-0/",
+    "https://www.justbaseball.com/mlb-draft/mock-2026-shakeups-stock-risers/",
+    "https://bleacherreport.com/articles/25452697-2026-mlb-mock-draft-1st-round-predictions-where-top-prospects-will-land",
+    "https://www.nbcsports.com/mlb/news/how-to-watch-2026-mlb-draft-tv-live-stream-info-schedule-time-draft-order"
   ],
   "oriolesPickOrder": [
     { "round": 1, "pick": 7 },

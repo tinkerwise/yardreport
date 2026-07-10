@@ -1,11 +1,77 @@
 // ── MLB Draft page ─────────────────────────────────────────────────
 import './theme.js';
 import { PROXY, MLB, SEASON, ORIOLES_ID, TEAM_ABBREV } from './config.js';
-import { $, esc, relativeDate, cleanFeedText, savantUrl, fetchPlayerIdMap, lookupPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups } from './utils.js';
+import { $, esc, relativeDate, cleanFeedText, savantUrl, mlbPlayerUrl, fetchPlayerIdMap, lookupPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups } from './utils.js';
 
 let draftData = null;
 let playerIdMap = null;
 let activeRound = 1;
+let draftStatus = 'upcoming';
+
+// ── Live draft results (MLB Stats API) ───────────────────────────────
+// The static JSON only pins down the Orioles' pick numbers for rounds 1-5
+// (those are fixed by comp-pick math well ahead of time); the actual teams
+// on the clock and the players they select come from the live draft feed,
+// which reports the full order as soon as it's set and fills in each pick
+// the moment it happens.
+async function fetchLiveDraft(season) {
+  try {
+    const data = await fetch(`${MLB}/draft/${season}`).then(r => r.json());
+    return data.drafts?.rounds ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function buildLiveState(rounds) {
+  if (!rounds) return null;
+  const oriolesPickOrder = [];
+  const picks = [];
+  const roundOrders = {};
+
+  for (const r of rounds) {
+    if (!/^\d+$/.test(r.round)) continue; // skip comp-round labels (PPI, CB-A, ...)
+    const roundNum = Number(r.round);
+    if (roundNum > 5) continue; // matches the rounds we track in the sidebar
+
+    roundOrders[r.round] = r.picks.map(p => ({
+      pick: p.pickNumber,
+      teamId: p.team?.id,
+      note: p.isDrafted && p.person ? `${p.person.fullName} · ${p.person.primaryPosition?.abbreviation ?? ''}` : undefined,
+      personId: p.isDrafted ? p.person?.id : undefined,
+    }));
+
+    for (const p of r.picks) {
+      if (p.team?.id !== ORIOLES_ID) continue;
+      oriolesPickOrder.push({ round: roundNum, pick: p.pickNumber });
+      if (p.isDrafted && p.person) {
+        picks.push({
+          round: roundNum,
+          pick: p.pickNumber,
+          name: p.person.fullName,
+          position: p.person.primaryPosition?.abbreviation ?? '',
+          personId: p.person.id,
+        });
+      }
+    }
+  }
+
+  if (!oriolesPickOrder.length) return null;
+  oriolesPickOrder.sort((a, b) => a.pick - b.pick);
+  return { oriolesPickOrder, picks, roundOrders };
+}
+
+function computeStatus(data) {
+  const start = data.startTime ? new Date(data.startTime) : null;
+  const end = data.endTime ? new Date(data.endTime) : null;
+  const now = Date.now();
+  if (start && now < start.getTime()) return 'upcoming';
+  const total = (data.oriolesPickOrder ?? []).length;
+  const made = (data.picks ?? []).length;
+  if (total && made >= total) return 'complete';
+  if (end && now > end.getTime()) return 'complete';
+  return 'live';
+}
 
 // Undrafted amateurs and very recent draftees have no MLB person id until
 // the active-player list picks them up — playerNameOrLookup falls back to
@@ -19,14 +85,43 @@ function playerNameHtml(name, idMap) {
 function tickerEntry(slot, pick, idMap) {
   const prefix = `R${slot.round} · #${slot.pick} — `;
   if (!pick) return `<span class="draft-ticker-item">${esc(prefix)}on the clock</span>`;
-  const nameHtml = playerNameOrLookup(pick.name, idMap, 'draft-ticker-name');
+  const nameHtml = pick.personId
+    ? `<a class="draft-ticker-name" href="${mlbPlayerUrl(pick.personId)}" target="_blank" rel="noopener">${esc(pick.name)}</a>`
+    : playerNameOrLookup(pick.name, idMap, 'draft-ticker-name');
   const posSuffix = pick.position ? esc(` (${pick.position})`) : '';
   return `<span class="draft-ticker-item">${esc(prefix)}${nameHtml}${posSuffix}</span>`;
 }
 
+function infoTickerEntries(data) {
+  const order = data.oriolesPickOrder ?? [];
+  const chips = order.map(s => `R${s.round} #${s.pick}`).join(', ');
+  const items = [
+    `2026 MLB Draft begins ${esc(data.dates ?? '')} at the ${esc(data.location ?? '')}`,
+  ];
+  if (chips) items.push(`Orioles pick order: ${esc(chips)}`);
+  items.push('Round 1 airs on NBC & Peacock starting 1:00 PM ET Saturday');
+  return items.map(t => `<span class="draft-ticker-item">${t}</span>`);
+}
+
 function renderTicker(data, idMap) {
   const track = $('draftTickerTrack');
+  const label = $('draftTickerLabel');
   if (!track) return;
+
+  if (label) {
+    label.innerHTML = draftStatus === 'live'
+      ? '<span class="live-dot" aria-hidden="true"></span> Live Picks'
+      : draftStatus === 'complete'
+        ? 'Final Picks'
+        : "O's Picks";
+  }
+
+  if (draftStatus === 'upcoming') {
+    const entries = infoTickerEntries(data);
+    track.innerHTML = entries.join('') + entries.join('');
+    return;
+  }
+
   const order = data.oriolesPickOrder ?? [];
   const made = data.picks ?? [];
   if (!order.length) {
@@ -80,23 +175,33 @@ function renderOrder(data, idMap) {
   el.innerHTML = order.map(slot => {
     const isOrioles = slot.teamId === ORIOLES_ID;
     const abbr = TEAM_ABBREV[slot.teamId] ?? '';
+    const noteHtml = slot.note
+      ? (slot.personId
+          ? `<a class="draft-order-note draft-order-note--pick" href="${mlbPlayerUrl(slot.personId)}" target="_blank" rel="noopener">${esc(slot.note)}</a>`
+          : `<span class="draft-order-note">${esc(slot.note)}</span>`)
+      : '';
     return `<div class="draft-order-row${isOrioles ? ' draft-order-row--orioles' : ''}">
       <span class="draft-order-pick">${slot.pick}</span>
       <img class="draft-order-logo" src="${teamLogoSrc(slot.teamId, 18)}" alt="" width="18" height="18" loading="lazy">
       <span class="draft-order-team">${esc(abbr)}</span>
-      ${slot.note ? `<span class="draft-order-note">${esc(slot.note)}</span>` : ''}
+      ${noteHtml}
     </div>`;
   }).join('');
 }
 
 async function loadPicks() {
   try {
-    const [data, idMap] = await Promise.all([
+    const [data, idMap, liveRounds] = await Promise.all([
       fetch(`${import.meta.env.BASE_URL}draft-picks.json`).then(r => r.json()),
       fetchPlayerIdMap(),
+      fetchLiveDraft(2026),
     ]);
-    draftData = data;
+    const live = buildLiveState(liveRounds);
+    draftData = live ? { ...data, ...live } : data;
     playerIdMap = idMap;
+    draftStatus = computeStatus(draftData);
+
+    renderHero(draftData);
     renderTicker(draftData, idMap);
     renderRoundTabs(draftData);
     renderOrder(draftData, idMap);
@@ -106,9 +211,86 @@ async function loadPicks() {
     }
     loadDraftInfo(draftData);
     loadHistory(draftData, idMap);
+
+    // Live picks land within minutes of each other on draft day — refresh
+    // the whole picture instead of just polling one widget.
+    if (draftStatus === 'live') {
+      setTimeout(loadPicks, 90 * 1000);
+    }
   } catch {
     $('draftTickerTrack').innerHTML = '<span class="draft-ticker-item">Draft data unavailable</span>';
     $('draftOrder').innerHTML = '<span class="sidebar-msg">Draft data unavailable</span>';
+  }
+}
+
+// ── Hero + highlights (key info above the news feed) ────────────────
+function renderHero(data) {
+  const badge = $('draftHeroBadge');
+  const facts = $('draftHeroFacts');
+  const highlights = $('draftHighlights');
+
+  if (badge) {
+    if (draftStatus === 'live') {
+      badge.innerHTML = '<span class="live-dot" aria-hidden="true"></span> Draft is live';
+    } else if (draftStatus === 'complete') {
+      badge.textContent = 'Draft complete';
+    } else {
+      const start = data.startTime ? new Date(data.startTime) : null;
+      const diffMs = start ? start.getTime() - Date.now() : 0;
+      if (diffMs > 0) {
+        const days = Math.floor(diffMs / 864e5);
+        const hours = Math.floor((diffMs % 864e5) / 36e5);
+        const mins = Math.floor((diffMs % 36e5) / 6e4);
+        badge.textContent = days > 0 ? `${days}d ${hours}h until Round 1` : `${hours}h ${mins}m until Round 1`;
+      } else {
+        badge.textContent = 'Draft is underway';
+      }
+    }
+  }
+
+  if (facts) {
+    const order = data.oriolesPickOrder ?? [];
+    facts.innerHTML = `
+      <div class="draft-hero-fact">
+        <span class="draft-hero-fact-label">When</span>
+        <span class="draft-hero-fact-value">${esc(data.dates ?? '')}</span>
+      </div>
+      <div class="draft-hero-fact">
+        <span class="draft-hero-fact-label">Where</span>
+        <span class="draft-hero-fact-value">${esc(data.location ?? '')}</span>
+      </div>
+      <div class="draft-hero-fact">
+        <span class="draft-hero-fact-label">Orioles picks</span>
+        <span class="draft-hero-fact-value">${order.length} in the first ${order.length ? order[order.length - 1].round : 5} rounds</span>
+      </div>
+    `;
+  }
+
+  if (highlights) {
+    const items = data.highlights ?? [];
+    highlights.innerHTML = items.map(h => `
+      <div class="draft-highlight-card">
+        <svg class="draft-highlight-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Z"/><path d="M12 2c2.5 3 2.5 17 0 20M12 2c-2.5 3-2.5 17 0 20M2.5 9h19M2.5 15h19"/></svg>
+        <div class="draft-highlight-title">${esc(h.title)}</div>
+        <div class="draft-highlight-body">${esc(h.body)}</div>
+      </div>
+    `).join('');
+  }
+
+  const bcast = $('draftBroadcast');
+  if (bcast) {
+    bcast.innerHTML = (data.broadcast ?? []).map(day => `
+      <div class="draft-broadcast-day">
+        <div class="draft-broadcast-day-label">${esc(day.day)}</div>
+        ${day.blocks.map(b => `
+          <div class="draft-broadcast-row">
+            <span class="draft-broadcast-time">${esc(b.time)}</span>
+            <span class="draft-broadcast-desc">${esc(b.desc)}</span>
+            <span class="draft-broadcast-network">${esc(b.network)}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
   }
 }
 
@@ -117,13 +299,15 @@ function loadDraftInfo(data) {
   const el = $('draftInfo');
   if (!el) return;
 
-  const startDate = new Date('2026-07-11T19:00:00-04:00');
+  const start = data.startTime ? new Date(data.startTime) : null;
   let countdownHtml = '';
-  const diffMs = startDate.getTime() - Date.now();
-  if (diffMs > 0) {
+  const diffMs = start ? start.getTime() - Date.now() : 0;
+  if (draftStatus === 'upcoming' && diffMs > 0) {
     const days = Math.floor(diffMs / 864e5);
     const hours = Math.floor((diffMs % 864e5) / 36e5);
     countdownHtml = `<div class="asg-countdown">${days}d ${hours}h until Round 1</div>`;
+  } else if (draftStatus === 'complete') {
+    countdownHtml = '<div class="asg-countdown">Draft complete</div>';
   } else {
     countdownHtml = '<div class="asg-countdown">Draft is underway</div>';
   }
