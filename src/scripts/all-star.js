@@ -3,6 +3,7 @@ import './theme.js';
 import { MLB, ORIOLES_ID, PROXY, SEASON } from './config.js';
 import { $, esc, teamLogoSrc, relativeDate, cleanFeedText, savantUrl, fetchPlayerIdMap, lookupPlayerId, extractThumbnail, renderNewsThumbCard, fetchOgImage } from './utils.js';
 import { fetchWeatherForGames, getGameWeather } from './weather.js';
+import { fetchScoringPlays } from './scores.js';
 
 // ── Roster ────────────────────────────────────────────────────────
 // Roster/stat-list context — Savant, matching the site's other roster
@@ -53,10 +54,43 @@ async function loadRoster() {
       updatedEl.textContent = `Rosters updated ${relativeDate(data.lastUpdated)}`;
     }
     loadOriolesSpotlight(data);
+    renderHomeRunDerby(data.homeRunDerby);
   } catch {
     $('asgAL').innerHTML = '<span class="sidebar-msg">Roster unavailable</span>';
     $('asgNL').innerHTML = '<span class="sidebar-msg">Roster unavailable</span>';
   }
+}
+
+// ── Home Run Derby ────────────────────────────────────────────────
+function renderHomeRunDerby(derby) {
+  const el = $('asgDerby');
+  if (!el) return;
+  if (!derby) {
+    el.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
+    return;
+  }
+
+  const fieldHtml = (derby.participants ?? []).map(p => `
+    <div class="roster-item">
+      <img class="asg-team-logo" src="${teamLogoSrc(p.teamId, 16)}" alt="" width="16" height="16" loading="lazy">
+      <span class="roster-name">${esc(p.name)}</span>
+    </div>
+  `).join('');
+
+  const openSlots = derby.spotsOpen
+    ? `<div class="roster-item"><span class="roster-name roster-name--pending">${derby.spotsOpen} spot${derby.spotsOpen === 1 ? '' : 's'} still open</span></div>`
+    : '';
+
+  el.innerHTML = `
+    <div class="asg-game-card">
+      <div class="asg-game-date">${esc(derby.date ?? '')}</div>
+      <div class="asg-game-venue">${esc(derby.venue ?? '')}</div>
+    </div>
+    <div class="roster-group-label">Field</div>
+    ${fieldHtml}
+    ${openSlots}
+    <a class="widget-link" href="https://www.mlb.com/all-star/home-run-derby" target="_blank" rel="noopener">Home Run Derby hub ↗</a>
+  `;
 }
 
 // ── Orioles spotlight ─────────────────────────────────────────────
@@ -133,11 +167,71 @@ async function fetchVenueLocation(venueId) {
   } catch { return null; }
 }
 
+// ── Live tracker — in-page linescore + scoring plays once the game starts ──
+// (reuses fetchScoringPlays + the box-score-table/scr-play styles already
+// built for the homepage box score popover, so this needed no new CSS system.)
+async function renderLiveTracker(game) {
+  const el = $('asgLiveTracker');
+  if (!el) return;
+  const isLive = game.status?.abstractGameState === 'Live';
+  const ls = game.linescore ?? {};
+  const innings = ls.innings ?? [];
+  const numInnings = Math.max(innings.length, 9);
+
+  let hdr = '<th class="box-team-col"></th>';
+  for (let i = 1; i <= numInnings; i++) hdr += `<th>${i}</th>`;
+  hdr += '<th class="box-total">R</th><th class="box-total">H</th><th class="box-total">E</th>';
+
+  const buildRow = (label, side) => {
+    let row = `<td class="box-team-col">${label}</td>`;
+    for (let i = 0; i < numInnings; i++) {
+      row += `<td>${innings[i]?.[side]?.runs ?? (i < innings.length ? '0' : '')}</td>`;
+    }
+    const t = ls.teams?.[side] ?? {};
+    const score = t.runs ?? game.teams?.[side]?.score ?? '';
+    row += `<td class="box-total">${score}</td><td class="box-total">${t.hits ?? ''}</td><td class="box-total">${t.errors ?? ''}</td>`;
+    return row;
+  };
+
+  const plays = await fetchScoringPlays(game.gamePk);
+  const scoringHtml = plays.length
+    ? plays.map(p => {
+      const { about, result } = p;
+      const inn = `${about.halfInning === 'top' ? 'T' : 'B'}${about.inning}`;
+      return `<div class="scr-play">
+        <span class="scr-inn">${esc(inn)}</span>
+        <span></span>
+        <span class="scr-desc">${esc(result.description ?? '')}</span>
+        <span class="scr-score">${esc(`AL ${result.awayScore ?? '?'}, NL ${result.homeScore ?? '?'}`)}</span>
+      </div>`;
+    }).join('')
+    : '<div class="scr-empty">Scoreless so far</div>';
+
+  el.innerHTML = `
+    <div class="asg-team-col asg-live-tracker">
+      <div class="asg-team-head asg-live-tracker-head">
+        ${isLive ? '<span class="live-dot" aria-hidden="true"></span> Live Tracker' : 'Final Box Score'}
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="box-score-table">
+          <thead><tr>${hdr}</tr></thead>
+          <tbody>
+            <tr class="box-score-row">${buildRow('AL', 'away')}</tr>
+            <tr class="box-score-row">${buildRow('NL', 'home')}</tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box-sum-hdr">Scoring Plays</div>
+      ${scoringHtml}
+    </div>
+  `;
+}
+
 async function loadGameInfo() {
   const wrap = $('asgGameInfo');
   if (!wrap) return;
   try {
-    const data = await fetch(`${MLB}/schedule?sportId=1&gameType=A&season=${SEASON}`).then(r => r.json());
+    const data = await fetch(`${MLB}/schedule?sportId=1&gameType=A&season=${SEASON}&hydrate=linescore`).then(r => r.json());
     const game = data.dates?.[0]?.games?.[0];
     if (!game) {
       wrap.innerHTML = '<span class="sidebar-msg">Schedule unavailable</span>';
@@ -191,6 +285,10 @@ async function loadGameInfo() {
       </div>
       <a class="widget-link" href="https://www.mlb.com/all-star" target="_blank" rel="noopener">All-Star Game hub on MLB.com ↗</a>
     `;
+
+    if (status === 'Live' || status === 'Final') {
+      renderLiveTracker(game);
+    }
   } catch {
     wrap.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
   }

@@ -198,25 +198,148 @@ export function mlbPlayerUrl(playerId) {
   return `https://www.mlb.com/player/${playerId}`;
 }
 
+// Full active-player list, fetched once and cached — backs both
+// fetchPlayerIdMap (name → id lookups) and fetchPlayerIndex (name-mention
+// scanning, e.g. trade-rumor headlines) so pages needing either only pay for
+// one request between them.
+let playerListPromise = null;
+function fetchPlayerList() {
+  if (!playerListPromise) {
+    playerListPromise = fetch(`${MLB}/sports/1/players?season=${new Date().getFullYear()}`)
+      .then(r => r.json())
+      .then(data => data.people ?? [])
+      .catch(() => []);
+  }
+  return playerListPromise;
+}
+
 // Resolves player full names to MLB person ids for pages that only have a
-// name (e.g. hand-curated roster/draft JSON with no id on file). Fetches the
-// full active-player list once and caches it — cheap relative to a
-// per-player search call, and covers the whole season's active players.
+// name (e.g. hand-curated roster/draft JSON with no id on file).
 let playerIdMapPromise = null;
 export function fetchPlayerIdMap() {
   if (!playerIdMapPromise) {
-    playerIdMapPromise = fetch(`${MLB}/sports/1/players?season=${new Date().getFullYear()}`)
-      .then(r => r.json())
-      .then(data => {
-        const map = new Map();
-        for (const p of data.people ?? []) {
-          if (p.fullName && p.id) map.set(stripAccents(p.fullName).toLowerCase(), p.id);
-        }
-        return map;
-      })
-      .catch(() => new Map());
+    playerIdMapPromise = fetchPlayerList().then(people => {
+      const map = new Map();
+      for (const p of people) {
+        if (p.fullName && p.id) map.set(stripAccents(p.fullName).toLowerCase(), p.id);
+      }
+      return map;
+    });
   }
   return playerIdMapPromise;
+}
+
+// ── Cot's Contracts (Baseball Prospectus) — AL East page covers the Orioles ──
+export const COTS_URL = 'https://legacy.baseballprospectus.com/compensation/cots/al_east.php';
+export const COTS_PAGE_URL = 'https://legacy.baseballprospectus.com/compensation/cots/';
+
+function parseCotsSalary(text) {
+  const t = (text ?? '').trim();
+  if (!t || t === '-' || t === ' ') return '';
+  return t;
+}
+
+export function parseCotsContracts(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // Find heading that contains "Baltimore" or "Orioles"
+  const headings = [...doc.querySelectorAll('h1,h2,h3,h4,h5,td.team-name,div.team-name,span.team-name,b,strong')];
+  const oriHeading = headings.find(el => /baltimore|orioles/i.test(el.textContent));
+  if (!oriHeading) return null;
+
+  // Walk siblings/parents to find the next table
+  function findNextTable(startEl) {
+    let el = startEl;
+    for (let i = 0; i < 10; i++) {
+      el = el.nextElementSibling;
+      if (!el) break;
+      if (el.tagName === 'TABLE') return el;
+      const t = el.querySelector('table');
+      if (t) return t;
+    }
+    // Try parent's next siblings
+    const parent = startEl.parentElement;
+    if (parent) {
+      let pel = parent.nextElementSibling;
+      for (let i = 0; i < 5; i++) {
+        if (!pel) break;
+        if (pel.tagName === 'TABLE') return pel;
+        const t = pel.querySelector('table');
+        if (t) return t;
+        pel = pel.nextElementSibling;
+      }
+    }
+    return null;
+  }
+
+  const table = findNextTable(oriHeading);
+  if (!table) return null;
+
+  const rows = [...table.querySelectorAll('tr')];
+  if (!rows.length) return null;
+
+  // Detect header row and column indices
+  const headerCells = [...rows[0].querySelectorAll('td,th')].map(c => c.textContent.trim());
+  const currentYear = new Date().getFullYear();
+  const nameIdx = headerCells.findIndex(c => /name|player/i.test(c) || c === '');
+  const posIdx  = headerCells.findIndex(c => /pos/i.test(c));
+
+  // Find current year salary column
+  const salIdx = headerCells.findIndex(c => parseInt(c) === currentYear);
+  // Next year column
+  const sal2Idx = headerCells.findIndex(c => parseInt(c) === currentYear + 1);
+
+  const players = [];
+  let totalPayroll = '';
+
+  for (const row of rows.slice(1)) {
+    const cells = [...row.querySelectorAll('td,th')];
+    if (cells.length < 2) continue;
+
+    const rawName = cells[nameIdx >= 0 ? nameIdx : 0]?.textContent.trim() ?? '';
+    if (!rawName || /^-+$/.test(rawName)) continue;
+
+    // Skip totals / summary rows
+    if (/total|payroll|avg\s*sal|luxury/i.test(rawName)) {
+      const sal = salIdx >= 0 ? parseCotsSalary(cells[salIdx]?.textContent) : '';
+      if (sal && /total/i.test(rawName)) totalPayroll = sal;
+      continue;
+    }
+
+    const pos = posIdx >= 0 ? (cells[posIdx]?.textContent.trim() ?? '') : '';
+    const sal  = salIdx  >= 0 ? parseCotsSalary(cells[salIdx]?.textContent)  : '';
+    const sal2 = sal2Idx >= 0 ? parseCotsSalary(cells[sal2Idx]?.textContent) : '';
+
+    const link = cells[nameIdx >= 0 ? nameIdx : 0]?.querySelector('a')?.href ?? COTS_URL;
+
+    if (!sal) continue;
+    players.push({ name: rawName, pos, sal, sal2, link });
+  }
+
+  return players.length ? { players, totalPayroll, currentYear } : null;
+}
+
+// Fetches + parses the Orioles' section of Cot's Contracts once, cached for
+// reuse across pages (homepage Contracts widget, Trade Deadline player cards).
+let oriolesContractsPromise = null;
+export function fetchOriolesContracts() {
+  if (!oriolesContractsPromise) {
+    oriolesContractsPromise = fetch(`${PROXY}?url=${encodeURIComponent(COTS_URL)}&format=text`)
+      .then(r => r.json())
+      .then(res => res.text ? parseCotsContracts(res.text) : null)
+      .catch(() => null);
+  }
+  return oriolesContractsPromise;
+}
+
+// Full {id, fullName, teamId} rows for scanning free text (e.g. trade-rumor
+// headlines) for player mentions and knowing which team they're currently on.
+export function fetchPlayerIndex() {
+  return fetchPlayerList().then(people =>
+    people
+      .filter(p => p.fullName && p.id)
+      .map(p => ({ id: p.id, fullName: p.fullName, teamId: p.currentTeam?.id ?? null }))
+  );
 }
 
 export function lookupPlayerId(map, name) {

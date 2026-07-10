@@ -4366,6 +4366,7 @@ a.il-name:hover { color: var(--orange); }
 .asg-history-year { font-size: 0.78rem; font-weight: 700; color: var(--orange); flex-shrink: 0; width: 36px; }
 .asg-history-result { font-size: 0.76rem; color: var(--text); }
 .asg-history-meta { font-size: 0.68rem; color: var(--text-3); margin-top: 2px; }
+.asg-history-stat { font-size: 0.7rem; color: var(--orange); font-weight: 600; margin-top: 3px; }
 
 @media (max-width: 760px) {
   .asg-container { grid-template-columns: 1fr; }
@@ -4392,6 +4393,19 @@ a.il-name:hover { color: var(--orange); }
 .asg-spotlight-meta { font-size: 0.74rem; color: var(--text-2); }
 .asg-spotlight-history { font-size: 0.7rem; color: var(--text-3); margin-top: 2px; }
 
+.asg-live-tracker { margin-bottom: 18px; border-color: color-mix(in srgb, var(--orange) 40%, var(--border) 60%); }
+.asg-live-tracker-head { display: flex; align-items: center; gap: 7px; }
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0;
+  animation: live-dot-pulse 1.6s ease-in-out infinite;
+}
+@keyframes live-dot-pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+
 /* ── Draft page ───────────────────────────────────────────────────── */
 .roster-badge--info { background: rgba(148,163,184,0.15); color: var(--text-2); }
 .draft-order-col { margin-top: 16px; }
@@ -4415,6 +4429,139 @@ a.il-name:hover { color: var(--orange); }
 }
 .draft-order-row--orioles .draft-order-pick,
 .draft-order-row--orioles .draft-order-team { color: var(--orange); font-weight: 700; }
+
+/* ── Trade Deadline page ─────────────────────────────────────────── */
+.td-overview { display: flex; flex-direction: column; gap: 12px; }
+.td-overview p { font-size: 0.86rem; line-height: 1.6; color: var(--text-2); margin: 0; }
+.reporter-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  text-decoration: none; transition: color 0.15s;
+}
+.reporter-item:last-child { border-bottom: none; }
+.reporter-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.reporter-item:hover .reporter-name { color: var(--orange); }
+.reporter-outlet { font-size: 0.68rem; color: var(--text-3); flex-shrink: 0; }
+
+.td-onblock-note { font-size: 0.76rem; color: var(--text-3); margin: 0 0 10px; line-height: 1.5; }
+
+/* ── Hover-triggered info popover (Overview) ─────────────────────── */
+.info-trigger {
+  position: relative; display: inline-flex; vertical-align: middle;
+  margin-left: 8px; color: var(--text-3); cursor: help;
+}
+.info-trigger:hover, .info-trigger:focus { color: var(--orange); outline: none; }
+.info-popover {
+  position: absolute; top: 100%; left: 0; margin-top: 10px;
+  width: 360px; max-width: min(80vw, 360px);
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+  font-size: 0.78rem; font-weight: 400; line-height: 1.55; color: var(--text-2);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+}
+.info-popover p { margin: 0 0 10px; }
+.info-popover p:last-child { margin-bottom: 0; }
+.info-trigger:hover .info-popover,
+.info-trigger:focus .info-popover { opacity: 1; visibility: visible; pointer-events: auto; }
+@media (max-width: 600px) {
+  .info-popover { left: auto; right: 0; }
+}
+
+/* ── Player hover profile card (Trade Deadline "On the Block") ──── */
+.player-hover-card {
+  position: absolute; z-index: 200;
+  width: 240px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+  transition: opacity 0.12s ease;
+}
+.player-hover-card.hidden { opacity: 0; pointer-events: none; }
+.phc-header { display: flex; align-items: center; gap: 10px; }
+.phc-photo { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--surface); }
+.phc-photo--empty { background: var(--surface); }
+.phc-id { min-width: 0; }
+.phc-name { font-size: 0.86rem; font-weight: 700; color: var(--text); }
+.phc-meta { font-size: 0.68rem; color: var(--text-3); margin-top: 1px; }
+.phc-stat { font-size: 0.78rem; font-weight: 600; color: var(--orange); margin-top: 10px; }
+.phc-contract { font-size: 0.74rem; color: var(--text-2); margin-top: 6px; }
+.phc-contract-label { font-weight: 700; color: var(--text-3); text-transform: uppercase; font-size: 0.62rem; letter-spacing: 0.04em; margin-right: 3px; }
+.phc-contract-link { display: inline-block; font-size: 0.74rem; margin-top: 6px; }
+
+/* ── Organization Watch (Trade Deadline) ─────────────────────────── */
+.asg-team-head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.asg-team-head-row .asg-updated { text-transform: none; letter-spacing: normal; font-weight: 500; }
+.td-org-list { max-height: 720px; }
+.org-player--mentioned { background: var(--orange-dim); border-radius: 4px; padding-left: 4px; margin: 1px 0; }
+.org-player--mentioned .roster-name { color: var(--orange); font-weight: 700; }
+.mention-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  text-decoration: none;
+}
+.mention-item:last-child { border-bottom: none; }
+.mention-name { font-size: 0.82rem; font-weight: 600; color: var(--text); transition: color 0.15s; }
+.mention-item:hover .mention-name { color: var(--orange); }
+.mention-count { font-size: 0.68rem; color: var(--text-3); margin-left: auto; flex-shrink: 0; }
+
+/* ── Draft ticker tape ────────────────────────────────────────────── */
+.draft-ticker-wrap {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+  overflow: hidden;
+}
+.draft-ticker-label {
+  flex-shrink: 0; margin-left: 20px;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--orange); background: var(--orange-dim);
+  padding: 4px 10px; border-radius: 999px;
+}
+.draft-ticker-viewport { flex: 1; overflow: hidden; min-width: 0; }
+.draft-ticker-track {
+  display: flex; width: max-content;
+  animation: draft-ticker-scroll 32s linear infinite;
+}
+.draft-ticker-wrap:hover .draft-ticker-track { animation-play-state: paused; }
+.draft-ticker-item {
+  flex-shrink: 0; padding: 0 28px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.8rem; font-weight: 600; color: var(--text);
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+@keyframes draft-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .draft-ticker-track { animation: none; }
+  .draft-ticker-viewport { overflow-x: auto; }
+}
+
+.draft-order-empty { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+.draft-order-empty p { font-size: 0.78rem; color: var(--text-3); margin: 0; }
+
+/* ── Homepage event highlights strip ─────────────────────────────── */
+.event-highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.event-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px; border-radius: var(--radius);
+  border: 1px solid var(--border); border-left: 3px solid var(--orange);
+  background: var(--card); text-decoration: none; min-width: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.event-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
+.event-card-img { width: 38px; height: 38px; border-radius: 5px; object-fit: cover; flex-shrink: 0; }
+.event-card-text { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.event-card-kicker { font-size: 0.68rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event-card-title { font-size: 0.64rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 760px) {
+  .event-highlights { grid-template-columns: 1fr; }
+}
 .roster-name--pending { color: var(--text-3); font-style: italic; font-weight: 400; }
 .draft-order-summary { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .draft-order-chip {

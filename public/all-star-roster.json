@@ -1,12 +1,26 @@
 {
   "season": 2026,
-  "lastUpdated": "2026-07-08",
+  "lastUpdated": "2026-07-09",
   "sources": [
     "https://www.mlb.com/news/2026-mlb-all-star-game-rosters-announcement",
     "https://www.mlb.com/news/2026-all-star-game-roster-replacements",
     "https://en.wikipedia.org/wiki/2026_Major_League_Baseball_All-Star_Game",
-    "https://www.cbssports.com/mlb/news/2026-mlb-all-star-game-rosters-unveiled/"
+    "https://www.cbssports.com/mlb/news/2026-mlb-all-star-game-rosters-unveiled/",
+    "https://www.cbssports.com/mlb/news/2026-mlb-home-run-derby-field/"
   ],
+  "homeRunDerby": {
+    "date": "Monday, July 13, 2026, 8:00 PM ET",
+    "venue": "Citizens Bank Park, Philadelphia, PA",
+    "spotsOpen": 2,
+    "participants": [
+      { "name": "Junior Caminero", "teamId": 139 },
+      { "name": "Ben Rice", "teamId": 147 },
+      { "name": "Jac Caglianone", "teamId": 118 },
+      { "name": "Willson Contreras", "teamId": 111 },
+      { "name": "Jordan Walker", "teamId": 138 },
+      { "name": "Bryce Harper", "teamId": 143 }
+    ]
+  },
   "al": {
     "starters": [
       { "name": "Shea Langeliers", "pos": "C", "teamId": 133 },

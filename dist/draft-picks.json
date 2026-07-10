@@ -16,7 +16,8 @@
     { "round": 5, "pick": 142 }
   ],
   "picks": [],
-  "round1Order": [
+  "roundOrders": {
+    "1": [
     { "pick": 1, "teamId": 145 },
     { "pick": 2, "teamId": 139 },
     { "pick": 3, "teamId": 142 },
@@ -54,7 +55,8 @@
     { "pick": 35, "teamId": 147, "note": "Competitive Balance A" },
     { "pick": 36, "teamId": 143, "note": "Competitive Balance A" },
     { "pick": 37, "teamId": 115, "note": "Competitive Balance A" }
-  ],
+    ]
+  },
   "history": [
     { "year": 2022, "round": 1, "pick": 1, "name": "Jackson Holliday", "position": "SS", "school": "Stillwater HS (OK)" },
     { "year": 2023, "round": 1, "pick": 17, "name": "Enrique Bradfield Jr.", "position": "OF", "school": "Vanderbilt" },

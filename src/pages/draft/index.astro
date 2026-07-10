@@ -21,23 +21,25 @@ const base = import.meta.env.BASE_URL;
     </div>
   </header>
 
+  <div class="draft-ticker-wrap" aria-label="Baltimore Orioles draft picks">
+    <span class="draft-ticker-label">O's Picks</span>
+    <div class="draft-ticker-viewport">
+      <div class="draft-ticker-track" id="draftTickerTrack"><span class="draft-ticker-item">Loading…</span></div>
+    </div>
+  </div>
+
   <main class="asg-page">
     <div class="asg-container">
 
       <div class="asg-main">
         <div class="asg-main-head">
-          <h1 class="asg-title">2026 MLB Draft — Orioles Picks</h1>
+          <h1 class="asg-title">2026 MLB Draft News</h1>
           <span class="asg-updated" id="draftUpdated"></span>
         </div>
 
-        <div class="asg-team-col" id="draftPicksCol">
-          <div class="asg-team-head">Baltimore Orioles</div>
-          <div id="draftPicks"><span class="sidebar-msg">Loading…</span></div>
-        </div>
-
-        <div class="asg-team-col draft-order-col">
-          <div class="asg-team-head">Round 1 Order</div>
-          <div id="draftOrder" class="draft-order-list"><span class="sidebar-msg">Loading…</span></div>
+        <div class="asg-team-col">
+          <div class="asg-team-head">Draft News</div>
+          <div id="draftNews"><span class="sidebar-msg">Loading…</span></div>
         </div>
       </div>
 
@@ -49,13 +51,11 @@ const base = import.meta.env.BASE_URL;
           </div>
         </div>
 
-        <div class="sidebar-section collapsible" data-section="draft-news">
-          <h3 class="section-label section-toggle" data-target="draft-news">
-            Draft News
-            <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-          </h3>
-          <div class="section-body" id="draftNews">
-            <span class="sidebar-msg">Loading…</span>
+        <div class="sidebar-section" data-section="draft-order">
+          <h3 class="section-label">Round Order</h3>
+          <div class="section-body">
+            <div class="pill-group" id="draftRoundTabs"></div>
+            <div id="draftOrder" class="draft-order-list"><span class="sidebar-msg">Loading…</span></div>
           </div>
         </div>
 

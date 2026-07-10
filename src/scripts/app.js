@@ -304,14 +304,19 @@ function setupEvents() {
 // ── Seasonal promo banners ──────────────────────────────────────────
 // Remove themselves once their event has passed so they don't need to
 // be manually pulled after the fact.
+const SEASONAL_BANNERS = [
+  { id: 'asgPromoBanner', expires: '2026-07-15T12:00:00-04:00' },
+  { id: 'draftPromoBanner', expires: '2026-07-13T12:00:00-04:00' },
+  { id: 'asgHighlight', expires: '2026-07-15T12:00:00-04:00' },
+  { id: 'draftHighlight', expires: '2026-07-13T12:00:00-04:00' },
+  { id: 'tradeHighlight', expires: '2026-08-04T12:00:00-04:00' },
+];
+
 function expireSeasonalBanners() {
-  const asgBanner = $('asgPromoBanner');
-  if (asgBanner && Date.now() > new Date('2026-07-15T12:00:00-04:00').getTime()) {
-    asgBanner.remove();
-  }
-  const draftBanner = $('draftPromoBanner');
-  if (draftBanner && Date.now() > new Date('2026-07-13T12:00:00-04:00').getTime()) {
-    draftBanner.remove();
+  const now = Date.now();
+  for (const { id, expires } of SEASONAL_BANNERS) {
+    const el = $(id);
+    if (el && now > new Date(expires).getTime()) el.remove();
   }
 }
 

@@ -1,9 +1,11 @@
 // ── MLB Draft page ─────────────────────────────────────────────────
 import './theme.js';
-import { PROXY, ORIOLES_ID, TEAM_ABBREV } from './config.js';
+import { PROXY, MLB, SEASON, ORIOLES_ID, TEAM_ABBREV } from './config.js';
 import { $, esc, relativeDate, cleanFeedText, savantUrl, fetchPlayerIdMap, lookupPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage } from './utils.js';
 
 let draftData = null;
+let playerIdMap = null;
+let activeRound = 1;
 
 // Undrafted prospects have no MLB person id until they sign — resolveName
 // falls back to plain text for anyone not found (freshly-drafted amateurs,
@@ -15,30 +17,73 @@ function playerNameHtml(name, idMap) {
     : `<span class="roster-name">${esc(name)}</span>`;
 }
 
-// ── Picks ─────────────────────────────────────────────────────────
-function renderPicks(data, idMap) {
-  const el = $('draftPicks');
-  const made = data.picks ?? [];
-  const order = data.oriolesPickOrder ?? [];
+// ── Ticker tape — Orioles picks, all rounds ──────────────────────
+function tickerEntry(slot, pick) {
+  const label = pick
+    ? `R${slot.round} · #${slot.pick} — ${pick.name}${pick.position ? ` (${pick.position})` : ''}`
+    : `R${slot.round} · #${slot.pick} — on the clock`;
+  return `<span class="draft-ticker-item">${esc(label)}</span>`;
+}
 
+function renderTicker(data) {
+  const track = $('draftTickerTrack');
+  if (!track) return;
+  const order = data.oriolesPickOrder ?? [];
+  const made = data.picks ?? [];
   if (!order.length) {
-    el.innerHTML = '<span class="sidebar-msg">Pick order unavailable</span>';
+    track.innerHTML = '<span class="draft-ticker-item">Orioles pick order unavailable</span>';
+    return;
+  }
+  const entries = order.map(slot => tickerEntry(slot, made.find(p => p.round === slot.round && p.pick === slot.pick)));
+  // Duplicate the run so the CSS scroll loop is seamless.
+  track.innerHTML = entries.join('') + entries.join('');
+}
+
+// ── Round order (tabbed — full order where we have it, Orioles pick otherwise) ──
+function renderRoundTabs(data) {
+  const wrap = $('draftRoundTabs');
+  if (!wrap) return;
+  const rounds = (data.oriolesPickOrder ?? []).map(s => s.round);
+  wrap.innerHTML = rounds.map(r =>
+    `<button class="pill${r === activeRound ? ' active' : ''}" data-round="${r}">Round ${r}</button>`
+  ).join('');
+  wrap.querySelectorAll('button[data-round]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeRound = Number(btn.dataset.round);
+      wrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      renderOrder(draftData, playerIdMap);
+    });
+  });
+}
+
+function renderOrder(data, idMap) {
+  const el = $('draftOrder');
+  if (!el) return;
+  const order = data.roundOrders?.[String(activeRound)];
+  const oriolesSlot = (data.oriolesPickOrder ?? []).find(s => s.round === activeRound);
+
+  if (!order?.length) {
+    const pick = (data.picks ?? []).find(p => p.round === activeRound);
+    el.innerHTML = `<div class="draft-order-empty">
+      <p>Full Round ${activeRound} order isn't published yet.</p>
+      ${oriolesSlot ? `<div class="roster-item">
+        <span class="roster-pos">R${oriolesSlot.round}</span>
+        ${pick ? playerNameHtml(pick.name, idMap) : '<span class="roster-name roster-name--pending">Orioles on the clock</span>'}
+        <span class="roster-badge roster-badge--info">Pick #${oriolesSlot.pick}</span>
+      </div>` : ''}
+      <a class="widget-link" href="https://www.mlb.com/draft/${draftData?.season ?? ''}/order" target="_blank" rel="noopener">Check MLB.com for the latest order ↗</a>
+    </div>`;
     return;
   }
 
   el.innerHTML = order.map(slot => {
-    const pick = made.find(p => p.round === slot.round && p.pick === slot.pick);
-    if (!pick) {
-      return `<div class="roster-item">
-        <span class="roster-pos">R${slot.round}</span>
-        <span class="roster-name roster-name--pending">Pick #${slot.pick} — on the clock</span>
-      </div>`;
-    }
-    return `<div class="roster-item">
-      <span class="roster-pos">R${slot.round}</span>
-      ${playerNameHtml(pick.name, idMap)}
-      <span class="roster-pos">${esc(pick.position ?? '')}</span>
-      <span class="roster-badge roster-badge--info">${esc(pick.school ?? '')}</span>
+    const isOrioles = slot.teamId === ORIOLES_ID;
+    const abbr = TEAM_ABBREV[slot.teamId] ?? '';
+    return `<div class="draft-order-row${isOrioles ? ' draft-order-row--orioles' : ''}">
+      <span class="draft-order-pick">${slot.pick}</span>
+      <img class="draft-order-logo" src="${teamLogoSrc(slot.teamId, 18)}" alt="" width="18" height="18" loading="lazy">
+      <span class="draft-order-team">${esc(abbr)}</span>
+      ${slot.note ? `<span class="draft-order-note">${esc(slot.note)}</span>` : ''}
     </div>`;
   }).join('');
 }
@@ -50,8 +95,10 @@ async function loadPicks() {
       fetchPlayerIdMap(),
     ]);
     draftData = data;
-    renderPicks(draftData, idMap);
-    renderOrder(draftData);
+    playerIdMap = idMap;
+    renderTicker(draftData);
+    renderRoundTabs(draftData);
+    renderOrder(draftData, idMap);
     const updatedEl = $('draftUpdated');
     if (updatedEl && draftData.lastUpdated) {
       updatedEl.textContent = `Updated ${relativeDate(draftData.lastUpdated)}`;
@@ -59,29 +106,9 @@ async function loadPicks() {
     loadDraftInfo(draftData);
     loadHistory(draftData, idMap);
   } catch {
-    $('draftPicks').innerHTML = '<span class="sidebar-msg">Draft data unavailable</span>';
+    $('draftTickerTrack').innerHTML = '<span class="draft-ticker-item">Draft data unavailable</span>';
+    $('draftOrder').innerHTML = '<span class="sidebar-msg">Draft data unavailable</span>';
   }
-}
-
-// ── Round 1 order (full order, Orioles pick highlighted) ────────────
-function renderOrder(data) {
-  const el = $('draftOrder');
-  if (!el) return;
-  const order = data.round1Order ?? [];
-  if (!order.length) {
-    el.innerHTML = '<span class="sidebar-msg">Draft order unavailable</span>';
-    return;
-  }
-  el.innerHTML = order.map(slot => {
-    const isOrioles = slot.teamId === ORIOLES_ID;
-    const abbr = TEAM_ABBREV[slot.teamId] ?? '';
-    return `<div class="draft-order-row${isOrioles ? ' draft-order-row--orioles' : ''}">
-      <span class="draft-order-pick">${slot.pick}</span>
-      <img class="draft-order-logo" src="${teamLogoSrc(slot.teamId, 18)}" alt="" width="18" height="18" loading="lazy">
-      <span class="draft-order-team">${esc(abbr)}</span>
-      ${slot.note ? `<span class="draft-order-note">${esc(slot.note)}</span>` : ''}
-    </div>`;
-  }).join('');
 }
 
 // ── Draft info (dates, location, countdown) ─────────────────────────
@@ -114,6 +141,21 @@ function loadDraftInfo(data) {
 }
 
 // ── History ───────────────────────────────────────────────────────
+const PITCHER_POSITIONS = new Set(['P', 'SP', 'RP', 'LHP', 'RHP']);
+
+async function fetchCurrentStatLine(playerId, position) {
+  if (!playerId) return null;
+  const group = PITCHER_POSITIONS.has(position) ? 'pitching' : 'hitting';
+  try {
+    const data = await fetch(`${MLB}/people/${playerId}/stats?stats=season&season=${SEASON}&group=${group}`).then(r => r.json());
+    const stat = data.stats?.[0]?.splits?.[0]?.stat;
+    if (!stat) return null;
+    return group === 'hitting'
+      ? `${SEASON}: ${stat.avg ?? '.---'}/${stat.obp ?? '.---'}/${stat.slg ?? '.---'}, ${stat.homeRuns ?? 0} HR`
+      : `${SEASON}: ${stat.era ?? '-.--'} ERA, ${stat.strikeOuts ?? 0} K`;
+  } catch { return null; }
+}
+
 function loadHistory(data, idMap) {
   const el = $('draftHistory');
   if (!el) return;
@@ -122,15 +164,29 @@ function loadHistory(data, idMap) {
     el.innerHTML = '<span class="sidebar-msg">No history available</span>';
     return;
   }
-  el.innerHTML = history.map(h => `
+
+  const renderRow = (h, statLine) => `
     <div class="asg-history-item">
       <span class="asg-history-year">${h.year}</span>
       <div class="asg-history-body">
         <div class="asg-history-result">${playerNameHtml(h.name, idMap)} · ${esc(h.position)}</div>
         <div class="asg-history-meta">Round ${h.round}, Pick ${h.pick} · ${esc(h.school)}</div>
+        ${statLine ? `<div class="asg-history-stat">${esc(statLine)}</div>` : ''}
       </div>
     </div>
-  `).join('');
+  `;
+
+  // Paint immediately without stat lines, then fill each in as it resolves —
+  // one slow /people/{id}/stats call shouldn't block the whole list.
+  el.innerHTML = history.map(h => renderRow(h, null)).join('');
+
+  history.forEach(async (h, i) => {
+    const id = lookupPlayerId(idMap, h.name);
+    const statLine = await fetchCurrentStatLine(id, h.position);
+    if (!statLine) return;
+    const row = el.children[i];
+    if (row) row.outerHTML = renderRow(h, statLine);
+  });
 }
 
 // ── Draft news (reuses the site's existing RSS sources, filtered) ──
@@ -160,7 +216,7 @@ async function loadDraftNews() {
     }
 
     matches.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-    const top = matches.slice(0, 8);
+    const top = matches.slice(0, 12);
 
     if (!top.length) {
       wrap.innerHTML = '<span class="sidebar-msg">No recent Draft news</span>';

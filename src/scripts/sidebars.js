@@ -21,6 +21,9 @@ import {
   teamLogoSrc,
   showToast,
   mlbPlayerUrl,
+  fetchOriolesContracts,
+  COTS_URL,
+  COTS_PAGE_URL,
 } from './utils.js';
 import { fetchWeatherForGames, getGameWeather } from './weather.js';
 import { ensureWalkupSongsLoaded, getWalkupSongUrls } from './walkup-songs.js';
@@ -1217,104 +1220,13 @@ export async function loadDepthChart() {
 }
 
 // ── Contracts & Payroll ───────────────────────────────────────────
-const COTS_URL = 'https://legacy.baseballprospectus.com/compensation/cots/al_east.php';
-const COTS_PAGE_URL = 'https://legacy.baseballprospectus.com/compensation/cots/';
-
-function parseCotsSalary(text) {
-  const t = (text ?? '').trim();
-  if (!t || t === '-' || t === ' ') return '';
-  return t;
-}
-
-function parseCotsContracts(html) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-
-  // Find heading that contains "Baltimore" or "Orioles"
-  const headings = [...doc.querySelectorAll('h1,h2,h3,h4,h5,td.team-name,div.team-name,span.team-name,b,strong')];
-  const oriHeading = headings.find(el => /baltimore|orioles/i.test(el.textContent));
-  if (!oriHeading) return null;
-
-  // Walk siblings/parents to find the next table
-  function findNextTable(startEl) {
-    let el = startEl;
-    for (let i = 0; i < 10; i++) {
-      el = el.nextElementSibling;
-      if (!el) break;
-      if (el.tagName === 'TABLE') return el;
-      const t = el.querySelector('table');
-      if (t) return t;
-    }
-    // Try parent's next siblings
-    const parent = startEl.parentElement;
-    if (parent) {
-      let pel = parent.nextElementSibling;
-      for (let i = 0; i < 5; i++) {
-        if (!pel) break;
-        if (pel.tagName === 'TABLE') return pel;
-        const t = pel.querySelector('table');
-        if (t) return t;
-        pel = pel.nextElementSibling;
-      }
-    }
-    return null;
-  }
-
-  const table = findNextTable(oriHeading);
-  if (!table) return null;
-
-  const rows = [...table.querySelectorAll('tr')];
-  if (!rows.length) return null;
-
-  // Detect header row and column indices
-  const headerCells = [...rows[0].querySelectorAll('td,th')].map(c => c.textContent.trim());
-  const currentYear = new Date().getFullYear();
-  const nameIdx = headerCells.findIndex(c => /name|player/i.test(c) || c === '');
-  const posIdx  = headerCells.findIndex(c => /pos/i.test(c));
-
-  // Find current year salary column
-  const salIdx = headerCells.findIndex(c => parseInt(c) === currentYear);
-  // Next year column
-  const sal2Idx = headerCells.findIndex(c => parseInt(c) === currentYear + 1);
-
-  const players = [];
-  let totalPayroll = '';
-
-  for (const row of rows.slice(1)) {
-    const cells = [...row.querySelectorAll('td,th')];
-    if (cells.length < 2) continue;
-
-    const rawName = cells[nameIdx >= 0 ? nameIdx : 0]?.textContent.trim() ?? '';
-    if (!rawName || /^-+$/.test(rawName)) continue;
-
-    // Skip totals / summary rows
-    if (/total|payroll|avg\s*sal|luxury/i.test(rawName)) {
-      const sal = salIdx >= 0 ? parseCotsSalary(cells[salIdx]?.textContent) : '';
-      if (sal && /total/i.test(rawName)) totalPayroll = sal;
-      continue;
-    }
-
-    const pos = posIdx >= 0 ? (cells[posIdx]?.textContent.trim() ?? '') : '';
-    const sal  = salIdx  >= 0 ? parseCotsSalary(cells[salIdx]?.textContent)  : '';
-    const sal2 = sal2Idx >= 0 ? parseCotsSalary(cells[sal2Idx]?.textContent) : '';
-
-    const link = cells[nameIdx >= 0 ? nameIdx : 0]?.querySelector('a')?.href ?? COTS_URL;
-
-    if (!sal) continue;
-    players.push({ name: rawName, pos, sal, sal2, link });
-  }
-
-  return players.length ? { players, totalPayroll, currentYear } : null;
-}
 
 export async function loadContracts() {
   const wrap = $('contractsWrap');
   if (!wrap) return;
 
   try {
-    const res = await fetch(`${PROXY}?url=${encodeURIComponent(COTS_URL)}&format=text`).then(r => r.json());
-    if (!res.text) throw new Error('empty');
-
-    const parsed = parseCotsContracts(res.text);
+    const parsed = await fetchOriolesContracts();
     if (!parsed) throw new Error('parse failed');
 
     const { players, totalPayroll, currentYear } = parsed;

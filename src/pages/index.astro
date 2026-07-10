@@ -117,6 +117,29 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- Feed -->
     <main class="feed-area">
+      <div class="event-highlights" id="eventHighlights">
+        <a class="event-card" href={`${import.meta.env.BASE_URL}all-star/`} id="asgHighlight">
+          <img class="event-card-img" src="https://img.mlbstatic.com/mlb-images/image/upload/t_1x1/t_w1536/mlb/xq1pwjo1igqxjqdsj416.jpg" alt="" loading="lazy" />
+          <div class="event-card-text">
+            <span class="event-card-kicker">All-Star Game</span>
+            <span class="event-card-title">Rosters &amp; countdown →</span>
+          </div>
+        </a>
+        <a class="event-card" href={`${import.meta.env.BASE_URL}draft/`} id="draftHighlight">
+          <img class="event-card-img" src="https://img.mlbstatic.com/mlb-images/image/upload/t_1x1/t_w1536/mlb/o7zjfvmeji2fcq2gvhcf.jpg" alt="" loading="lazy" />
+          <div class="event-card-text">
+            <span class="event-card-kicker">MLB Draft</span>
+            <span class="event-card-title">Orioles pick #7 →</span>
+          </div>
+        </a>
+        <a class="event-card" href={`${import.meta.env.BASE_URL}trade-deadline/`} id="tradeHighlight">
+          <img class="event-card-img" src="https://img.mlbstatic.com/mlb-images/image/upload/t_1x1/t_w1536/mlb/hgucoanyn2mlz36zufmw.jpg" alt="" loading="lazy" />
+          <div class="event-card-text">
+            <span class="event-card-kicker">Trade Deadline</span>
+            <span class="event-card-title">Rumors &amp; reporting →</span>
+          </div>
+        </a>
+      </div>
       <div class="feed-toolbar">
         <div class="toolbar-left">
           <div class="pill-group" id="categoryFilters">
