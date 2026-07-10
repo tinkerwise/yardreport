@@ -156,17 +156,13 @@ async function fetchCurrentStatLine(playerId, position) {
   } catch { return null; }
 }
 
-function loadHistory(data, idMap) {
-  const el = $('draftHistory');
-  if (!el) return;
-  const history = [...(data.history ?? [])].sort((a, b) => b.year - a.year);
-  if (!history.length) {
-    el.innerHTML = '<span class="sidebar-msg">No history available</span>';
-    return;
-  }
+function historyKey(h) {
+  return `${h.year}-${h.pick}-${h.name}`.replace(/\W+/g, '');
+}
 
-  const renderRow = (h, statLine) => `
-    <div class="asg-history-item">
+function renderHistoryRow(h, idMap, statLine) {
+  return `
+    <div class="asg-history-item" data-history-key="${historyKey(h)}">
       <span class="asg-history-year">${h.year}</span>
       <div class="asg-history-body">
         <div class="asg-history-result">${playerNameHtml(h.name, idMap)} · ${esc(h.position)}</div>
@@ -175,17 +171,34 @@ function loadHistory(data, idMap) {
       </div>
     </div>
   `;
+}
+
+function loadHistory(data, idMap) {
+  const el = $('draftHistory');
+  if (!el) return;
+  const recentPicks = [...(data.recentPicks ?? [])].sort((a, b) => b.year - a.year);
+  const notables = [...(data.notables ?? [])].sort((a, b) => b.year - a.year);
+  const all = [...recentPicks, ...notables];
+
+  if (!all.length) {
+    el.innerHTML = '<span class="sidebar-msg">No history available</span>';
+    return;
+  }
 
   // Paint immediately without stat lines, then fill each in as it resolves —
-  // one slow /people/{id}/stats call shouldn't block the whole list.
-  el.innerHTML = history.map(h => renderRow(h, null)).join('');
+  // one slow /people/{id}/stats call shouldn't block the list. Rows are
+  // matched back up by key rather than position since there are two groups.
+  el.innerHTML = `
+    ${recentPicks.length ? `<div class="roster-group-label">Recent Top Picks</div>${recentPicks.map(h => renderHistoryRow(h, idMap, null)).join('')}` : ''}
+    ${notables.length ? `<div class="roster-group-label">Franchise Notables</div>${notables.map(h => renderHistoryRow(h, idMap, null)).join('')}` : ''}
+  `;
 
-  history.forEach(async (h, i) => {
+  all.forEach(async h => {
     const id = lookupPlayerId(idMap, h.name);
     const statLine = await fetchCurrentStatLine(id, h.position);
     if (!statLine) return;
-    const row = el.children[i];
-    if (row) row.outerHTML = renderRow(h, statLine);
+    const row = el.querySelector(`[data-history-key="${historyKey(h)}"]`);
+    if (row) row.outerHTML = renderHistoryRow(h, idMap, statLine);
   });
 }
 

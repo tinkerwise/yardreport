@@ -57,10 +57,21 @@
     { "pick": 37, "teamId": 115, "note": "Competitive Balance A" }
     ]
   },
-  "history": [
+  "recentPicks": [
+    { "year": 2025, "round": 1, "pick": 19, "name": "Ike Irish", "position": "C/OF", "school": "Auburn" },
+    { "year": 2025, "round": 1, "pick": 30, "name": "Caden Bodine", "position": "C", "school": "Coastal Carolina" },
+    { "year": 2025, "round": 1, "pick": 31, "name": "Wehiwa Aloy", "position": "SS", "school": "Arkansas" },
+    { "year": 2024, "round": 1, "pick": 22, "name": "Vance Honeycutt", "position": "OF", "school": "North Carolina" },
     { "year": 2022, "round": 1, "pick": 1, "name": "Jackson Holliday", "position": "SS", "school": "Stillwater HS (OK)" },
     { "year": 2023, "round": 1, "pick": 17, "name": "Enrique Bradfield Jr.", "position": "OF", "school": "Vanderbilt" },
     { "year": 2021, "round": 1, "pick": 5, "name": "Colton Cowser", "position": "OF", "school": "Sam Houston State" },
     { "year": 2019, "round": 1, "pick": 1, "name": "Adley Rutschman", "position": "C", "school": "Oregon State" }
+  ],
+  "notables": [
+    { "year": 2019, "round": 2, "pick": 42, "name": "Gunnar Henderson", "position": "SS", "school": "John T. Morgan Academy (AL)" },
+    { "year": 2015, "round": 13, "pick": 403, "name": "Cedric Mullins", "position": "OF", "school": "Campbell" },
+    { "year": 2013, "round": 8, "pick": 249, "name": "Trey Mancini", "position": "1B/OF", "school": "Notre Dame" },
+    { "year": 1978, "round": 2, "pick": 48, "name": "Cal Ripken Jr.", "position": "SS", "school": "Aberdeen HS (MD)" },
+    { "year": 1973, "round": 3, "pick": 63, "name": "Eddie Murray", "position": "1B", "school": "Locke HS (CA)" }
   ]
 }
