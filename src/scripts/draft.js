@@ -1,12 +1,27 @@
 // ── MLB Draft page ─────────────────────────────────────────────────
 import './theme.js';
 import { PROXY, MLB, SEASON, ORIOLES_ID, TEAM_ABBREV } from './config.js';
-import { $, esc, relativeDate, cleanFeedText, savantUrl, mlbPlayerUrl, fetchPlayerIdMap, lookupPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups } from './utils.js';
+import { $, esc, relativeDate, cleanFeedText, savantUrl, mlbPlayerUrl, fetchPlayerIdMap, lookupPlayerId, searchPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups } from './utils.js';
 
 let draftData = null;
 let playerIdMap = null;
 let activeRound = 1;
 let draftStatus = 'upcoming';
+
+function headshotUrl(id) {
+  return `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${id}/headshot/67/current`;
+}
+
+const HIGHLIGHT_ICONS = [
+  // player (Holliday headshot is swapped in for this card once resolved)
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>',
+  // bat + ball
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 15 9"/><path d="M13 7a2.5 2.5 0 1 1 3.5 3.5L15 12l-3.5-3.5Z"/><circle cx="19" cy="5" r="2"/></svg>',
+  // star (top of the class)
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.2-5.4 3.2 1.3-6-4.6-4.1 6.1-.6L12 3Z"/></svg>',
+  // megaphone (mock draft buzz)
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11v2a2 2 0 0 0 2 2h1l4 4v-4h1l7 4V5l-7 4h-1L6 9H5a2 2 0 0 0-2 2Z"/></svg>',
+];
 
 // ── Live draft results (MLB Stats API) ───────────────────────────────
 // The static JSON only pins down the Orioles' pick numbers for rounds 1-5
@@ -228,6 +243,9 @@ function renderHero(data) {
   const badge = $('draftHeroBadge');
   const facts = $('draftHeroFacts');
   const highlights = $('draftHighlights');
+  const logo = $('draftHeroLogo');
+
+  if (logo) logo.src = teamLogoSrc(ORIOLES_ID, 56);
 
   if (badge) {
     if (draftStatus === 'live') {
@@ -268,13 +286,19 @@ function renderHero(data) {
 
   if (highlights) {
     const items = data.highlights ?? [];
-    highlights.innerHTML = items.map(h => `
+    const hollidayId = lookupPlayerId(playerIdMap, 'Jackson Holliday');
+    highlights.innerHTML = items.map((h, i) => {
+      const media = (i === 0 && hollidayId)
+        ? `<img class="draft-highlight-photo" src="${headshotUrl(hollidayId)}" alt="" loading="lazy">`
+        : `<span class="draft-highlight-icon">${HIGHLIGHT_ICONS[i % HIGHLIGHT_ICONS.length]}</span>`;
+      return `
       <div class="draft-highlight-card">
-        <svg class="draft-highlight-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Z"/><path d="M12 2c2.5 3 2.5 17 0 20M12 2c-2.5 3-2.5 17 0 20M2.5 9h19M2.5 15h19"/></svg>
+        ${media}
         <div class="draft-highlight-title">${esc(h.title)}</div>
         <div class="draft-highlight-body">${esc(h.body)}</div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   const bcast = $('draftBroadcast');
@@ -345,9 +369,13 @@ function historyKey(h) {
   return `${h.year}-${h.pick}-${h.name}`.replace(/\W+/g, '');
 }
 
-function renderHistoryRow(h, idMap, statLine) {
+function renderHistoryRow(h, idMap, statLine, avatarId) {
+  const avatarHtml = avatarId
+    ? `<img class="asg-history-avatar" src="${headshotUrl(avatarId)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'asg-history-avatar asg-history-avatar--placeholder'}))">`
+    : `<span class="asg-history-avatar asg-history-avatar--placeholder"></span>`;
   return `
     <div class="asg-history-item" data-history-key="${historyKey(h)}">
+      ${avatarHtml}
       <span class="asg-history-year">${h.year}</span>
       <div class="asg-history-body">
         <div class="asg-history-result">${playerNameHtml(h.name, idMap)} · ${esc(h.position)}</div>
@@ -370,21 +398,21 @@ function loadHistory(data, idMap) {
     return;
   }
 
-  // Paint immediately without stat lines, then fill each in as it resolves —
-  // one slow /people/{id}/stats call shouldn't block the list. Rows are
-  // matched back up by key rather than position since there are two groups.
+  // Paint immediately without stat lines or avatars, then fill each in as it
+  // resolves — one slow /people/{id}/stats or /people/search call shouldn't
+  // block the list. Rows are matched back up by key since there are two groups.
   el.innerHTML = `
-    ${recentPicks.length ? `<div class="roster-group-label">Recent Top Picks</div>${recentPicks.map(h => renderHistoryRow(h, idMap, null)).join('')}` : ''}
-    ${notables.length ? `<div class="roster-group-label">Franchise Notables</div>${notables.map(h => renderHistoryRow(h, idMap, null)).join('')}` : ''}
+    ${recentPicks.length ? `<div class="roster-group-label">Recent Top Picks</div>${recentPicks.map(h => renderHistoryRow(h, idMap, null, lookupPlayerId(idMap, h.name))).join('')}` : ''}
+    ${notables.length ? `<div class="roster-group-label">Franchise Notables</div>${notables.map(h => renderHistoryRow(h, idMap, null, lookupPlayerId(idMap, h.name))).join('')}` : ''}
   `;
   resolveNameLookups(el);
 
   all.forEach(async h => {
-    const id = lookupPlayerId(idMap, h.name);
+    let id = lookupPlayerId(idMap, h.name);
+    if (!id) id = await searchPlayerId(h.name); // retired/pre-active players (Ripken, Murray, ...)
     const statLine = await fetchCurrentStatLine(id, h.position);
-    if (!statLine) return;
     const row = el.querySelector(`[data-history-key="${historyKey(h)}"]`);
-    if (row) row.outerHTML = renderHistoryRow(h, idMap, statLine);
+    if (row) row.outerHTML = renderHistoryRow(h, idMap, statLine, id);
   });
 }
 

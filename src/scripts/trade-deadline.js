@@ -4,6 +4,7 @@ import { MLB, PROXY, ORIOLES_ID, SEASON } from './config.js';
 import { $, esc, relativeDate, cleanFeedText, extractThumbnail, renderNewsThumbCard, fetchOgImage, fetchPlayerIndex, savantUrl, teamLogoSrc, decodeHtmlEntities, mlbPlayerUrl, fetchOriolesContracts } from './utils.js';
 
 const DEADLINE = new Date('2026-08-03T18:00:00-04:00');
+let tdData = null;
 
 // ── Orioles Moves — confirmed trades only, straight from MLB's own
 // transaction log (not the rumor mill above) ─────────────────────
@@ -104,11 +105,21 @@ async function loadOverview(data) {
 async function init() {
   try {
     const data = await fetch(`${import.meta.env.BASE_URL}trade-deadline.json`).then(r => r.json());
+    tdData = data;
     loadOverview(data);
   } catch {
     $('tdInfo').innerHTML = '<span class="sidebar-msg">Unavailable</span>';
     $('tdReporters').innerHTML = '<span class="sidebar-msg">Unavailable</span>';
   }
+}
+
+// Rumor recaps (public/trade-deadline.json → rumorRecaps) are generated
+// offline by scripts/generate-trade-summaries.mjs — mentioned Orioles
+// players link to their recap page when one exists, else out to Savant.
+function playerLinkHref(playerId) {
+  return tdData?.rumorRecaps?.[playerId]
+    ? `${import.meta.env.BASE_URL}trade-deadline/player/?id=${playerId}`
+    : null;
 }
 
 // ── On the Block — Orioles names mentioned in trade rumors ───────
@@ -121,12 +132,15 @@ function findMentionedPlayers(text, playerIndex) {
 }
 
 function renderMentionRow(entry) {
-  const { player, count, link } = entry;
-  return `<a class="mention-item" href="${savantUrl(player.id)}" target="_blank" rel="noopener"
+  const { player, count } = entry;
+  const recapHref = playerLinkHref(player.id);
+  const href = recapHref ?? savantUrl(player.id);
+  const external = !recapHref;
+  return `<a class="mention-item" href="${href}"${external ? ' target="_blank" rel="noopener"' : ''}
       data-player-id="${player.id}" data-team-id="${player.teamId ?? ''}" data-player-name="${esc(player.fullName)}">
     ${player.teamId ? `<img class="asg-team-logo" src="${teamLogoSrc(player.teamId, 16)}" alt="" width="16" height="16" loading="lazy">` : ''}
     <span class="mention-name">${esc(player.fullName)}</span>
-    <span class="mention-count">${count} mention${count === 1 ? '' : 's'}</span>
+    <span class="mention-count">${count} mention${count === 1 ? '' : 's'}${recapHref ? ' · Recap' : ''}</span>
   </a>`;
 }
 
@@ -368,13 +382,17 @@ function renderOrgRoster(org, mentionedIds) {
     const sorted = [...g.players].sort((a, b) => (mentionedIds.has(b.id) ? 1 : 0) - (mentionedIds.has(a.id) ? 1 : 0));
     const label = g.level === '40-Man' ? '40-Man Roster' : `${g.level} · ${esc(g.players[0].team ?? '')}`;
     return `<div class="roster-group-label">${label}</div>
-      ${sorted.map(p => `
+      ${sorted.map(p => {
+        const recapHref = playerLinkHref(p.id);
+        const href = recapHref ?? savantUrl(p.id);
+        return `
         <div class="roster-item${mentionedIds.has(p.id) ? ' org-player--mentioned' : ''}">
-          <a class="roster-name" href="${savantUrl(p.id)}" target="_blank" rel="noopener">${esc(p.name)}</a>
+          <a class="roster-name" href="${href}"${recapHref ? '' : ' target="_blank" rel="noopener"'}>${esc(p.name)}</a>
           <span class="roster-pos">${esc(p.pos)}</span>
-          ${mentionedIds.has(p.id) ? '<span class="roster-badge roster-badge--replacement">Rumor Mill</span>' : ''}
+          ${mentionedIds.has(p.id) ? `<span class="roster-badge roster-badge--replacement">${recapHref ? 'Rumor Mill · Recap' : 'Rumor Mill'}</span>` : ''}
         </div>
-      `).join('')}`;
+      `;
+      }).join('')}`;
   }).join('');
 }
 
@@ -460,7 +478,11 @@ function setupAccordion() {
   });
 }
 
+async function boot() {
+  await init(); // populates tdData so mention/org-roster links can point at generated recaps
+  loadOriolesMoves();
+  loadDeadlineNews();
+}
+
 setupAccordion();
-init();
-loadOriolesMoves();
-loadDeadlineNews();
+boot();

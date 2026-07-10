@@ -1,0 +1,56 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="Trade Rumors | Yard Report">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href={base}>
+        <img class="logo-img" src={`${base}logo.png`} alt="Yard Report logo" height="36" />
+        <span class="logo-wordmark" aria-label="Yard Report">
+          <span class="logo-word">Yard</span>
+          <strong class="logo-word logo-word-accent">Report</strong>
+        </span>
+      </a>
+      <nav class="header-right header-breadcrumb" aria-label="Breadcrumb">
+        <a class="breadcrumb-link" href={base}>← Yard Report</a>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        <a class="breadcrumb-link" href={`${base}trade-deadline/`}>Trade Deadline</a>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="breadcrumb-current" id="tpBreadcrumb">Rumor Recap</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ath-page">
+    <div class="ath-page-shell">
+      <a class="ath-page-back" href={`${base}trade-deadline/`}>← Back to Trade Deadline</a>
+
+      <div class="tp-header" id="tpHeader">
+        <div class="tp-photo-wrap">
+          <img class="tp-photo" id="tpPhoto" src="" alt="" loading="lazy">
+        </div>
+        <div class="tp-id">
+          <h1 class="tp-name" id="tpName">Loading…</h1>
+          <div class="tp-meta" id="tpMeta"></div>
+        </div>
+      </div>
+
+      <section class="tp-summary" id="tpSummary">
+        <span class="tp-summary-label">Rumor Recap</span>
+        <p class="tp-summary-body" id="tpSummaryBody">Loading…</p>
+        <p class="tp-disclaimer">AI-assisted summary of the headlines below — reporting and speculation, not confirmed moves. Generated periodically, not in real time.</p>
+      </section>
+
+      <section class="tp-articles">
+        <h2 class="tp-articles-head">Coverage</h2>
+        <div id="tpArticles"><div class="feed-msg">Loading…</div></div>
+      </section>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import '../../../scripts/trade-player.js';
+</script>

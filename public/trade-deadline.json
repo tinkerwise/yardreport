@@ -6,12 +6,55 @@
     "https://www.mlb.com/news/when-is-the-mlb-trade-deadline-2026-date-time-candidates-storylines"
   ],
   "reporters": [
-    { "name": "Jeff Passan", "outlet": "ESPN", "link": "https://x.com/JeffPassan" },
-    { "name": "Ken Rosenthal", "outlet": "The Athletic", "link": "https://x.com/Ken_Rosenthal" },
-    { "name": "Jon Heyman", "outlet": "New York Post", "link": "https://x.com/JonHeyman" },
-    { "name": "Mark Feinsand", "outlet": "MLB.com", "link": "https://x.com/Feinsand" },
-    { "name": "Bob Nightengale", "outlet": "USA Today", "link": "https://x.com/nightengalejr" },
-    { "name": "Jon Morosi", "outlet": "MLB Network", "link": "https://x.com/jonmorosi" },
-    { "name": "Buster Olney", "outlet": "ESPN", "link": "https://x.com/Buster_ESPN" }
-  ]
+    {
+      "name": "Jeff Passan",
+      "outlet": "ESPN",
+      "link": "https://x.com/JeffPassan"
+    },
+    {
+      "name": "Ken Rosenthal",
+      "outlet": "The Athletic",
+      "link": "https://x.com/Ken_Rosenthal"
+    },
+    {
+      "name": "Jon Heyman",
+      "outlet": "New York Post",
+      "link": "https://x.com/JonHeyman"
+    },
+    {
+      "name": "Mark Feinsand",
+      "outlet": "MLB.com",
+      "link": "https://x.com/Feinsand"
+    },
+    {
+      "name": "Bob Nightengale",
+      "outlet": "USA Today",
+      "link": "https://x.com/nightengalejr"
+    },
+    {
+      "name": "Jon Morosi",
+      "outlet": "MLB Network",
+      "link": "https://x.com/jonmorosi"
+    },
+    {
+      "name": "Buster Olney",
+      "outlet": "ESPN",
+      "link": "https://x.com/Buster_ESPN"
+    }
+  ],
+  "rumorRecaps": {
+    "641933": {
+      "name": "Tyler O'Neill",
+      "summary": "Recent reports have linked Tyler O'Neill to the Orioles as a potential trade candidate, with speculation suggesting that his recent hot streak could make him a viable option for the team to consider. While one report frames his performance as a possible key to resetting the Orioles' outfield, the details regarding how serious or advanced any potential interest might be remain vague.",
+      "generatedAt": "2026-07-10T15:31:17.426Z",
+      "articles": [
+        {
+          "title": "One player's hot streak could be the key to the Orioles trade deadline",
+          "link": "https://birdswatcher.com/one-player-s-hot-streak-could-be-the-key-to-the-orioles-trade-deadline?utm_source=RSS",
+          "pubDate": "Thu, 09 Jul 2026 22:28:57 +0000",
+          "sourceName": "Birds Watcher"
+        }
+      ]
+    }
+  }
 }
