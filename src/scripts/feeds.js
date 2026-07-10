@@ -96,7 +96,6 @@ export async function loadFeeds() {
 
   if (activeFEEDS.length === 0) {
     state.articles = [];
-    renderSourceFilters();
     $('articleList').innerHTML =
       '<div class="feed-msg">No sources selected. <button class="feed-msg-link" id="feedMsgSettingsBtn">Open Settings</button> to enable sources.</div>';
     document.getElementById('feedMsgSettingsBtn')?.addEventListener('click', () =>
@@ -110,7 +109,6 @@ export async function loadFeeds() {
   if (!hasCache) {
     // Progressive rendering: no cached content to protect, so paint each feed
     // as it resolves. rAF debounce collapses rapid arrivals into one render.
-    renderSourceFilters();
     let renderPending = false;
     const scheduleRender = () => {
       if (renderPending) return;
@@ -153,67 +151,8 @@ export async function loadFeeds() {
   }
 
   saveFeedCache(state.articles);
-  renderSourceFilters();
   renderArticles();
   return successfulSources;
-}
-
-// ── Source filters ────────────────────────────────────────────────
-function syncSourceFilterBtn() {
-  const btn = $('sourceFilterBtn');
-  if (!btn) return;
-  const disabled = getDisabledSources();
-  const isFiltered = disabled.size > 0;
-  btn.setAttribute('aria-pressed', String(isFiltered));
-  const label = btn.querySelector('.source-filter-label');
-  if (label) {
-    if (isFiltered && ALL_FEEDS.length > 0) {
-      const active = ALL_FEEDS.length - disabled.size;
-      label.textContent = `${active} / ${ALL_FEEDS.length} Sources`;
-    } else {
-      label.textContent = 'Sources';
-    }
-  }
-}
-
-export function renderSourceFilters() {
-  const sources = ALL_FEEDS;
-  const disabled = getDisabledSources();
-  const container = $('sourceFilters');
-
-  container.innerHTML =
-    `<button class="pill${disabled.size === 0 ? ' active' : ''}" data-source="all">All</button>` +
-    sources.map(s =>
-      `<button class="pill${!disabled.has(s.id) ? ' active' : ''}" data-source="${esc(s.id)}">${esc(s.name)}</button>`
-    ).join('');
-
-  syncSourceFilterBtn();
-
-  container.querySelector('[data-source="all"]').addEventListener('click', () => {
-    saveDisabledSources(new Set());
-    renderSourceFilters();
-    loadFeeds();
-  });
-
-  container.querySelectorAll('.pill:not([data-source="all"])').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const current = getDisabledSources();
-      const id = pill.dataset.source;
-      const wasDisabled = current.has(id);
-      if (wasDisabled) {
-        current.delete(id);
-      } else {
-        current.add(id);
-      }
-      saveDisabledSources(current);
-      renderSourceFilters();
-      if (wasDisabled) {
-        loadFeeds();
-      } else {
-        renderArticles();
-      }
-    });
-  });
 }
 
 export function syncShowReadButton() {
@@ -762,12 +701,37 @@ function loadMoreArticles() {
   _renderArticles();
 }
 
+// Category pills live in the static toolbar by default, but when "Around
+// the Horn" renders, a copy sits on that row instead (right-justified
+// against its left-justified headline) so the two don't each need their
+// own row. #articleList gets fully replaced via innerHTML on every render,
+// so anything moved into it (rather than cloned) would be destroyed on the
+// next pass — hence cloning the static original instead of reparenting it.
+// Click handling is delegated from document (see app.js) so it works on
+// either copy without needing to rebind listeners on every render.
+function relocateCategoryPills(list) {
+  const original = $('categoryFilters');
+  const home = $('feedToolbarHome');
+  if (!original) return;
+  const athHead = list.querySelector('.ath-section-head');
+  if (athHead) {
+    const clone = original.cloneNode(true);
+    clone.removeAttribute('id');
+    clone.classList.add('pill-group--ath');
+    athHead.appendChild(clone);
+    home?.classList.add('feed-toolbar--empty');
+  } else {
+    home?.classList.remove('feed-toolbar--empty');
+  }
+}
+
 function _renderArticles() {
   const list = $('articleList');
   const arts = getFilteredArticles();
 
   if (!arts.length) {
     list.innerHTML = '<div class="feed-msg">No articles match your filters.</div>';
+    relocateCategoryPills(list);
     return;
   }
 
@@ -795,8 +759,10 @@ function _renderArticles() {
   if (bundles.length) {
     html += `<section class="ath-section">
       <div class="ath-section-head">
-        <span class="ath-section-kicker">Featured Stories</span>
-        <h2 class="ath-section-title">Around the Horn</h2>
+        <div class="ath-section-headline">
+          <span class="ath-section-kicker">Featured Stories</span>
+          <h2 class="ath-section-title">Around the Horn</h2>
+        </div>
       </div>
       <div class="ath-bundle-grid">${(() => { const used = new Set(); return bundles.map(b => renderBundle(b, arts, used)).join(''); })()}</div>
     </section>`;
@@ -824,6 +790,7 @@ function _renderArticles() {
   }
 
   list.innerHTML = html;
+  relocateCategoryPills(list);
   setupThumbObserver();
 
   // Infinite scroll: observe a sentinel below the last card; load more when it enters viewport

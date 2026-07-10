@@ -75,7 +75,6 @@
   background: linear-gradient(180deg, #fff7ef 0%, #fff 100%);
   box-shadow: 0 10px 28px rgba(120,53,15,0.12);
 }
-[data-theme="light"] .source-popover { background: #fff; }
 [data-theme="light"] .settings-panel { background: #fff; color: #1a1a1a; }
 
 /* ── City Connect Theme (Easter Egg — "From The Stoop to The Yard") ── */
@@ -480,6 +479,9 @@ img { display: block; max-width: 100%; }
 .btn-close-settings:hover { color: var(--text); }
 .settings-body { padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
 .settings-group { display: flex; flex-direction: column; gap: 8px; }
+.settings-feed-row { display: flex; gap: 8px; }
+.settings-feed-row .sort-select { flex: 1; min-width: 0; }
+.settings-group .btn-source-filter { align-self: flex-start; }
 /* ── Source settings ──────────────────────────────────────────────── */
 .settings-sources-note {
   font-size: 0.68rem; color: var(--text-3); margin: -2px 0 2px;
@@ -2852,8 +2854,7 @@ a.il-name:hover { color: var(--orange); }
 }
 .media-time { font-size: 0.62rem; color: var(--text-3); white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
 
-/* ── Source Filter Popover ────────────────────────────────────── */
-.source-filter-wrap { position: relative; }
+/* ── Feed settings buttons (moved into the header Settings overlay) ── */
 .btn-source-filter {
   display: inline-flex; align-items: center; gap: 5px;
   background: transparent; border: 1px solid var(--border-light);
@@ -2863,84 +2864,25 @@ a.il-name:hover { color: var(--orange); }
   white-space: nowrap;
 }
 .btn-source-filter:hover { border-color: var(--orange); color: var(--orange); }
-.btn-source-filter[aria-pressed="true"] {
-  border-color: var(--orange);
-  background: rgba(251,146,60,0.12);
-  color: var(--orange);
-}
 .btn-feed-toggle[aria-pressed="true"] {
   border-color: var(--orange);
   background: var(--orange-dim);
   color: var(--orange);
 }
-.source-popover {
-  position: absolute; top: calc(100% + 6px); right: 0;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 12px;
-  z-index: 30; min-width: 240px; max-width: 360px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-}
-.source-popover.hidden { display: none; }
-.source-popover .pill-group { max-height: 260px; overflow-y: auto; }
 
 /* ── Feed Area ─────────────────────────────────────────────────── */
 .feed-area { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: relative; z-index: 1; }
 .feed-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
   width: 100%;
 }
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  flex: 1 1 auto;
-  min-width: 0;
-}
+.feed-toolbar--empty { display: none; }
 .toolbar-divider {
   width: 1px; height: 20px; background: var(--border); flex-shrink: 0;
 }
-/* ── Feed settings dropdown (Sources / Show read / Sort / View) ─── */
-.toolbar-settings-wrap { position: relative; flex-shrink: 0; }
-.toolbar-settings-wrap .btn-settings[aria-pressed="true"] { color: var(--orange); border-color: var(--orange); }
-.toolbar-settings-panel {
-  position: absolute; top: calc(100% + 6px); right: 0;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px;
-  z-index: 30; width: 260px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  display: flex; flex-direction: column; gap: 14px;
-}
-.toolbar-settings-panel.hidden { display: none; }
-.toolbar-settings-group { display: flex; flex-direction: column; gap: 8px; }
-.toolbar-settings-group:not(:last-child) { padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-.toolbar-settings-label {
-  font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-  color: var(--text-3);
-}
-.toolbar-settings-group .btn-source-filter,
-.toolbar-settings-group .sort-select { width: 100%; }
-.toolbar-settings-group .sort-select { box-sizing: border-box; }
-.toolbar-settings-group .source-filter-wrap { position: static; }
-.toolbar-settings-group .source-popover { left: 0; right: 0; width: auto; }
-.toolbar-settings-group .view-toggle { width: 100%; }
-.toolbar-settings-group .view-btn { flex: 1; }
-.view-toggle {
-  display: flex;
-  gap: 2px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px;
-}
-.view-btn {
-  background: none; border: none; color: var(--text-3); padding: 5px 7px;
-  border-radius: 4px; cursor: pointer; display: flex; align-items: center;
-  transition: background 0.12s, color 0.12s;
-}
-.view-btn:hover { color: var(--text); }
-.view-btn.active { background: var(--orange-dim); color: var(--orange); }
 .sort-select {
   background: var(--card);
   border: 1px solid var(--border);
@@ -3156,9 +3098,18 @@ a.il-name:hover { color: var(--orange); }
 }
 .ath-section-head {
   display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.ath-section-headline {
+  display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
+.ath-section-head #categoryFilters { flex-shrink: 0; margin-bottom: 1px; }
 .ath-section-kicker {
   font-size: 0.62rem;
   font-weight: 800;
@@ -3724,17 +3675,8 @@ a.il-name:hover { color: var(--orange); }
 
   /* Feed toolbar – stack on mobile */
   .feed-toolbar { flex-wrap: wrap; gap: 6px; }
-  .toolbar-left { width: 100%; }
-  .toolbar-settings-panel {
-    position: fixed; top: auto; bottom: 0; left: 0; right: 0;
-    width: auto; max-width: none;
-    border-radius: 12px 12px 0 0; max-height: 70vh; overflow-y: auto;
-    z-index: 50;
-  }
-  .view-btn { min-width: 36px; min-height: 36px; }
   .btn-source-filter { padding: 6px 10px; min-height: 36px; }
   .sort-select { min-height: 36px; font-size: 0.75rem; }
-  .view-btn[data-view="grid"] { display: none; }
 
   /* Article cards – horizontal, tighter */
   .article-grid { grid-template-columns: 1fr; gap: 10px; }
@@ -3788,14 +3730,6 @@ a.il-name:hover { color: var(--orange); }
   .bundle-card-footer { padding: 4px 10px 5px; }
   .bundle-sources .source-ico { width: 13px; height: 13px; }
   .ath-page { padding: 28px 14px 48px; }
-
-  /* Source popover – full width bottom sheet style */
-  .source-popover {
-    position: fixed; top: auto; bottom: 0; left: 0; right: 0;
-    border-radius: 12px 12px 0 0; max-width: none;
-    max-height: 60vh; overflow-y: auto;
-    z-index: 50;
-  }
 
   /* Safe areas for notched phones */
   .site-header { padding-top: env(safe-area-inset-top, 0); }

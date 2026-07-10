@@ -7,7 +7,6 @@ import { loadScores } from './scores.js';
 import {
   loadFeeds,
   renderArticles,
-  renderSourceFilters,
   setViewMode,
   syncShowReadButton,
   closeReader,
@@ -91,14 +90,12 @@ function renderSourceSettings() {
         warn?.remove();
       }
       saveDisabledSources(newDisabled);
-      renderSourceFilters();
       loadFeeds();
     });
   });
 
   $('sourceResetBtn')?.addEventListener('click', () => {
     saveDisabledSources(new Set());
-    renderSourceFilters();
     renderSourceSettings();
     loadFeeds();
   });
@@ -150,24 +147,18 @@ function setupEvents() {
   });
 
   // Initial UI state
-  $('viewToggle').querySelectorAll('.view-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.view === state.viewMode));
   $('dateRangeSelect').value = String(state.dateRange);
   syncShowReadButton();
 
-  // View toggle
-  $('viewToggle').addEventListener('click', e => {
-    const btn = e.target.closest('[data-view]');
-    if (!btn) return;
-    setViewMode(btn.dataset.view);
-  });
-
-  // Category filters
-  $('categoryFilters').addEventListener('click', e => {
-    const pill = e.target.closest('.pill');
+  // Category filters — delegated from document since a second copy of the
+  // pills gets cloned into the "Around the Horn" heading row when it
+  // renders (see relocateCategoryPills in feeds.js), and that copy is
+  // rebuilt fresh on every article render rather than kept as a stable node.
+  document.addEventListener('click', e => {
+    const pill = e.target.closest('.pill[data-category]');
     if (!pill) return;
     state.activeCategory = pill.dataset.category;
-    $('categoryFilters').querySelectorAll('.pill').forEach(p =>
+    document.querySelectorAll('.pill[data-category]').forEach(p =>
       p.classList.toggle('active', p.dataset.category === state.activeCategory));
     renderArticles();
   });
@@ -229,29 +220,6 @@ function setupEvents() {
       });
       section.classList.toggle('collapsed', !isCollapsed);
     });
-  });
-
-  // Source filter popover
-  $('sourceFilterBtn').addEventListener('click', () => {
-    $('sourcePopover').classList.toggle('hidden');
-  });
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.source-filter-wrap')) {
-      $('sourcePopover').classList.add('hidden');
-    }
-  });
-
-  // Feed settings dropdown (Sources / Show read / Sort / View)
-  $('toolbarSettingsBtn').addEventListener('click', () => {
-    const panel = $('toolbarSettingsPanel');
-    const nowHidden = panel.classList.toggle('hidden');
-    $('toolbarSettingsBtn').setAttribute('aria-pressed', String(!nowHidden));
-  });
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.toolbar-settings-wrap')) {
-      $('toolbarSettingsPanel').classList.add('hidden');
-      $('toolbarSettingsBtn').setAttribute('aria-pressed', 'false');
-    }
   });
 
   // Reader close
