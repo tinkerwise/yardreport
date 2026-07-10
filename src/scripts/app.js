@@ -306,7 +306,6 @@ function setupEvents() {
 // be manually pulled after the fact.
 const SEASONAL_BANNERS = [
   { id: 'asgPromoBanner', expires: '2026-07-15T12:00:00-04:00' },
-  { id: 'draftPromoBanner', expires: '2026-07-13T12:00:00-04:00' },
   { id: 'asgHighlight', expires: '2026-07-15T12:00:00-04:00' },
   { id: 'draftHighlight', expires: '2026-07-13T12:00:00-04:00' },
   { id: 'tradeHighlight', expires: '2026-08-04T12:00:00-04:00' },
