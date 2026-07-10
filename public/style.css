@@ -2901,15 +2901,31 @@ a.il-name:hover { color: var(--orange); }
 .toolbar-divider {
   width: 1px; height: 20px; background: var(--border); flex-shrink: 0;
 }
-.toolbar-controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex: 1 1 auto;
-  gap: 10px;
-  flex-wrap: wrap;
-  min-width: 0;
+/* ── Feed settings dropdown (Sources / Show read / Sort / View) ─── */
+.toolbar-settings-wrap { position: relative; flex-shrink: 0; }
+.toolbar-settings-wrap .btn-settings[aria-pressed="true"] { color: var(--orange); border-color: var(--orange); }
+.toolbar-settings-panel {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px;
+  z-index: 30; width: 260px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column; gap: 14px;
 }
+.toolbar-settings-panel.hidden { display: none; }
+.toolbar-settings-group { display: flex; flex-direction: column; gap: 8px; }
+.toolbar-settings-group:not(:last-child) { padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.toolbar-settings-label {
+  font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.toolbar-settings-group .btn-source-filter,
+.toolbar-settings-group .sort-select { width: 100%; }
+.toolbar-settings-group .sort-select { box-sizing: border-box; }
+.toolbar-settings-group .source-filter-wrap { position: static; }
+.toolbar-settings-group .source-popover { left: 0; right: 0; width: auto; }
+.toolbar-settings-group .view-toggle { width: 100%; }
+.toolbar-settings-group .view-btn { flex: 1; }
 .view-toggle {
   display: flex;
   gap: 2px;
@@ -3709,8 +3725,12 @@ a.il-name:hover { color: var(--orange); }
   /* Feed toolbar – stack on mobile */
   .feed-toolbar { flex-wrap: wrap; gap: 6px; }
   .toolbar-left { width: 100%; }
-  .toolbar-controls { width: 100%; margin-left: 0; justify-content: flex-start; }
-  .toolbar-controls { gap: 6px; flex-wrap: wrap; }
+  .toolbar-settings-panel {
+    position: fixed; top: auto; bottom: 0; left: 0; right: 0;
+    width: auto; max-width: none;
+    border-radius: 12px 12px 0 0; max-height: 70vh; overflow-y: auto;
+    z-index: 50;
+  }
   .view-btn { min-width: 36px; min-height: 36px; }
   .btn-source-filter { padding: 6px 10px; min-height: 36px; }
   .sort-select { min-height: 36px; font-size: 0.75rem; }
@@ -4532,6 +4552,8 @@ a.il-name:hover { color: var(--orange); }
   border-right: 1px solid var(--border);
   white-space: nowrap;
 }
+.draft-ticker-name { color: inherit; text-decoration: underline; text-decoration-color: var(--orange-dim); text-underline-offset: 2px; }
+.draft-ticker-name:hover { color: var(--orange); }
 @keyframes draft-ticker-scroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }

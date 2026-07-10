@@ -229,6 +229,23 @@ export function fetchPlayerIdMap() {
   return playerIdMapPromise;
 }
 
+// Fallback for names fetchPlayerIdMap won't have: /sports/1/players only
+// covers active MLB players, so minor leaguers, very recent draftees, and
+// retired players all miss it. people/search covers all of those. Used as
+// a per-name lookup (not bulk), so callers should try the map first and
+// only fall back to this for names that come back empty.
+const searchIdCache = new Map();
+export function searchPlayerId(name) {
+  const key = stripAccents(name ?? '').toLowerCase();
+  if (searchIdCache.has(key)) return searchIdCache.get(key);
+  const promise = fetch(`${MLB}/people/search?names=${encodeURIComponent(name)}`)
+    .then(r => r.json())
+    .then(data => data.people?.[0]?.id ?? null)
+    .catch(() => null);
+  searchIdCache.set(key, promise);
+  return promise;
+}
+
 // ── Cot's Contracts (Baseball Prospectus) — AL East page covers the Orioles ──
 export const COTS_URL = 'https://legacy.baseballprospectus.com/compensation/cots/al_east.php';
 export const COTS_PAGE_URL = 'https://legacy.baseballprospectus.com/compensation/cots/';
@@ -340,6 +357,32 @@ export function fetchPlayerIndex() {
       .filter(p => p.fullName && p.id)
       .map(p => ({ id: p.id, fullName: p.fullName, teamId: p.currentTeam?.id ?? null }))
   );
+}
+
+// Renders a player name as a Savant link when the (fast, bulk) id map has
+// it, or a lookup-pending span otherwise — pair with resolveNameLookups()
+// to patch those spans once the slower per-name search resolves, so minor
+// leaguers and retired players end up linked too, not just active MLB roster.
+export function playerNameOrLookup(name, idMap, className = 'roster-name') {
+  const id = lookupPlayerId(idMap, name);
+  if (id) return `<a class="${className}" href="${savantUrl(id)}" target="_blank" rel="noopener">${esc(name)}</a>`;
+  return `<span class="${className}" data-name-lookup="${esc(name)}">${esc(name)}</span>`;
+}
+
+export function resolveNameLookups(containerEl) {
+  const spans = containerEl.querySelectorAll('[data-name-lookup]');
+  spans.forEach(async span => {
+    const name = span.dataset.nameLookup;
+    const id = await searchPlayerId(name);
+    if (!id || !span.isConnected) return;
+    const link = document.createElement('a');
+    link.className = span.className;
+    link.href = savantUrl(id);
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = name;
+    span.replaceWith(link);
+  });
 }
 
 export function lookupPlayerId(map, name) {

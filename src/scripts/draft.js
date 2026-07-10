@@ -1,31 +1,30 @@
 // ── MLB Draft page ─────────────────────────────────────────────────
 import './theme.js';
 import { PROXY, MLB, SEASON, ORIOLES_ID, TEAM_ABBREV } from './config.js';
-import { $, esc, relativeDate, cleanFeedText, savantUrl, fetchPlayerIdMap, lookupPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage } from './utils.js';
+import { $, esc, relativeDate, cleanFeedText, savantUrl, fetchPlayerIdMap, lookupPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups } from './utils.js';
 
 let draftData = null;
 let playerIdMap = null;
 let activeRound = 1;
 
-// Undrafted prospects have no MLB person id until they sign — resolveName
-// falls back to plain text for anyone not found (freshly-drafted amateurs,
-// mainly), and links to Savant once the API knows them.
+// Undrafted amateurs and very recent draftees have no MLB person id until
+// the active-player list picks them up — playerNameOrLookup falls back to
+// a per-name search (resolveNameLookups patches it in once that resolves),
+// which also covers minor leaguers and retired players the bulk id map misses.
 function playerNameHtml(name, idMap) {
-  const id = lookupPlayerId(idMap, name);
-  return id
-    ? `<a class="roster-name" href="${savantUrl(id)}" target="_blank" rel="noopener">${esc(name)}</a>`
-    : `<span class="roster-name">${esc(name)}</span>`;
+  return playerNameOrLookup(name, idMap);
 }
 
 // ── Ticker tape — Orioles picks, all rounds ──────────────────────
-function tickerEntry(slot, pick) {
-  const label = pick
-    ? `R${slot.round} · #${slot.pick} — ${pick.name}${pick.position ? ` (${pick.position})` : ''}`
-    : `R${slot.round} · #${slot.pick} — on the clock`;
-  return `<span class="draft-ticker-item">${esc(label)}</span>`;
+function tickerEntry(slot, pick, idMap) {
+  const prefix = `R${slot.round} · #${slot.pick} — `;
+  if (!pick) return `<span class="draft-ticker-item">${esc(prefix)}on the clock</span>`;
+  const nameHtml = playerNameOrLookup(pick.name, idMap, 'draft-ticker-name');
+  const posSuffix = pick.position ? esc(` (${pick.position})`) : '';
+  return `<span class="draft-ticker-item">${esc(prefix)}${nameHtml}${posSuffix}</span>`;
 }
 
-function renderTicker(data) {
+function renderTicker(data, idMap) {
   const track = $('draftTickerTrack');
   if (!track) return;
   const order = data.oriolesPickOrder ?? [];
@@ -34,9 +33,10 @@ function renderTicker(data) {
     track.innerHTML = '<span class="draft-ticker-item">Orioles pick order unavailable</span>';
     return;
   }
-  const entries = order.map(slot => tickerEntry(slot, made.find(p => p.round === slot.round && p.pick === slot.pick)));
+  const entries = order.map(slot => tickerEntry(slot, made.find(p => p.round === slot.round && p.pick === slot.pick), idMap));
   // Duplicate the run so the CSS scroll loop is seamless.
   track.innerHTML = entries.join('') + entries.join('');
+  resolveNameLookups(track);
 }
 
 // ── Round order (tabbed — full order where we have it, Orioles pick otherwise) ──
@@ -73,6 +73,7 @@ function renderOrder(data, idMap) {
       </div>` : ''}
       <a class="widget-link" href="https://www.mlb.com/draft/${draftData?.season ?? ''}/order" target="_blank" rel="noopener">Check MLB.com for the latest order ↗</a>
     </div>`;
+    resolveNameLookups(el);
     return;
   }
 
@@ -96,7 +97,7 @@ async function loadPicks() {
     ]);
     draftData = data;
     playerIdMap = idMap;
-    renderTicker(draftData);
+    renderTicker(draftData, idMap);
     renderRoundTabs(draftData);
     renderOrder(draftData, idMap);
     const updatedEl = $('draftUpdated');
@@ -192,6 +193,7 @@ function loadHistory(data, idMap) {
     ${recentPicks.length ? `<div class="roster-group-label">Recent Top Picks</div>${recentPicks.map(h => renderHistoryRow(h, idMap, null)).join('')}` : ''}
     ${notables.length ? `<div class="roster-group-label">Franchise Notables</div>${notables.map(h => renderHistoryRow(h, idMap, null)).join('')}` : ''}
   `;
+  resolveNameLookups(el);
 
   all.forEach(async h => {
     const id = lookupPlayerId(idMap, h.name);

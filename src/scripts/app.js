@@ -241,6 +241,19 @@ function setupEvents() {
     }
   });
 
+  // Feed settings dropdown (Sources / Show read / Sort / View)
+  $('toolbarSettingsBtn').addEventListener('click', () => {
+    const panel = $('toolbarSettingsPanel');
+    const nowHidden = panel.classList.toggle('hidden');
+    $('toolbarSettingsBtn').setAttribute('aria-pressed', String(!nowHidden));
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.toolbar-settings-wrap')) {
+      $('toolbarSettingsPanel').classList.add('hidden');
+      $('toolbarSettingsBtn').setAttribute('aria-pressed', 'false');
+    }
+  });
+
   // Reader close
   $('readerClose').addEventListener('click', closeReader);
   $('readerOverlay').addEventListener('click', e => {

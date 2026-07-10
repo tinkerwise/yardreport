@@ -1,7 +1,7 @@
 // ── All-Star Game page ────────────────────────────────────────────
 import './theme.js';
 import { MLB, ORIOLES_ID, PROXY, SEASON } from './config.js';
-import { $, esc, teamLogoSrc, relativeDate, cleanFeedText, savantUrl, fetchPlayerIdMap, lookupPlayerId, extractThumbnail, renderNewsThumbCard, fetchOgImage } from './utils.js';
+import { $, esc, teamLogoSrc, relativeDate, cleanFeedText, savantUrl, fetchPlayerIdMap, lookupPlayerId, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups } from './utils.js';
 import { fetchWeatherForGames, getGameWeather } from './weather.js';
 import { fetchScoringPlays } from './scores.js';
 
@@ -15,7 +15,7 @@ function renderPlayerRow(p, idMap) {
   const playerId = p.playerId ?? lookupPlayerId(idMap, p.name);
   const nameHtml = playerId
     ? `<a class="roster-name" href="${savantUrl(playerId)}" target="_blank" rel="noopener">${esc(p.name)}</a>`
-    : `<span class="roster-name">${esc(p.name)}</span>`;
+    : `<span class="roster-name" data-name-lookup="${esc(p.name)}">${esc(p.name)}</span>`;
   return `<div class="roster-item">
     <img class="asg-team-logo" src="${teamLogoSrc(p.teamId, 16)}" alt="" width="16" height="16" loading="lazy">
     ${nameHtml}
@@ -39,6 +39,7 @@ function renderLeagueRoster(elId, league, idMap) {
     <div class="roster-group-label">Pitchers</div>
     ${league.pitchers.map(p => renderPlayerRow(p, idMap)).join('')}
   `;
+  resolveNameLookups(el);
 }
 
 async function loadRoster() {
@@ -54,7 +55,7 @@ async function loadRoster() {
       updatedEl.textContent = `Rosters updated ${relativeDate(data.lastUpdated)}`;
     }
     loadOriolesSpotlight(data);
-    renderHomeRunDerby(data.homeRunDerby);
+    renderHomeRunDerby(data.homeRunDerby, idMap);
   } catch {
     $('asgAL').innerHTML = '<span class="sidebar-msg">Roster unavailable</span>';
     $('asgNL').innerHTML = '<span class="sidebar-msg">Roster unavailable</span>';
@@ -62,7 +63,7 @@ async function loadRoster() {
 }
 
 // ── Home Run Derby ────────────────────────────────────────────────
-function renderHomeRunDerby(derby) {
+function renderHomeRunDerby(derby, idMap) {
   const el = $('asgDerby');
   if (!el) return;
   if (!derby) {
@@ -73,7 +74,7 @@ function renderHomeRunDerby(derby) {
   const fieldHtml = (derby.participants ?? []).map(p => `
     <div class="roster-item">
       <img class="asg-team-logo" src="${teamLogoSrc(p.teamId, 16)}" alt="" width="16" height="16" loading="lazy">
-      <span class="roster-name">${esc(p.name)}</span>
+      ${playerNameOrLookup(p.name, idMap)}
     </div>
   `).join('');
 
@@ -91,6 +92,7 @@ function renderHomeRunDerby(derby) {
     ${openSlots}
     <a class="widget-link" href="https://www.mlb.com/all-star/home-run-derby" target="_blank" rel="noopener">Home Run Derby hub ↗</a>
   `;
+  resolveNameLookups(el);
 }
 
 // ── Orioles spotlight ─────────────────────────────────────────────

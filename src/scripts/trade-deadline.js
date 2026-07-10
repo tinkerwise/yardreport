@@ -370,7 +370,7 @@ function renderOrgRoster(org, mentionedIds) {
     return `<div class="roster-group-label">${label}</div>
       ${sorted.map(p => `
         <div class="roster-item${mentionedIds.has(p.id) ? ' org-player--mentioned' : ''}">
-          <span class="roster-name">${esc(p.name)}</span>
+          <a class="roster-name" href="${savantUrl(p.id)}" target="_blank" rel="noopener">${esc(p.name)}</a>
           <span class="roster-pos">${esc(p.pos)}</span>
           ${mentionedIds.has(p.id) ? '<span class="roster-badge roster-badge--replacement">Rumor Mill</span>' : ''}
         </div>
