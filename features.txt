@@ -4,10 +4,13 @@
 #News Feed
   - RSS aggregation from 14 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, Eutaw Street Report, MASN Sports, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, Baseball America, New York Times Baseball, and The Athletic
   - 7-day default article feed with selectable range (3 / 7 / 14 / 30 days)
+  - Stale-while-revalidate cache: up to 300 articles cached in localStorage for instant repeat loads, refreshed in the background
+  - Progressive rendering on first visit: articles appear per-source as feeds resolve instead of waiting on all 14
+  - Infinite scroll (10 articles per page via IntersectionObserver) rather than a hard cap
   - Full article reader (iframe for full RSS content, excerpt + link for others)
   - Off-topic article filter (rejects non-baseball content from general feeds)
   - Filler image detection (replaces generic thumbnails with YR favicon)
-  - Around the Horn story bundling (max 3, gradient glow, descriptive phrase titles with "Player Name:" prefix when detected, expandable)
+  - Around the Horn story bundling (max 3, equal-sized cards, descriptive phrase titles with "Player Name:" prefix when detected, dedicated follow-through page)
   - Source favicon + text on each card
   - Share button on articles (native share on mobile, clipboard on desktop)
   - Thumbnails standardized to 16:9 aspect ratio
@@ -15,17 +18,24 @@
   - Swipe left to mark read, swipe right to unmark (mobile touch)
   - Read articles auto-hide after 5 seconds
   - Default view: list
+  - Every player name rendered anywhere in the feed (bundled stories, article text where detected) is a link — see Player Linking below
 
 #Views & Filters
-  - Category filter pills (All / Orioles / MLB / MiLB) left-justified in feed toolbar
-  - Grid, list, and compact view modes
-  - Source filter and view mode icons right-justified in feed toolbar
+  - Category filter pills (All / Orioles / MLB / MiLB), right-justified against the "Around the Horn" heading row — cloned into place on render, with the static original hidden
+  - Grid, list, and compact view modes, set from Settings and persisted
   - Mobile defaults to list view (grid hidden on small screens)
-  - Sort by newest, by date group, or by source
-  - Date range selector (3 / 7 / 14 / 30 days)
+  - Sort by newest, by date group, or by source — set from Settings
+  - Date range selector (3 / 7 / 14 / 30 days) — set from Settings
+  - Show read / hide read toggle — set from Settings
   - MiLB auto-detection (prospect, minor league, farm system articles tagged and filtered)
-  - Source filter aligned with view controls (popover in toolbar, bottom-sheet on mobile)
+  - Per-source enable/disable checklist in Settings, grouped by Orioles / MLB / MiLB, with a reset-to-defaults action
   - Search across all articles
+
+#Player Linking
+  - Every player name rendered anywhere on the site is a link — active roster, minor leaguers, very recent draftees, and retired players alike, no exceptions
+  - Fast path: bulk active-MLB-player id map, resolved instantly
+  - Fallback path: per-name search against MLB's people-search endpoint for names the bulk map misses (MiLB, retired, pre-debut), patched in once resolved
+  - Link destination depends on context: Baseball Savant for roster/stat-list contexts, MLB.com for live-game/matchup contexts
 
 #Score Bugs
   - Yesterday / Today / Tomorrow games
@@ -48,6 +58,14 @@
   - Scout Notes for all game states (preview/live/final)
   - Scout Notes show probable pitcher matchup for preview games
   - Scout Notes show final result summary for final games
+  - "Box Score Ultra": expanded stats, bench section, and full bullpen breakdown in the popover
+  - ESPN-style batting summary and scoring-play summary in the popover
+  - Pitch count column and team situational-stats panel (split-bar visual) in the popover
+  - Non-appearing players/pitchers hidden from final-game popovers; bench section hidden post-game
+  - Header row freezes above scrollable pitching/bullpen sections, with scroll indicators
+  - Live play-by-play ticker below the score bar during Orioles games — inning/half, outs, batter vs. pitcher, count, and last play, polling every 30 seconds
+  - Pitching matchup preview: both probable starters' ERA/W-L/K9/WHIP shown side-by-side under On Deck for today's and tomorrow's games
+  - Clicking any linked player name opens a stat card modal (headshot, season stats, Statcast link, inline walk-up song embed)
 
 #Walk-Up Songs
   - Dynamic source: official Orioles walk-up music page via proxy text fetch
@@ -70,22 +88,56 @@
     - YouTube playlist feeds: MLB Fastcast, MLB Top Plays, Orioles Game Recaps, Orioles Moments
     - Orioles Game Recaps fall back to MLB game media for the latest completed Orioles game when the Orioles YouTube playlist is stale
   - On Deck: next Orioles game with opponent, date/time, venue, weather forecast, lineup popover on hover (game day)
-  - Schedule: horizontal row of game boxes (day, opponent logo, @ indicator for away), links to MLB preview (merged into On Deck widget)
-  - Standings: all 6 divisions with division tabs, Orioles highlighted, team abbreviations link to MLB.com
+  - Schedule: horizontal row of game boxes (day, opponent logo, @ indicator for away), links to MLB preview (merged into On Deck widget); "Full Schedule" link to `/schedule/`
+  - Standings: AL/NL league switcher, division tabs (single row), Wild Card tab per league, Orioles highlighted, team abbreviations link to MLB.com
 
 #Right Sidebar
   - Yard Leaders: O's / AL / NL / MLB / ROY scope pills, batting and pitching groups, player names link to Baseball Savant, stat labels link to corresponding Baseball Savant leaderboards/custom stat views
     - Batting: AVG, OBP, OPS, HR, H, BB, SLG, RBI
     - Pitching: ERA, SO, QS, WHIP, W, K/9, BB/9
-  - Roster: 40-man Orioles roster grouped by position players, pitchers, injured list, and minors; jersey numbers, links to Baseball Savant, walk-up song/search icons (default collapsed)
+  - Roster: 40-man Orioles roster grouped by position players, pitchers, injured list, and minors; jersey numbers, links to Baseball Savant, walk-up song/search icons (default collapsed), taxi squad deduplicated against the 40-man
   - Injury Report: current IL players with position, IL type (10/15/60-day), and injury note; player names link to MLB.com
-  - Transactions: last 14 days of Orioles moves, sorted newest-first, player names link to MLB.com, auto-refreshes every 5 minutes (positioned below Injury Report)
-  - Contracts: curated FanGraphs Roster Resource and Spotrac payroll links
+  - Transactions: last 14 days of Orioles moves, sorted newest-first, player names link to MLB.com, auto-refreshes every 5 minutes; new transactions trigger a toast notification (type icon + description, auto-dismiss after 6s)
+  - Contracts: curated FanGraphs Roster Resource and Spotrac payroll links, plus live Cot's Baseball Contracts data where available
+  - Front Office Data Hub groups Roster, Injury Report, Transactions, and Contracts together
+
+#Schedule Page (`/schedule/`)
+  - Full-season Orioles schedule, month and week calendar views
+  - Month view: 7-column grid with game chips (opponent logo, home/away, result or time, series badge, weather emoji)
+  - Week view: full game cards (opponent, result/time, weather, probable pitcher, broadcast pill, series position)
+  - Navigation: previous/next and Today buttons; home/away and win-streak record context
+
+#Depth Chart Page (`/depth-chart/`)
+  - OPACY-shaped field layout showing starters and backups by position, plus an injured list section
+  - Standardized chip sizing consistent with the rest of the site
+
+#All-Star Game Page (`/all-star/`)
+  - Rosters aggregated from trusted sources, grouped by team
+  - Home Run Derby bracket widget
+  - Live game tracker (linescore + scoring plays) during the event
+  - Orioles All-Star spotlight card with selection history
+
+#MLB Draft Page (`/draft/`)
+  - Live pick order and results pulled directly from MLB's draft feed — no static guesswork once the draft is underway
+  - Orioles picks ticker tape; switches from pre-draft informational scroll to live/final results automatically based on draft status
+  - Round-by-round order tabs (Rounds 1-5)
+  - Draft history: recent Orioles first-round picks plus franchise notables (not limited to round 1), with current-season stat lines and player headshots
+  - Hero section with live countdown/status badge, quick facts, highlight cards, and broadcast schedule
+
+#Trade Deadline Page (`/trade-deadline/`)
+  - Confirmed Orioles trades pulled from MLB's own transaction log
+  - "On the Block": Orioles players named in trade-rumor headlines, with mention counts and hover profile cards (headshot, stat line, contract info)
+  - "Long Shots & Wild Cards": headlines using speculative language, surfaced separately
+  - Organization Watch: full 40-man + full-season MiLB roster, with anyone mentioned in rumor text flagged in place
+  - Reporters to Watch: curated list of named-byline insiders with direct links
+  - Per-player trade-rumor recap page (`/trade-deadline/player/?id=`): AI-generated summary of a mentioned player's rumor coverage plus the matched articles, generated offline (see Infrastructure) and clearly labeled as AI-assisted, not real-time
 
 #Settings
   - Settings gear icon in header opens overlay panel
   - Theme: Light / Dark / System / City Connect (persisted to localStorage, system follows OS)
   - Default view: Grid / List / Compact (persisted to localStorage)
+  - Feed: sort (newest / by date / by source), date range (3/7/14/30 days), show-read toggle
+  - Sources: per-source enable/disable checklist grouped by Orioles / MLB / MiLB, with reset-to-defaults
 
 #Design
   - Dark theme (default), light theme available, City Connect theme selectable and auto-applied on Fridays
@@ -98,6 +150,7 @@
   - Cross-browser optimized (Chrome, Safari, Firefox), iOS momentum scroll, webkit prefixes
   - Both left and right sidebars independently scrollable with sticky positioning
   - ATH cards scale down on mobile (2-col at 600px, 1-col at 400px)
+  - Secondary pages (Schedule, Depth Chart, All-Star, Draft, Trade Deadline) share a breadcrumb header and sidebar-section pattern with the homepage
 
 #Easter Eggs
   - Type "magic" + Enter in search: random Oriole bird graphic centered in viewport with repeating confetti animation, Orioles Magic audio clip, display lasts for audio duration
@@ -112,12 +165,14 @@
   - PHP RSS proxy with domain allowlist (includes youtube.com and megaphone.fm), audio-enclosure extraction, and optional raw text/HTML passthrough for trusted pages
   - Official Orioles walk-up music page for dynamic walk-up song metadata
   - Spotify track/search embeds for walk-up song player overlay
-  - MLB Stats API for scores, standings, schedule, roster, transactions, leaders, boxscore
+  - MLB Stats API for scores, standings, schedule, roster, transactions, leaders, boxscore, and the live draft feed
     - Pitcher pitch arsenal: `/people/{playerId}/stats?stats=pitchArsenal&season=YYYY&group=pitching`
+    - Live draft results: `/draft/{season}`
   - Open-Meteo API for weather forecasts (all 30 MLB venues)
   - Google Favicon API for source icons
   - YouTube RSS feeds for video widget
   - Megaphone RSS feed for podcast widget (fetched directly in browser)
+  - Offline trade-rumor recap generator (`scripts/generate-trade-summaries.mjs`, run via `npm run generate:trade-summaries`) calls the Gemini API to write short recap summaries into `public/trade-deadline.json`. Manual step only — not part of the build or deploy pipeline, and no API key is ever present in client code. Requires `GEMINI_API_KEY` in a local, git-ignored `.env` file.
   - ESPN podcast archive page for podcast detail links
   - MLB.com Gameday, roster, player, and transaction pages for outbound links
   - MLBstatic team-logo assets for team badges and On Deck visuals

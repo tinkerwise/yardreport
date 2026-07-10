@@ -1,6 +1,16 @@
 ---
+# Legacy/manual fallback deploy path only — the real release path is GitHub
+# Actions (see .github/workflows/deploy.yml), which pushes to this same
+# location over FTP using credentials stored in encrypted GitHub Secrets.
+#
+# This file is not the deploy mechanism that actually runs on every push;
+# cPanel's Git Version Control reads it directly from the server-side repo
+# and only matters if that manual fallback is ever used. Replace the path
+# below with the real one (cPanel account username + public_html subpath)
+# directly on the server before relying on this — do not commit the real
+# path here.
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/briancsm/public_html/yardreport/
+    - export DEPLOYPATH=/home/REPLACE_WITH_CPANEL_USERNAME/public_html/yardreport/
     - /bin/cp -R dist/* $DEPLOYPATH
     - /bin/cp dist/.htaccess $DEPLOYPATH

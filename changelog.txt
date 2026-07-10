@@ -1,5 +1,68 @@
 Yard Report Changelog
 
+Week of July 6, 2026
+
+July 9-10, 2026
+
+Trade Deadline Recap Pages
+- Added a per-player trade-rumor recap page (/trade-deadline/player/?id=) linked from "On the Block" mentions and Organization Watch rumor-mill flags whenever a recap exists.
+- Added an offline generator (scripts/generate-trade-summaries.mjs, run via `npm run generate:trade-summaries`) that scans the RSS sources for Orioles trade-rumor coverage, groups it per mentioned Orioles player, and asks the Gemini API for a short neutral recap of each — written into trade-deadline.json's new rumorRecaps key.
+- The generator is a manual, offline step only; no API key is ever shipped to the client or called at request time.
+
+Draft Page — Live Data and Graphics
+- draft.js now fetches MLB's live draft feed (/draft/{season}) for the real pick order and results, falling back to the curated JSON if that fetch fails.
+- Ticker switches automatically between a pre-draft informational scroll and a live/final results scroll based on draft status, with a pulsing "Live Picks" indicator.
+- Added a hero section above the news feed with a live countdown/status badge, quick facts, highlight cards (with real player headshots), and the broadcast schedule.
+- Added player headshots to draft history rows (with search-fallback for retired players) and the Orioles logo to the hero, both theme-aware.
+- Fixed the countdown's hardcoded start time, which was an hour off from the real first pick.
+
+Homepage — Settings Consolidation
+- Right-justified the category filter pills against the "Around the Horn" heading row (cloned into place on render so the pattern survives full article-list re-renders).
+- Consolidated all feed controls (sort, date range, show read, sources) into the single header settings gear, removing the redundant toolbar gear, source quick-filter, and view toggle.
+- Made "Around the Horn" cards equal-sized (previously one large hero card plus two smaller stacked ones).
+
+Player-Name Linking
+- Standing rule: every rendered player name is a link, including minor leaguers, very recent draftees, and retired players — not just active roster.
+- Added shared linking infrastructure in utils.js (fetchPlayerIdMap/lookupPlayerId for the fast bulk path, searchPlayerId for the per-name fallback, playerNameOrLookup/resolveNameLookups for paint-then-patch rendering).
+
+---
+
+Week of July 6, 2026
+
+Mid-Season Event Pages
+- Added the All-Star Game hub (/all-star/): rosters aggregated from trusted sources, Home Run Derby bracket, live game tracker, and an Orioles All-Star spotlight card with selection history.
+- Added the MLB Draft hub (/draft/): Orioles picks ticker, round order tabs, draft history (recent first-round picks plus franchise notables), and draft info sidebar.
+- Added the Trade Deadline hub (/trade-deadline/): confirmed Orioles moves from MLB's transaction log, "On the Block" rumor-mention tracking with hover profile cards, "Long Shots & Wild Cards", full Organization Watch (40-man + full-season MiLB roster) with rumor mentions flagged in place, and a curated Reporters to Watch list.
+- Added a homepage event-highlights strip (self-expiring per event) surfacing all three pages above the article feed.
+- Fixed a duplicate "MLB Draft" card that appeared on the homepage when both the highlights strip and an older promo banner rendered at once.
+
+---
+
+April 16 - July 5, 2026 (consolidated)
+
+Note: this period's day-by-day detail wasn't captured in the changelog as it shipped; this entry summarizes the major features from git history rather than reconstructing exact dates.
+
+New Pages
+- Added the Schedule page (/schedule/): month and week calendar views, series grouping, probable pitchers, broadcast info, weather.
+- Added the Depth Chart page (/depth-chart/): OPACY-shaped field layout by position, with an injured list section.
+
+Score Popovers ("Box Score Ultra")
+- Expanded stats, bench section, and full bullpen breakdown; ESPN-style batting summary and scoring-play summary.
+- Pitch count column and team situational-stats split-bar panel.
+- Non-appearing players/pitchers hidden from final-game popovers; header row freezes above scrollable sections with scroll indicators.
+- Live play-by-play ticker below the score bar during Orioles games.
+- Pitching matchup preview (both probable starters' ERA/W-L/K9/WHIP) under On Deck.
+
+Sitewide
+- Player stat card modal: clicking any linked player name anywhere on the site opens a headshot/stats/Statcast-link/walk-up-song modal.
+- Standings gained an AL/NL league switcher, a Wild Card tab per league, and standardized single-row division tabs.
+- Transaction alert toasts fire when a new Orioles transaction appears.
+- Feed performance: stale-while-revalidate localStorage cache, ETag/Last-Modified conditional requests through the PHP proxy, progressive per-source rendering on first visit, and infinite scroll replacing the old 10-article hard cap.
+- Front Office Data Hub groups Roster, Injury Report, Transactions, and Contracts in the right sidebar; Contracts widget populated from Cot's Baseball Contracts.
+- Taxi squad deduplicated against the 40-man roster in the Roster widget.
+
+---
+
 Week of April 15, 2026
 
 April 15-16, 2026

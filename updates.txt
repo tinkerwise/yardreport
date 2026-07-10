@@ -191,3 +191,55 @@
 # INFRASTRUCTURE
 ✓ Fixed audio widget to feed and play podcast audio
 ✓ Upgraded Astro from 6.1.1 → 6.1.5
+✓ Added offline trade-rumor recap generator (scripts/generate-trade-summaries.mjs) calling the Gemini API; manual step only, no key shipped client-side
+
+# NEW PAGES (SCHEDULE, DEPTH CHART)
+✓ Added full-season Schedule page with month/week calendar views
+✓ Added Depth Chart page with OPACY-shaped field layout by position
+
+# BOX SCORE ULTRA
+✓ Expanded score popover stats: bench section, full bullpen breakdown, ESPN-style batting summary, scoring-play summary
+✓ Added pitch count column and team situational-stats split-bar panel
+✓ Hid non-appearing players/pitchers from final-game popovers; froze header row above scrollable sections
+✓ Added live play-by-play ticker below the score bar during Orioles games
+✓ Added pitching matchup preview (both probable starters) under On Deck
+
+# PLAYER STAT CARDS
+✓ Clicking any linked player name sitewide opens a headshot/stats/Statcast-link/walk-up-song modal
+
+# FEED PERFORMANCE
+✓ Added stale-while-revalidate localStorage cache for instant repeat loads
+✓ Added ETag/Last-Modified conditional requests through the PHP proxy
+✓ Added progressive per-source article rendering on first visit
+✓ Replaced the 10-article hard cap with infinite scroll
+
+# STANDINGS / TRANSACTIONS
+✓ Added AL/NL league switcher and Wild Card tab to Standings; standardized division tabs to a single row
+✓ Added transaction alert toasts for new Orioles moves
+
+# MID-SEASON EVENT PAGES
+✓ Added All-Star Game hub (/all-star/): rosters, Home Run Derby bracket, live tracker, Orioles spotlight card
+✓ Added MLB Draft hub (/draft/): picks ticker, round order tabs, draft history, draft info
+✓ Added Trade Deadline hub (/trade-deadline/): confirmed moves, On the Block rumor tracking, Long Shots, Organization Watch, Reporters to Watch
+✓ Added homepage event-highlights strip surfacing all three pages, self-expiring per event
+✓ Fixed duplicate "MLB Draft" card on homepage (highlights strip + old promo banner both rendering)
+
+# PLAYER-NAME LINKING
+✓ Standing rule: every rendered player name is a link, including minor leaguers, recent draftees, and retired players
+✓ Added shared linking infrastructure in utils.js (bulk id map + per-name search fallback + paint-then-patch rendering)
+
+# DRAFT PAGE — LIVE DATA
+✓ draft.js now fetches MLB's live draft feed for real pick order/results, falling back to curated JSON on failure
+✓ Ticker switches between pre-draft informational scroll and live/final results based on draft status
+✓ Added hero section (countdown/status badge, quick facts, highlight cards, broadcast schedule) above the news feed
+✓ Added player headshots to draft history and the Orioles logo to the hero
+✓ Fixed hardcoded draft countdown start time (was an hour off from the real first pick)
+
+# TRADE DEADLINE — AI RECAP PAGES
+✓ Added per-player trade-rumor recap page (/trade-deadline/player/?id=) linked from On the Block and Organization Watch
+✓ Recap summaries generated offline via the Gemini API and written to static JSON — never called at request time
+
+# SETTINGS CONSOLIDATION
+✓ Right-justified category pills against the "Around the Horn" heading (cloned into place, survives full re-renders)
+✓ Consolidated all feed controls (sort, date range, show read, sources) into the single header settings gear
+✓ Made Around the Horn cards equal-sized

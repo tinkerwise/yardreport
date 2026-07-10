@@ -1,79 +1,122 @@
 **Maintainer Brief**
 
-Yard Report is a single-page Astro site with a thin static shell and a modular client-side script layer. The client is split into domain modules under `src/scripts/`: [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) is now a slim orchestrator (~175 lines) that imports from [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js), [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js), [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js), [walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js), [state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js), [theme.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/theme.js), [utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js), [weather.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/weather.js), and [easter-eggs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/easter-eggs.js). The page markup in [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro) is mostly stable scaffolding, and [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css) carries nearly all layout and component styling. `updates.txt` is effectively the product backlog and prompt contract. [README.md](/Users/briancsmith/Documents/GitHub/yardreport/README.md) is intentionally public-facing and brief; this file is the home for maintainer detail.
+Yard Report started as a single homepage and has grown into a small multi-page Astro site — the homepage feed/scores dashboard plus dedicated pages for Schedule, Depth Chart, Around the Horn, All-Star Game, MLB Draft, and Trade Deadline (including a per-player trade-rumor recap page). Each page is a thin Astro shell with its own client-side script; there is no shared framework state across pages, only shared modules under `src/scripts/`.
+
+The homepage's client is split into domain modules: [app.js](src/scripts/app.js) is the orchestrator (event wiring, settings, refresh, init) that imports from [feeds.js](src/scripts/feeds.js), [scores.js](src/scripts/scores.js), [sidebars.js](src/scripts/sidebars.js), [walkup-songs.js](src/scripts/walkup-songs.js), [state.js](src/scripts/state.js), [theme.js](src/scripts/theme.js), [utils.js](src/scripts/utils.js), [weather.js](src/scripts/weather.js), and [easter-eggs.js](src/scripts/easter-eggs.js). The secondary pages ([all-star.js](src/scripts/all-star.js), [draft.js](src/scripts/draft.js), [trade-deadline.js](src/scripts/trade-deadline.js), [trade-player.js](src/scripts/trade-player.js), [depth-chart.js](src/scripts/depth-chart.js), [schedule.js](src/scripts/schedule.js)) are each self-contained but lean heavily on the shared helpers in `utils.js` (player-name linking, news-card rendering, team logos, og-image resolution). [style.css](public/style.css) carries nearly all layout and component styling for every page. `updates.txt` is effectively the product backlog and prompt contract. [README.md](README.md) is intentionally public-facing and brief; this file is the home for maintainer detail.
+
+**Player-name linking (standing rule)**
+
+Any player name rendered anywhere on the site must be a link — active roster, minor leaguers, very recent draftees, and retired players alike. The pattern lives in [utils.js](src/scripts/utils.js): `fetchPlayerIdMap()`/`lookupPlayerId()` for fast bulk lookups against the active MLB roster, `searchPlayerId()` as a per-name fallback (covers MiLB/retired/pre-debut players via `/people/search`), `playerNameOrLookup()` to paint a link immediately when the id is known or a lookup-pending span otherwise, and `resolveNameLookups()` to patch those spans in once the async search resolves. New widgets that render a player name should use this pattern rather than plain text or a one-off link.
 
 **What’s Fragile**
 
 The client is now split into domain modules, so changes to one area are less likely to cascade. That said, several sensitive areas remain:
-- `renderArticles()` and `renderCard()` in [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js) drive most feed UX; changes here can break reader opening, read/unread state, bundles, or swipe behavior.
-- `getFilteredArticles()` in [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js) is the source of truth for what appears; filter bugs ripple everywhere.
-- `setupEvents()` in [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js) is the central event wiring point; new controls should be added carefully to avoid duplicated listeners or state drift.
-- `loadScores()` in [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js) is both a rendering surface and an interaction surface; it owns score-chip triggers, popover timing, click-to-open behavior, and async boxscore refreshes.
-- Walk-up songs are shared by [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js) and [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js) through [walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js); keep the fallback map usable and preserve the non-blocking roster render.
-- `loadOnDeck()` in [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js) is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
+- `renderArticles()` and `renderCard()` in [feeds.js](src/scripts/feeds.js) drive most feed UX; changes here can break reader opening, read/unread state, bundles, or swipe behavior.
+- `getFilteredArticles()` in [feeds.js](src/scripts/feeds.js) is the source of truth for what appears; filter bugs ripple everywhere.
+- `setupEvents()` in [app.js](src/scripts/app.js) is the central event wiring point; new controls should be added carefully to avoid duplicated listeners or state drift.
+- `loadScores()` in [scores.js](src/scripts/scores.js) is both a rendering surface and an interaction surface; it owns score-chip triggers, popover timing, click-to-open behavior, and async boxscore refreshes.
+- Walk-up songs are shared by [scores.js](src/scripts/scores.js) and [sidebars.js](src/scripts/sidebars.js) through [walkup-songs.js](src/scripts/walkup-songs.js); keep the fallback map usable and preserve the non-blocking roster render.
+- `loadOnDeck()` in [sidebars.js](src/scripts/sidebars.js) is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
 - Score/on-deck/transactions/leaders/video/podcast all depend on third-party APIs or feeds with no formal abstraction layer, so breakage from upstream response changes is a real risk.
-- There is both a dev-time JS proxy in [astro.config.mjs](/Users/briancsmith/Documents/GitHub/yardreport/astro.config.mjs) and a production PHP proxy in [rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php); feed issues may differ between local and deployed environments, especially now that the proxy also supports trusted raw HTML/text passthrough for widget enrichment and audio-enclosure extraction for the podcast widget.
+- There is both a dev-time JS proxy in [astro.config.mjs](astro.config.mjs) and a production PHP proxy in [rss-proxy.php](public/rss-proxy.php); feed issues may differ between local and deployed environments, especially now that the proxy also supports trusted raw HTML/text passthrough for widget enrichment and audio-enclosure extraction for the podcast widget.
+- [draft.js](src/scripts/draft.js) fetches the live MLB Stats API draft endpoint (`/draft/{season}`) for the real pick order and results, falling back to the curated data in [public/draft-picks.json](public/draft-picks.json) if that fetch fails — the two shapes need to stay compatible.
+- [trade-deadline.js](src/scripts/trade-deadline.js)'s mention-scanning (`findMentionedPlayers`, "On the Block", Organization Watch) is text-matching only — it flags who's being *named* in trade-rumor coverage, not who's actually being shopped. Keep the UI copy honest about that distinction if this logic changes.
+- The trade-rumor recap pages ([trade-player.js](src/scripts/trade-player.js)) depend on `rumorRecaps` entries in [public/trade-deadline.json](public/trade-deadline.json), which are generated offline by [scripts/generate-trade-summaries.mjs](scripts/generate-trade-summaries.mjs) — see "AI Recap Generation" below. Nothing at runtime calls an AI API; if that ever changes, an API key must never be shipped client-side.
 
 **How I’d Approach Future Prompts**
 
-For feature work, I’d first check whether it’s already described in [updates.txt](/Users/briancsmith/Documents/GitHub/yardreport/updates.txt), then map it to the right surface:
-- structure change: [index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro)
-- feed/reader/article behavior: [feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js)
-- score chips/popovers/lineups/scout notes: [scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js)
-- walk-up song metadata/player overlay: [walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js), plus the score/roster render surfaces that consume it
-- sidebar widgets (standings, on deck, roster, IL, transactions, leaders, video, podcast): [sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js)
-- shared state: [state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js)
-- shared pure utilities: [utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js)
-- event wiring / settings / refresh / init: [app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js)
-- visual/responsive change: [style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css)
+For feature work, I’d first check whether it’s already described in [updates.txt](updates.txt), then map it to the right surface:
+- homepage structure change: [index.astro](src/pages/index.astro)
+- feed/reader/article behavior: [feeds.js](src/scripts/feeds.js)
+- score chips/popovers/lineups/scout notes: [scores.js](src/scripts/scores.js)
+- walk-up song metadata/player overlay: [walkup-songs.js](src/scripts/walkup-songs.js), plus the score/roster render surfaces that consume it
+- sidebar widgets (standings, on deck, roster, IL, transactions, leaders, video, podcast, contracts): [sidebars.js](src/scripts/sidebars.js)
+- depth chart page: [depth-chart.js](src/scripts/depth-chart.js) / [depth-chart/index.astro](src/pages/depth-chart/index.astro)
+- schedule page: [schedule.js](src/scripts/schedule.js) / [schedule/index.astro](src/pages/schedule/index.astro)
+- All-Star Game page: [all-star.js](src/scripts/all-star.js) / [all-star/index.astro](src/pages/all-star/index.astro), data in [public/all-star-roster.json](public/all-star-roster.json)
+- MLB Draft page: [draft.js](src/scripts/draft.js) / [draft/index.astro](src/pages/draft/index.astro), data in [public/draft-picks.json](public/draft-picks.json)
+- Trade Deadline page + per-player recap: [trade-deadline.js](src/scripts/trade-deadline.js) / [trade-deadline/index.astro](src/pages/trade-deadline/index.astro) and [trade-player.js](src/scripts/trade-player.js) / [trade-deadline/player/index.astro](src/pages/trade-deadline/player/index.astro), data in [public/trade-deadline.json](public/trade-deadline.json)
+- player stat card modal (click any linked player name sitewide): [playerCard.js](src/scripts/playerCard.js)
+- shared state (homepage only): [state.js](src/scripts/state.js)
+- shared pure utilities used across every page: [utils.js](src/scripts/utils.js)
+- event wiring / settings / refresh / init (homepage): [app.js](src/scripts/app.js)
+- visual/responsive change: [style.css](public/style.css)
 
 For safety, I’d usually preserve:
 - existing filters, reader behavior, and localStorage prefs
 - mobile-first constraints and content density rules
 - Orioles-first prioritization in scores, schedule, and sidebar widgets
 - the lightweight sidebar pattern: a single compact podcast card above the video stack, rather than a dense multi-episode media rail
-- the current feed-toolbar alignment pattern: category pills left, source/view controls right
+- the current feed-toolbar pattern: category pills right-justified against the "Around the Horn" heading row (cloned into place, original hidden — see `relocateCategoryPills()` in feeds.js), with every other feed control (sort, date range, show read, sources) consolidated into the single header settings gear rather than a second toolbar control cluster
 - the current score-chip pattern: chips act as popover triggers first, with external MLB preview/results links living inside the popover
 - the current category-pill pattern: Orioles, MLB, and MiLB use logo-backed pills rather than emoji labels
 - the current walk-up song pattern: known songs open in the overlay, unknown Orioles players get a Spotify search icon, and roster render should not wait on live song fetches
+- the player-name linking rule described above — no unlinked player names, anywhere
 
 **Best Next Refactors**
 
 The domain module split is done. If we want the repo even easier to maintain, the remaining high-value cleanup would be:
-- centralize MLB Stats API wrappers and response shaping (currently scattered across scores.js and sidebars.js)
-- add a small smoke-test checklist for feed load, filters, reader, scores, and settings persistence
+- centralize MLB Stats API wrappers and response shaping (currently scattered across scores.js, sidebars.js, and the secondary-page scripts)
+- extend `npm run smoke` to cover the secondary pages (Schedule, Depth Chart, All-Star, Draft, Trade Deadline), not just the homepage
 - extract `state.js` mutations behind setter functions to make state changes traceable
 
 **Project Structure**
 
-- [src/pages/index.astro](/Users/briancsmith/Documents/GitHub/yardreport/src/pages/index.astro): page shell and widget layout
-- [src/scripts/app.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/app.js): slim orchestrator — event wiring, refresh, init
-- [src/scripts/feeds.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feeds.js): feed fetching, article rendering, reader, ATH bundling, view mode
-- [src/scripts/scores.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/scores.js): score chips, box score popover, lineup, pitching, scout notes
-- [src/scripts/sidebars.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/sidebars.js): standings, on deck, roster, IL, transactions, leaders, video, podcast
-- [src/scripts/walkup-songs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/walkup-songs.js): Orioles walk-up song fetching, parsing, cache, and fallback map
-- [src/scripts/state.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/state.js): shared mutable app state
-- [src/scripts/theme.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/theme.js): theme application (runs on import)
-- [src/scripts/utils.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/utils.js): shared pure utilities
-- [src/scripts/weather.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/weather.js): Open-Meteo fetch and cache
-- [src/scripts/easter-eggs.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/easter-eggs.js): Orioles Magic, Seven Nation Army, Opacy theme
-- [src/scripts/config.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/config.js): shared config/constants
-- [src/scripts/storage.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/storage.js): localStorage helpers
-- [src/scripts/feedDisplay.js](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts/feedDisplay.js): feed display selection logic
-- [public/style.css](/Users/briancsmith/Documents/GitHub/yardreport/public/style.css): global styling
-- [public/feeds.json](/Users/briancsmith/Documents/GitHub/yardreport/public/feeds.json): news/video source definitions
-- [public/rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php): production proxy for trusted feeds/pages
-- [updates.txt](/Users/briancsmith/Documents/GitHub/yardreport/updates.txt): running feature/spec file
-- [changelog.txt](/Users/briancsmith/Documents/GitHub/yardreport/changelog.txt): recent project change log
+Pages:
+- [src/pages/index.astro](src/pages/index.astro): homepage shell — feed, scores, sidebars
+- [src/pages/schedule/index.astro](src/pages/schedule/index.astro): full-season schedule (month/week views)
+- [src/pages/depth-chart/index.astro](src/pages/depth-chart/index.astro): OPACY-shaped depth chart
+- [src/pages/around-the-horn/index.astro](src/pages/around-the-horn/index.astro): Around the Horn story-bundle follow-through page
+- [src/pages/all-star/index.astro](src/pages/all-star/index.astro): All-Star Game hub — rosters, Home Run Derby, live tracker
+- [src/pages/draft/index.astro](src/pages/draft/index.astro): MLB Draft hub — live pick order/results, ticker, highlights
+- [src/pages/trade-deadline/index.astro](src/pages/trade-deadline/index.astro): Trade Deadline hub — Orioles moves, rumor mentions, org watch
+- [src/pages/trade-deadline/player/index.astro](src/pages/trade-deadline/player/index.astro): per-player trade-rumor recap (`?id=`)
+
+Shared/homepage scripts:
+- [src/scripts/app.js](src/scripts/app.js): homepage orchestrator — event wiring, settings, refresh, init
+- [src/scripts/feeds.js](src/scripts/feeds.js): feed fetching, article rendering, reader, ATH bundling, view mode
+- [src/scripts/scores.js](src/scripts/scores.js): score chips, box score popover, lineup, pitching, scout notes
+- [src/scripts/sidebars.js](src/scripts/sidebars.js): standings, on deck, roster, IL, transactions, leaders, video, podcast, contracts
+- [src/scripts/walkup-songs.js](src/scripts/walkup-songs.js): Orioles walk-up song fetching, parsing, cache, and fallback map
+- [src/scripts/playerCard.js](src/scripts/playerCard.js): sitewide player stat card modal (any `[data-pid]` element)
+- [src/scripts/state.js](src/scripts/state.js): shared mutable homepage state
+- [src/scripts/theme.js](src/scripts/theme.js): theme application (runs on import)
+- [src/scripts/utils.js](src/scripts/utils.js): shared pure utilities — player-name linking, news-card rendering, team logos, og-image resolution, Cot's Contracts parsing
+- [src/scripts/weather.js](src/scripts/weather.js): Open-Meteo fetch and cache
+- [src/scripts/easter-eggs.js](src/scripts/easter-eggs.js): Orioles Magic, Seven Nation Army, Opacy theme
+- [src/scripts/config.js](src/scripts/config.js): shared config/constants
+- [src/scripts/storage.js](src/scripts/storage.js): localStorage helpers
+- [src/scripts/feedDisplay.js](src/scripts/feedDisplay.js): feed display selection logic
+
+Secondary-page scripts:
+- [src/scripts/schedule.js](src/scripts/schedule.js), [src/scripts/depth-chart.js](src/scripts/depth-chart.js), [src/scripts/all-star.js](src/scripts/all-star.js), [src/scripts/draft.js](src/scripts/draft.js), [src/scripts/trade-deadline.js](src/scripts/trade-deadline.js), [src/scripts/trade-player.js](src/scripts/trade-player.js)
+
+Other:
+- [public/style.css](public/style.css): global styling for every page
+- [public/feeds.json](public/feeds.json): news/video source definitions
+- [public/all-star-roster.json](public/all-star-roster.json), [public/draft-picks.json](public/draft-picks.json), [public/trade-deadline.json](public/trade-deadline.json): curated data for the respective secondary pages
+- [public/rss-proxy.php](public/rss-proxy.php): production proxy for trusted feeds/pages
+- [scripts/generate-trade-summaries.mjs](scripts/generate-trade-summaries.mjs): offline generator for trade-rumor recap summaries (see "AI Recap Generation")
+- [updates.txt](updates.txt): running feature/spec file
+- [changelog.txt](changelog.txt): recent project change log
 
 **Stack**
 
 - Astro 6
 - Static deployment
-- Modular client-side rendering and state under [src/scripts/](/Users/briancsmith/Documents/GitHub/yardreport/src/scripts)
-- PHP RSS proxy for production feed fetching in [rss-proxy.php](/Users/briancsmith/Documents/GitHub/yardreport/public/rss-proxy.php)
+- Modular client-side rendering and state under [src/scripts/](src/scripts)
+- PHP RSS proxy for production feed fetching in [rss-proxy.php](public/rss-proxy.php)
 - MLB Stats API and Open-Meteo as primary runtime data services
 - Official Orioles walk-up music page plus Spotify embeds/search for player music context
+- One offline, opt-in build step ([scripts/generate-trade-summaries.mjs](scripts/generate-trade-summaries.mjs)) calls the Gemini API to write trade-rumor recap summaries into static JSON — nothing at runtime or in the client bundle talks to an AI API
+
+**AI Recap Generation**
+
+`npm run generate:trade-summaries` scans the RSS sources for Orioles trade-rumor coverage, groups it by mentioned Orioles player, and asks Gemini for a short neutral recap of each — written into `rumorRecaps` in [public/trade-deadline.json](public/trade-deadline.json). This is a manual, offline step (not part of `npm run build` or the deploy workflow), so recaps only update when someone runs it.
+
+- Requires `GEMINI_API_KEY` in the environment (optionally `GEMINI_MODEL` to override the default). Put both in a local `.env` file — already covered by `.gitignore` — and never commit it or paste the key anywhere that gets logged.
+- Run it via: `export $(cat .env | xargs) && npm run generate:trade-summaries`
+- The recap page ([trade-player.js](src/scripts/trade-player.js)) only ever reads the static JSON output; it has no knowledge of the API key or the generation process.
 
 **Development**
 
@@ -85,13 +128,13 @@ The domain module split is done. If we want the repo even easier to maintain, th
 
 **Deployment**
 
-- Official release path: push to `main`, which triggers [.github/workflows/deploy.yml](/Users/briancsmith/Documents/GitHub/yardreport/.github/workflows/deploy.yml)
+- Official release path: push to `main`, which triggers [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
 - The GitHub Actions workflow runs `npm run smoke`, builds the site, and deploys `dist/` to `./public_html/yardreport/` over FTP
 - The same workflow file also runs two scheduled daily health jobs:
   - smoke test + live homepage check
   - production RSS proxy/feed check
 - cPanel Git Version Control is a legacy/manual fallback path, not the normal release workflow
-- [.cpanel.yml](/Users/briancsmith/Documents/GitHub/yardreport/.cpanel.yml) remains in the repo only for that fallback scenario
+- [.cpanel.yml](.cpanel.yml) remains in the repo only for that fallback scenario. The deploy path in it is a placeholder (`REPLACE_WITH_CPANEL_USERNAME`) — the real cPanel username was previously committed in plain text here, which is unnecessary exposure (it narrows a brute-force/credential-stuffing attempt against the hosting account down to just guessing a password). If the fallback is ever actually needed, edit the real value directly on the server side rather than committing it back.
 
 **Cron Guidance**
 
@@ -117,7 +160,7 @@ Preferred cadence:
 
 The main implementation surface is the `src/scripts/` module set, with `app.js` as the event/init orchestrator. When making updates, preserve readability, avoid content overload, and be careful with shared render/state logic.
 
-The built-in smoke test is `npm run smoke`. It runs a production build and then checks that the generated site still includes the core UI surfaces: scores, feed, On Deck, podcast, video, standings, leaders, reader overlay, settings overlay, plus key built assets.
+The built-in smoke test is `npm run smoke`. It runs a production build and then checks that the generated homepage still includes the core UI surfaces: scores, feed, On Deck, podcast, video, standings, leaders, reader overlay, settings overlay, plus key built assets. It does not currently check the secondary pages (Schedule, Depth Chart, All-Star, Draft, Trade Deadline) — a gap worth closing if those pages start seeing more churn.
 
 Branch usage for this repo should stay simple:
 - treat `main` as the deployable branch
@@ -164,13 +207,15 @@ Walk-up music sources:
 
 Data and asset services:
 - MLB Stats API: `https://statsapi.mlb.com/api/v1`
-  Schedule, standings, roster, boxscore, leaders, probable pitchers, and pitch arsenal
+  Schedule, standings, roster, boxscore, leaders, probable pitchers, pitch arsenal, people/search, and the live draft endpoint (`/draft/{season}`)
 - Open-Meteo forecast API: `https://api.open-meteo.com/v1/forecast`
 - Google Favicon API: `https://www.google.com/s2/favicons`
 - MLB Gameday and story links: `https://www.mlb.com/gameday/...` and `https://www.mlb.com/stories/game/...`
 - MLB team/player/transactions pages: `https://www.mlb.com/...`
 - MLB team logo assets: `https://www.mlbstatic.com/team-logos/...`
 - Baseball Savant player and leaderboard links: `https://baseballsavant.mlb.com/...`
+- Cot's Baseball Contracts (legacy Baseball Prospectus page): scraped via the RSS proxy's raw-text passthrough for the Contracts widget
+- Gemini API (`generativelanguage.googleapis.com`): build-time only, from `scripts/generate-trade-summaries.mjs` — never called from the browser
 
 **Prompting Guidance**
 
@@ -182,14 +227,17 @@ The prompts that will work best with this repo are specific and scoped, like:
 - “Update the walk-up song fallback map without blocking roster render”
 - “Implement the next unchecked item from `updates.txt`”
 - “Refactor just the leaders widget into a separate module without changing output”
+- “Add a new section to the Draft/ASG/Trade Deadline page using the existing page's data-file + script pattern”
 
 The prompts most likely to cause churn are broad redesigns or “clean this all up” requests, because the codebase is functional but tightly intertwined.
 
 **Current Site Snapshot**
 
-- Feed supports Orioles, MLB, and MiLB categories
-- Around the Horn surfaces three featured baseball story cards with a dedicated follow-through page
+- Homepage feed supports Orioles, MLB, and MiLB categories; category pills sit right-justified against the "Around the Horn" heading, and all other feed controls (sort, date range, show read, sources) live in the single header settings gear
+- Around the Horn surfaces three equal-sized featured story cards with a dedicated follow-through page
 - Score bugs support preview, live, and final popovers with scouting, lineups, pitching, box score, walk-up song icons/queue, and MLB-link actions
 - On Deck surfaces the next Orioles game, compact schedule boxes, and forecast weather for today or tomorrow when available
 - Left sidebar carries the podcast card above the video widget
 - Right sidebar carries standings, leaders, roster with walk-up song/search icons, injury report, transactions, and contracts
+- Dedicated pages: Schedule (month/week views), Depth Chart (OPACY field shape), All-Star Game (rosters, Home Run Derby, live tracker), MLB Draft (live pick order/results, ticker, round tabs, highlights), Trade Deadline (Orioles moves, rumor mentions, org watch, per-player AI-recap pages)
+- Every player name sitewide is a link (see "Player-name linking" above) and opens the sitewide player stat card modal when it carries a `data-pid`
