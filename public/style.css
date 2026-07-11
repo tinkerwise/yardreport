@@ -3662,21 +3662,26 @@ a.il-name:hover { color: var(--orange); }
   .page-layout { max-width: 1840px; padding: 20px 32px 60px; }
 }
 
-/* Tablet and below: single column, both sidebars stack below main content as
-   a widget grid rather than disappearing — every widget stays reachable at
-   every viewport width. */
+/* Tablet and below: single column, both homepage sidebars stack below main
+   content as a widget grid rather than disappearing — every widget stays
+   reachable at every viewport width. Scoped to .page-layout (the homepage
+   grid) only — secondary pages' .asg-sidebar shares the base .sidebar class
+   but has few large single-column widgets, not many small ones, and its own
+   container (.asg-container) collapses to one column at a narrower 760px,
+   so squeezing it into a 2-up grid here left every widget crushed into a
+   ~108px-wide column between 761-1100px. */
 @media (max-width: 1100px) {
   .page-layout {
     grid-template-columns: 1fr;
     padding: 16px 16px 48px;
   }
-  .sidebar {
+  .page-layout .sidebar {
     position: static;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
-  .sidebar-right { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .page-layout .sidebar-right { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .search-wrap { grid-column: 1 / -1; }
   .standings-section { grid-column: 1 / -1; }
 }
@@ -4613,7 +4618,17 @@ a.il-name:hover { color: var(--orange); }
   padding: 3px 7px;
 }
 .draft-order-note--pick {
-  color: var(--orange); text-decoration: none; font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--orange);
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 8px;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .draft-order-note--pick:hover { text-decoration: underline; }
 
