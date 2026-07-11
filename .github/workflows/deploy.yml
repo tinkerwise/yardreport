@@ -56,9 +56,9 @@ jobs:
       - name: Check live homepage
         run: |
           curl -fsSL "${SITE_URL}" | tee /tmp/yardreport-home.html > /dev/null
-          rg -q 'Yard Report' /tmp/yardreport-home.html
-          rg -q 'id="scoresTrack"' /tmp/yardreport-home.html
-          rg -q 'id="articleList"' /tmp/yardreport-home.html
+          grep -q 'Yard Report' /tmp/yardreport-home.html
+          grep -q 'id="scoresTrack"' /tmp/yardreport-home.html
+          grep -q 'id="articleList"' /tmp/yardreport-home.html
 
   proxy_and_feed_check:
     if: github.event_name == 'schedule' && github.event.schedule == '47 11 * * *'
@@ -69,5 +69,5 @@ jobs:
           ENCODED_FEED_URL="$(python3 -c "import urllib.parse; print(urllib.parse.quote('${HEALTH_FEED_URL}', safe=''))")"
           PROXY_URL="${SITE_URL}rss-proxy.php?url=${ENCODED_FEED_URL}"
           curl -fsSL "${PROXY_URL}" | tee /tmp/yardreport-proxy.json > /dev/null
-          rg -q '"feedTitle"' /tmp/yardreport-proxy.json
-          rg -q '"items"' /tmp/yardreport-proxy.json
+          grep -q '"feedTitle"' /tmp/yardreport-proxy.json
+          grep -q '"items"' /tmp/yardreport-proxy.json
