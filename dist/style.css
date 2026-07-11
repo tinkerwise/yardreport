@@ -4641,6 +4641,78 @@ a.il-name:hover { color: var(--orange); }
 }
 .draft-link-item:hover { color: var(--orange); }
 
+/* ── Top Prospects Remaining board ────────────────────────────────── */
+.prospect-board {
+  padding: 16px 18px 14px;
+  margin-bottom: 14px;
+  border-radius: var(--radius-lg, 14px);
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, var(--orange-dim) 0%, var(--card) 45%);
+}
+.prospect-board-title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+.prospect-board-title { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text); }
+.prospect-board-subtitle { font-size: 0.72rem; color: var(--text-3); }
+.prospect-board-head { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.prospect-board-count {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--orange); background: var(--bg); border: 1px solid var(--orange-dim);
+  border-radius: 999px; padding: 3px 10px;
+}
+.prospect-board-list { display: flex; flex-direction: column; gap: 2px; }
+.prospect-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.prospect-row:hover { background: var(--surface); }
+.prospect-row:first-child {
+  background: var(--surface);
+  border: 1px solid var(--orange-dim);
+}
+.prospect-rank {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 0.72rem; font-weight: 800; color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.prospect-row:first-child .prospect-rank {
+  color: var(--orange); border-color: var(--orange-dim);
+}
+.prospect-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.prospect-name { font-size: 0.86rem; font-weight: 700; color: var(--text); text-decoration: none; }
+a.prospect-name:hover { color: var(--orange); }
+.prospect-meta { font-size: 0.72rem; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prospect-pos-badge {
+  flex-shrink: 0; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em;
+  padding: 3px 8px; border-radius: 5px;
+}
+.prospect-pos-badge--if { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.prospect-pos-badge--of { background: rgba(74,222,128,0.15); color: #4ade80; }
+.prospect-pos-badge--c { background: rgba(192,132,252,0.15); color: #c084fc; }
+.prospect-pos-badge--rhp { background: rgba(248,113,113,0.15); color: #f87171; }
+.prospect-pos-badge--lhp { background: rgba(45,212,191,0.15); color: #2dd4bf; }
+.prospect-pos-badge--other { background: var(--surface); color: var(--text-3); }
+.prospect-board-status {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 0.74rem; color: var(--text-3);
+}
+.prospect-board-status a { color: var(--orange); text-decoration: none; font-weight: 600; }
+.prospect-board-status a:hover { text-decoration: underline; }
+
 /* ── Draft page hero + highlights ────────────────────────────────── */
 .draft-hero {
   position: relative;

@@ -1,7 +1,7 @@
 // ── MLB Draft page ─────────────────────────────────────────────────
 import './theme.js';
 import { PROXY, MLB, SEASON, ORIOLES_ID, TEAM_ABBREV } from './config.js';
-import { $, esc, relativeDate, cleanFeedText, savantUrl, mlbPlayerUrl, fetchPlayerIdMap, lookupPlayerId, searchPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups } from './utils.js';
+import { $, esc, relativeDate, cleanFeedText, savantUrl, mlbPlayerUrl, fetchPlayerIdMap, lookupPlayerId, searchPlayerId, teamLogoSrc, extractThumbnail, renderNewsThumbCard, fetchOgImage, playerNameOrLookup, resolveNameLookups, stripAccents } from './utils.js';
 
 let draftData = null;
 let playerIdMap = null;
@@ -74,6 +74,82 @@ function buildLiveState(rounds) {
   if (!oriolesPickOrder.length) return null;
   oriolesPickOrder.sort((a, b) => a.pick - b.pick);
   return { oriolesPickOrder, picks, roundOrders };
+}
+
+function normalizeName(name) {
+  return stripAccents(name ?? '').toLowerCase().trim();
+}
+
+// Every drafted player across every round/comp-round, keyed by normalized
+// name — used to compute "who's left" on the prospect board regardless of
+// which round they eventually go in.
+function buildDraftedIndex(rounds) {
+  const index = new Map();
+  if (!rounds) return index;
+  for (const r of rounds) {
+    for (const p of r.picks) {
+      if (!p.isDrafted || !p.person) continue;
+      index.set(normalizeName(p.person.fullName), {
+        personId: p.person.id,
+        pickNumber: p.pickNumber,
+        teamId: p.team?.id,
+      });
+    }
+  }
+  return index;
+}
+
+function posGroup(position) {
+  const p = (position || '').split('/')[0].toUpperCase();
+  if (p === 'C') return 'c';
+  if (['SS', '2B', '3B', '1B', 'MIF'].includes(p)) return 'if';
+  if (['OF', 'CF', 'RF', 'LF'].includes(p)) return 'of';
+  if (p === 'RHP') return 'rhp';
+  if (p === 'LHP') return 'lhp';
+  return 'other';
+}
+
+// ── Top prospects remaining — big board minus whoever's already off it ──
+function renderProspectBoard(data, draftedIndex, idMap) {
+  const board = $('draftProspectBoard');
+  if (!board) return;
+  const bigBoard = data.bigBoard ?? [];
+  if (!bigBoard.length) {
+    board.innerHTML = '<span class="sidebar-msg">Unavailable</span>';
+    return;
+  }
+
+  const remaining = bigBoard.filter(p => !draftedIndex.has(normalizeName(p.name)));
+  const top10 = remaining.slice(0, 10);
+
+  const draftedFromBoard = bigBoard
+    .filter(p => draftedIndex.has(normalizeName(p.name)))
+    .map(p => ({ ...p, info: draftedIndex.get(normalizeName(p.name)) }))
+    .sort((a, b) => b.info.pickNumber - a.info.pickNumber);
+  const lastOff = draftedFromBoard[0];
+  const statusHtml = lastOff
+    ? `<div class="prospect-board-status">Last off the board: <a href="${mlbPlayerUrl(lastOff.info.personId)}" target="_blank" rel="noopener">${esc(lastOff.name)}</a> — Pick #${lastOff.info.pickNumber}${TEAM_ABBREV[lastOff.info.teamId] ? ` (${esc(TEAM_ABBREV[lastOff.info.teamId])})` : ''}</div>`
+    : '';
+
+  const rowsHtml = top10.map(p => `
+    <div class="prospect-row">
+      <span class="prospect-rank">${p.rank}</span>
+      <div class="prospect-info">
+        ${playerNameOrLookup(p.name, idMap, 'prospect-name')}
+        <span class="prospect-meta">${esc(p.school)}</span>
+      </div>
+      <span class="prospect-pos-badge prospect-pos-badge--${posGroup(p.position)}">${esc(p.position)}</span>
+    </div>
+  `).join('');
+
+  board.innerHTML = `
+    <div class="prospect-board-head">
+      <span class="prospect-board-count">${remaining.length} remaining on our board</span>
+    </div>
+    <div class="prospect-board-list">${rowsHtml || '<span class="sidebar-msg">Board fully drafted</span>'}</div>
+    ${statusHtml}
+  `;
+  resolveNameLookups(board);
 }
 
 function computeStatus(data) {
@@ -220,6 +296,7 @@ async function loadPicks() {
     renderTicker(draftData, idMap);
     renderRoundTabs(draftData);
     renderOrder(draftData, idMap);
+    renderProspectBoard(draftData, buildDraftedIndex(liveRounds), idMap);
     const updatedEl = $('draftUpdated');
     if (updatedEl && draftData.lastUpdated) {
       updatedEl.textContent = `Updated ${relativeDate(draftData.lastUpdated)}`;
