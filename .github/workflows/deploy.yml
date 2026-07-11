@@ -38,9 +38,8 @@ jobs:
           lftp <<LFTP_EOF
           set ssl:verify-certificate false
           set ftp:ssl-force true
-          set ftp:user "$FTP_USERNAME"
-          set ftp:pass "$FTP_PASSWORD"
           open "$FTP_SERVER"
+          user "$FTP_USERNAME" "$FTP_PASSWORD"
           mirror --reverse --delete --verbose ./dist/ ${REMOTE_DEPLOY_PATH}
           quit
           LFTP_EOF
