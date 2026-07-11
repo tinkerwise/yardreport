@@ -226,6 +226,7 @@ async function loadPicks() {
     }
     loadDraftInfo(draftData);
     loadHistory(draftData, idMap);
+    loadSourcesAndCoverage(draftData);
 
     // Live picks land within minutes of each other on draft day — refresh
     // the whole picture instead of just polling one widget.
@@ -293,8 +294,10 @@ function renderHero(data) {
         : `<span class="draft-highlight-icon">${HIGHLIGHT_ICONS[i % HIGHLIGHT_ICONS.length]}</span>`;
       return `
       <div class="draft-highlight-card">
-        ${media}
-        <div class="draft-highlight-title">${esc(h.title)}</div>
+        <div class="draft-highlight-head">
+          ${media}
+          <div class="draft-highlight-title">${esc(h.title)}</div>
+        </div>
         <div class="draft-highlight-body">${esc(h.body)}</div>
       </div>
     `;
@@ -347,6 +350,21 @@ function loadDraftInfo(data) {
     </div>
     <a class="widget-link" href="https://www.mlb.com/draft" target="_blank" rel="noopener">MLB Draft hub ↗</a>
   `;
+}
+
+// ── Sources & Live Coverage ──────────────────────────────────────────
+function renderLinkList(links) {
+  if (!links?.length) return '<span class="sidebar-msg">Unavailable</span>';
+  return `<div class="draft-links-list">${links.map(l =>
+    `<a class="draft-link-item" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`
+  ).join('')}</div>`;
+}
+
+function loadSourcesAndCoverage(data) {
+  const coverageEl = $('draftLiveCoverage');
+  const sourcesEl = $('draftSources');
+  if (coverageEl) coverageEl.innerHTML = renderLinkList(data.liveCoverage);
+  if (sourcesEl) sourcesEl.innerHTML = renderLinkList(data.sources);
 }
 
 // ── History ───────────────────────────────────────────────────────

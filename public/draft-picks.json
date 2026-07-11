@@ -39,14 +39,21 @@
       "body": "Recent mocks have linked the O's to Kentucky SS Tyler Bell (FanGraphs), do-it-all hitter Chris Hacopian (Just Baseball), and Drew Burress, once a top-five candidate (Bleacher Report)."
     }
   ],
+  "liveCoverage": [
+    { "label": "MLB.com Draft Tracker", "url": "https://www.mlb.com/draft/tracker" },
+    { "label": "MLB.com Draft Order", "url": "https://www.mlb.com/draft/2026/order" },
+    { "label": "ESPN Draft Tracker", "url": "https://www.espn.com/mlb/story/_/id/49306565/2026-mlb-draft-tracker-live-updates-order-results-analysis-every-first-round-pick" },
+    { "label": "Baseball America Draft Results", "url": "https://www.baseballamerica.com/draft-results/" }
+  ],
   "sources": [
-    "https://en.wikipedia.org/wiki/2026_Major_League_Baseball_draft",
-    "https://birdswatcher.com/complete-list-of-the-baltimore-orioles-2026-mlb-draft-picks",
-    "https://www.mlb.com/news/orioles-2026-draft-preview",
-    "https://blogs.fangraphs.com/2026-mock-draft-1-0/",
-    "https://www.justbaseball.com/mlb-draft/mock-2026-shakeups-stock-risers/",
-    "https://bleacherreport.com/articles/25452697-2026-mlb-mock-draft-1st-round-predictions-where-top-prospects-will-land",
-    "https://www.nbcsports.com/mlb/news/how-to-watch-2026-mlb-draft-tv-live-stream-info-schedule-time-draft-order"
+    { "label": "2026 MLB Draft — Wikipedia", "url": "https://en.wikipedia.org/wiki/2026_Major_League_Baseball_draft" },
+    { "label": "Orioles 2026 Draft Picks — Birds Watcher", "url": "https://birdswatcher.com/complete-list-of-the-baltimore-orioles-2026-mlb-draft-picks" },
+    { "label": "Orioles 2026 Draft Preview — MLB.com", "url": "https://www.mlb.com/news/orioles-2026-draft-preview" },
+    { "label": "2026 Draft Overview & Schedule — MLB.com", "url": "https://www.mlb.com/news/2026-mlb-draft-overview-and-schedule" },
+    { "label": "2026 Mock Draft 1.0 — FanGraphs", "url": "https://blogs.fangraphs.com/2026-mock-draft-1-0/" },
+    { "label": "Mock Draft 2.0 — Just Baseball", "url": "https://www.justbaseball.com/mlb-draft/mock-2026-shakeups-stock-risers/" },
+    { "label": "2026 Mock Draft Predictions — Bleacher Report", "url": "https://bleacherreport.com/articles/25452697-2026-mlb-mock-draft-1st-round-predictions-where-top-prospects-will-land" },
+    { "label": "How to Watch the 2026 MLB Draft — NBC Sports", "url": "https://www.nbcsports.com/mlb/news/how-to-watch-2026-mlb-draft-tv-live-stream-info-schedule-time-draft-order" }
   ],
   "oriolesPickOrder": [
     { "round": 1, "pick": 7 },
