@@ -239,8 +239,11 @@ function setupEvents() {
     showPlayerCard(el.dataset.pid, el.dataset.pname || el.textContent.trim());
   });
 
-  // Auto-refresh scores and transactions every 5 minutes
+  // Auto-refresh scores and transactions every 5 minutes — skipped overnight
+  // (before 9 AM local) since nothing meaningful changes in that window and
+  // it's just wasted API traffic and mobile battery.
   setInterval(() => {
+    if (new Date().getHours() < 9) return;
     loadScores();
     loadTransactions();
   }, 5 * 60 * 1000);

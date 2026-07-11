@@ -8,6 +8,21 @@ interface Props {
 const { title = 'Yard Report' } = Astro.props;
 const stylePath = path.join(process.cwd(), 'public', 'style.css');
 const styleVersion = Math.floor(statSync(stylePath).mtimeMs);
+
+const base = import.meta.env.BASE_URL;
+const pathname = Astro.url.pathname;
+const NAV_LINKS = [
+  { href: base, label: 'Dashboard' },
+  { href: `${base}schedule/`, label: 'Schedule' },
+  { href: `${base}depth-chart/`, label: 'Depth Chart' },
+  { href: `${base}around-the-horn/`, label: 'Around the Horn' },
+  { href: `${base}all-star/`, label: 'All-Star' },
+  { href: `${base}draft/`, label: 'Draft' },
+  { href: `${base}trade-deadline/`, label: 'Trade Deadline' },
+];
+function isActiveLink(href: string) {
+  return href === base ? pathname === base : pathname.startsWith(href);
+}
 ---
 <!doctype html>
 <html lang="en">
@@ -25,6 +40,17 @@ const styleVersion = Math.floor(statSync(stylePath).mtimeMs);
     <link rel="stylesheet" href={`${import.meta.env.BASE_URL}style.css?v=${styleVersion}`} />
   </head>
   <body>
+    <nav class="site-nav" aria-label="Site navigation">
+      {NAV_LINKS.map(link => (
+        <a
+          href={link.href}
+          class={`site-nav-link${isActiveLink(link.href) ? ' site-nav-link--active' : ''}`}
+          aria-current={isActiveLink(link.href) ? 'page' : undefined}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
     <slot />
   </body>
 </html>

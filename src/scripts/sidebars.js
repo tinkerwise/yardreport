@@ -1,7 +1,6 @@
 // ── Sidebars ──────────────────────────────────────────────────────
 import {
   DIVISION_NAMES,
-  MLB,
   ORIOLES_ID,
   PROXY,
   SEASON,
@@ -28,13 +27,22 @@ import {
 import { fetchWeatherForGames, getGameWeather } from './weather.js';
 import { ensureWalkupSongsLoaded, getWalkupSongUrls } from './walkup-songs.js';
 import { WALKUP_ICON_SVG } from './scores.js';
+import {
+  fetchStandings,
+  fetchTeamSchedule,
+  fetchPlayerSeasonStats,
+  fetchTeamRoster,
+  fetchTransactions,
+  fetchTeamLeaders,
+  fetchLeagueLeaders,
+} from './mlbApi.js';
 
 // ── Standings ─────────────────────────────────────────────────────
 export async function loadStandings() {
   try {
     const [regData, wcData] = await Promise.all([
-      fetch(`${MLB}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=regularSeason`).then(r => r.json()),
-      fetch(`${MLB}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=wildCard`).then(r => r.json()),
+      fetchStandings(SEASON, 'regularSeason'),
+      fetchStandings(SEASON, 'wildCard'),
     ]);
 
     state.standings = regData.records.map(div => ({
@@ -172,9 +180,7 @@ export async function loadOnDeck() {
     const today = localDateStr(0);
     const tomorrowStr = localDateStr(1);
     const endDate = localDateStr(14);
-    const data = await fetch(
-      `${MLB}/schedule?sportId=1&teamId=${ORIOLES_ID}&startDate=${today}&endDate=${endDate}&hydrate=probablePitcher,venue`
-    ).then(r => r.json());
+    const data = await fetchTeamSchedule(ORIOLES_ID, today, endDate, 'probablePitcher,venue');
 
     const games = (data.dates ?? []).flatMap(d => d.games);
     const todayStr = today;
@@ -259,9 +265,7 @@ export async function loadOnDeck() {
         const fetchPitcherStats = async (id) => {
           if (!id) return null;
           try {
-            const d = await fetch(
-              `${MLB}/people/${id}/stats?stats=season&group=pitching&season=${SEASON}`
-            ).then(r => r.json());
+            const d = await fetchPlayerSeasonStats(id, 'pitching', SEASON);
             return d.stats?.[0]?.splits?.[0]?.stat ?? null;
           } catch { return null; }
         };
@@ -361,7 +365,7 @@ export async function loadRoster() {
     // song fetch resolves if it was still in flight.
     const songPromise = ensureWalkupSongsLoaded(PROXY);
     const [data] = await Promise.all([
-      fetch(`${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man&season=${SEASON}`).then(r => r.json()),
+      fetchTeamRoster(ORIOLES_ID, '40Man', SEASON),
     ]);
 
     const all = data.roster ?? [];
@@ -509,9 +513,7 @@ export async function loadTransactions() {
     startD.setDate(startD.getDate() - 14);
     const start = startD.toISOString().slice(0, 10);
 
-    const data = await fetch(
-      `${MLB}/transactions?teamId=${ORIOLES_ID}&startDate=${start}&endDate=${end}`
-    ).then(r => r.json());
+    const data = await fetchTransactions(ORIOLES_ID, start, end);
 
     const txns = (data.transactions ?? [])
       .sort((a, b) => new Date(b.date || b.effectiveDate) - new Date(a.date || a.effectiveDate))
@@ -559,8 +561,8 @@ export async function loadInjuryReport() {
   const wrap = $('ilWrap');
   try {
     const [data, txData] = await Promise.all([
-      fetch(`${MLB}/teams/${ORIOLES_ID}/roster?rosterType=40Man`).then(r => r.json()),
-      fetch(`${MLB}/transactions?teamId=${ORIOLES_ID}&startDate=${SEASON}-01-01&endDate=${localDateStr(0)}`).then(r => r.json()).catch(() => ({ transactions: [] })),
+      fetchTeamRoster(ORIOLES_ID, '40Man'),
+      fetchTransactions(ORIOLES_ID, `${SEASON}-01-01`, localDateStr(0)).catch(() => ({ transactions: [] })),
     ]);
 
     const injured = (data.roster ?? []).filter(p =>
@@ -721,7 +723,7 @@ async function fetchOriolesRecapVideo() {
 
   const [playlistData, gameData] = await Promise.all([
     fetch(`${PROXY}?url=${encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?playlist_id=${ORIOLES_RECAP_PLAYLIST}`)}`).then(r => r.json()),
-    fetch(`${MLB}/schedule?sportId=1&teamId=${ORIOLES_ID}&startDate=${startDate}&endDate=${endDate}&hydrate=game(content(media(epg)))`).then(r => r.json()),
+    fetchTeamSchedule(ORIOLES_ID, startDate, endDate, 'game(content(media(epg)))'),
   ]);
 
   const recapItems = playlistData.items ?? [];
@@ -1034,12 +1036,12 @@ const ROY_CATS = 'onBasePlusSlugging,homeRuns,battingAverage,earnedRunAverage,st
 const ROY_BATTING_ORDER  = ['onBasePlusSlugging', 'homeRuns', 'battingAverage'];
 const ROY_PITCHING_ORDER = ['earnedRunAverage', 'strikeouts', 'walksAndHitsPerInningPitched'];
 
-function leadersFetchUrl(scope) {
+function fetchLeadersData(scope) {
   if (scope === 'orioles') {
-    return `${MLB}/teams/${ORIOLES_ID}/leaders?leaderCategories=${TEAM_LEADERS_CATS}&season=${SEASON}&leaderGameTypes=R&playerPool=Qualified`;
+    return fetchTeamLeaders(ORIOLES_ID, TEAM_LEADERS_CATS, SEASON);
   }
-  const leagueParam = scope === 'al' ? '&leagueId=103' : scope === 'nl' ? '&leagueId=104' : '';
-  return `${MLB}/stats/leaders?leaderCategories=${LEAGUE_LEADERS_CATS}&season=${SEASON}&leaderGameTypes=R${leagueParam}&playerPool=Qualified&limit=1`;
+  const leagueId = scope === 'al' ? 103 : scope === 'nl' ? 104 : undefined;
+  return fetchLeagueLeaders(LEAGUE_LEADERS_CATS, SEASON, { leagueId, limit: 1 });
 }
 
 function parseLeadersData(categories, battingOrder = BATTING_ORDER, pitchingOrder = PITCHING_ORDER) {
@@ -1062,8 +1064,8 @@ export async function loadLeaders() {
     if (leadersScope === 'roy') {
       if (!leadersCache.roy) {
         const [alData, nlData] = await Promise.all([
-          fetch(`${MLB}/stats/leaders?leaderCategories=${ROY_CATS}&season=${SEASON}&leaderGameTypes=R&leagueId=103&playerPool=Rookies&limit=1`).then(r => r.json()),
-          fetch(`${MLB}/stats/leaders?leaderCategories=${ROY_CATS}&season=${SEASON}&leaderGameTypes=R&leagueId=104&playerPool=Rookies&limit=1`).then(r => r.json()),
+          fetchLeagueLeaders(ROY_CATS, SEASON, { leagueId: 103, playerPool: 'Rookies', limit: 1 }),
+          fetchLeagueLeaders(ROY_CATS, SEASON, { leagueId: 104, playerPool: 'Rookies', limit: 1 }),
         ]);
         leadersCache.roy = {
           al: parseLeadersData(alData.leagueLeaders ?? [], ROY_BATTING_ORDER, ROY_PITCHING_ORDER),
@@ -1073,9 +1075,8 @@ export async function loadLeaders() {
       renderLeaders();
       return;
     }
-    const url = leadersFetchUrl(leadersScope);
     if (!leadersCache[leadersScope]) {
-      const data = await fetch(url).then(r => r.json());
+      const data = await fetchLeadersData(leadersScope);
       const categories = leadersScope === 'orioles' ? (data.teamLeaders ?? []) : (data.leagueLeaders ?? []);
       leadersCache[leadersScope] = parseLeadersData(categories);
     }
@@ -1162,9 +1163,7 @@ export async function loadDepthChart() {
   const wrap = $('depthChartWrap');
   if (!wrap) return;
   try {
-    const data = await fetch(
-      `${MLB}/teams/${ORIOLES_ID}/roster?rosterType=depthChart&season=${SEASON}`
-    ).then(r => r.json());
+    const data = await fetchTeamRoster(ORIOLES_ID, 'depthChart', SEASON);
 
     const players = data.roster ?? [];
     if (!players.length) {

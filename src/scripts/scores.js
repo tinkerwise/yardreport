@@ -1,6 +1,5 @@
 // ── Scores, box score popover, lineup, scout notes, arsenal ───────
 import {
-  MLB,
   ORIOLES_ID,
   PITCH_NAMES,
   PROXY,
@@ -13,6 +12,14 @@ import { ensureWalkupSongsLoaded, getWalkupSongUrls } from './walkup-songs.js';
 import { triggerOriolesMagic } from './easter-eggs.js';
 import { getGameWeather, fetchWeatherForGames } from './weather.js';
 import { state } from './state.js';
+import {
+  fetchScheduleByDate,
+  fetchBoxscoreRaw,
+  fetchLiveFeed,
+  fetchPitchArsenalRaw,
+  fetchTeamHittingStatsRaw,
+  fetchPitcherVsTeamRaw,
+} from './mlbApi.js';
 
 // ── Name helpers ──────────────────────────────────────────────────
 export function playerLabel(person) {
@@ -190,7 +197,7 @@ function maybeTriggerOriolesWinMagic(games) {
 export async function fetchBoxscore(gamePk) {
   if (boxscoreCache[gamePk]) return boxscoreCache[gamePk];
   try {
-    const data = await fetch(`${MLB}/game/${gamePk}/boxscore`).then(r => r.json());
+    const data = await fetchBoxscoreRaw(gamePk);
     boxscoreCache[gamePk] = data;
     return data;
   } catch { return null; }
@@ -199,9 +206,7 @@ export async function fetchBoxscore(gamePk) {
 export async function fetchScoringPlays(gamePk) {
   if (scoringPlaysCache[gamePk] !== undefined) return scoringPlaysCache[gamePk];
   try {
-    const data = await fetch(
-      `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`
-    ).then(r => r.json());
+    const data = await fetchLiveFeed(gamePk);
     const allPlays = data.liveData?.plays?.allPlays ?? [];
     const indices  = data.liveData?.plays?.scoringPlays ?? [];
     const plays    = indices.map(i => allPlays[i]).filter(Boolean);
@@ -214,9 +219,7 @@ export async function fetchArsenal(playerId) {
   if (!playerId) return null;
   if (arsenalCache[playerId]) return arsenalCache[playerId];
   try {
-    const data = await fetch(
-      `${MLB}/people/${playerId}/stats?stats=pitchArsenal&season=${SEASON}&group=pitching`
-    ).then(r => r.json());
+    const data = await fetchPitchArsenalRaw(playerId, SEASON);
     arsenalCache[playerId] = data;
     return data;
   } catch { return null; }
@@ -226,9 +229,7 @@ export async function fetchTeamStats(teamId) {
   if (!teamId) return null;
   if (teamStatsCache[teamId]) return teamStatsCache[teamId];
   try {
-    const data = await fetch(
-      `${MLB}/teams/${teamId}/stats?stats=season&season=${SEASON}&group=hitting`
-    ).then(r => r.json());
+    const data = await fetchTeamHittingStatsRaw(teamId, SEASON);
     const result = data.stats?.[0]?.splits?.[0]?.stat ?? null;
     teamStatsCache[teamId] = result;
     return result;
@@ -240,9 +241,7 @@ export async function fetchPitcherVsTeam(pitcherId, oppTeamId) {
   const key = `${pitcherId}_vs_${oppTeamId}`;
   if (pitcherVsCache[key] !== undefined) return pitcherVsCache[key];
   try {
-    const data = await fetch(
-      `${MLB}/people/${pitcherId}/stats?stats=vsTeamTotal&group=pitching&opposingTeamId=${oppTeamId}`
-    ).then(r => r.json());
+    const data = await fetchPitcherVsTeamRaw(pitcherId, oppTeamId);
     const result = data.stats?.[0]?.splits?.[0]?.stat ?? null;
     pitcherVsCache[key] = result;
     return result;
@@ -1343,10 +1342,11 @@ export async function loadScores() {
     const today = localDateStr(0);
     const tomorrow = localDateStr(1);
 
+    const scheduleHydrate = 'linescore,team,venue,decisions,probablePitcher';
     const [ydData, todayData, tmData] = await Promise.all([
-      fetch(`${MLB}/schedule?sportId=1&date=${yesterday}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${today}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
-      fetch(`${MLB}/schedule?sportId=1&date=${tomorrow}&hydrate=linescore,team,venue,decisions,probablePitcher`).then(r => r.json()),
+      fetchScheduleByDate(yesterday, scheduleHydrate),
+      fetchScheduleByDate(today, scheduleHydrate),
+      fetchScheduleByDate(tomorrow, scheduleHydrate),
     ]);
 
     const allGames = [

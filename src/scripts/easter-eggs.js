@@ -7,7 +7,7 @@ export function triggerOriolesMagic() {
   container.className = 'magic-confetti';
   document.body.appendChild(container);
 
-  const audio = new Audio('/yardreport/audio/orioles_magic_short.mp3');
+  const audio = new Audio(`${import.meta.env.BASE_URL}audio/orioles_magic_short.mp3`);
   audio.volume = 0.7;
   let confettiInterval = null;
   let confettiKickoff = null;

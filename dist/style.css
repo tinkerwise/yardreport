@@ -331,6 +331,34 @@ img { display: block; max-width: 100%; }
   background: #111;
   border-bottom: 1px solid var(--border);
 }
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 12px;
+  height: 34px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.site-nav::-webkit-scrollbar { display: none; }
+.site-nav-link {
+  flex-shrink: 0;
+  padding: 0 10px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.site-nav-link:hover { color: var(--text); }
+.site-nav-link--active { color: var(--orange); border-bottom-color: var(--orange); }
 .header-inner {
   width: 100%;
   padding: 0 16px;
@@ -3373,6 +3401,27 @@ a.il-name:hover { color: var(--orange); }
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
 }
+.ath-empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 48px 20px;
+  text-align: center;
+}
+.ath-empty-cta {
+  display: inline-block;
+  padding: 11px 22px;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.ath-empty-cta:hover { opacity: 0.88; }
 .ath-story-card {
   display: flex;
   flex-direction: column;
@@ -3466,7 +3515,7 @@ a.il-name:hover { color: var(--orange); }
 
 .reader-modal {
   width: min(800px, 100%);
-  background: #fff;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -3477,8 +3526,8 @@ a.il-name:hover { color: var(--orange); }
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
   gap: 12px;
   flex-shrink: 0;
 }
@@ -3491,7 +3540,7 @@ a.il-name:hover { color: var(--orange); }
   color: #fff;
   flex-shrink: 0;
 }
-.reader-date { font-size: 0.73rem; color: #777; }
+.reader-date { font-size: 0.73rem; color: var(--text-3); }
 .reader-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .btn-original-reader {
   font-size: 0.78rem;
@@ -3506,24 +3555,24 @@ a.il-name:hover { color: var(--orange); }
 .btn-close-reader {
   padding: 5px 9px;
   background: transparent;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-light);
   border-radius: 5px;
-  color: #666;
+  color: var(--text-2);
   font-size: 1rem;
   transition: all 0.15s;
 }
-.btn-close-reader:hover { background: #eee; color: #333; }
+.btn-close-reader:hover { background: var(--border); color: var(--text); }
 
 .reader-title {
   padding: 16px 20px 14px;
   font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.4;
-  color: #111;
-  border-bottom: 1px solid #eee;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.reader-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.reader-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); }
 .reader-frame { flex: 1; width: 100%; border: none; }
 
 .reader-fallback {
@@ -3535,7 +3584,7 @@ a.il-name:hover { color: var(--orange); }
   overflow-y: auto;
 }
 .reader-fallback.hidden { display: none; }
-.reader-excerpt { font-size: 1rem; line-height: 1.75; color: #333; }
+.reader-excerpt { font-size: 1rem; line-height: 1.75; color: var(--text-2); }
 .btn-read-full {
   align-self: flex-start;
   padding: 11px 22px;
@@ -3613,14 +3662,10 @@ a.il-name:hover { color: var(--orange); }
   .page-layout { max-width: 1840px; padding: 20px 32px 60px; }
 }
 
-/* Tablet: 2-column, hide right sidebar */
+/* Tablet and below: single column, both sidebars stack below main content as
+   a widget grid rather than disappearing — every widget stays reachable at
+   every viewport width. */
 @media (max-width: 1100px) {
-  .page-layout { grid-template-columns: minmax(200px, 1fr) minmax(0, 3fr); }
-  .sidebar-right { display: none; }
-}
-
-/* Smaller tablet / landscape phone */
-@media (max-width: 960px) {
   .page-layout {
     grid-template-columns: 1fr;
     padding: 16px 16px 48px;
