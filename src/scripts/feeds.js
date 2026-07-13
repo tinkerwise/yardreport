@@ -37,6 +37,28 @@ import {
 let ALL_FEEDS = [];
 export function getAllSources() { return ALL_FEEDS; }
 
+// ── Share button ────────────────────────────────────────────────────
+const SHARE_ICON_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+
+function handleShareClick(e) {
+  const btn = e.target.closest('.share-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  const { url, title } = btn.dataset;
+  if (navigator.share) {
+    navigator.share({ title, url });
+    return;
+  }
+  navigator.clipboard.writeText(url);
+  btn.textContent = 'Copied!';
+  setTimeout(() => { btn.innerHTML = SHARE_ICON_SVG; }, 1500);
+}
+
+// Delegated from document (not the list container) since #articleList's
+// content is fully replaced via innerHTML on every render — a listener
+// bound once here survives that instead of needing re-attachment per render.
+document.addEventListener('click', handleShareClick);
+
 // ── View mode ─────────────────────────────────────────────────────
 export function setViewMode(view, { render = true } = {}) {
   state.viewMode = view;
@@ -290,9 +312,7 @@ function renderCard(a, i) {
     <span class="article-date">${relativeDate(a.pubDate)}</span>
     ${paywallBadge}
     ${hasFullContent ? '<span class="full-badge">Full</span>' : ''}
-    <button class="share-btn" data-url="${esc(a.link)}" data-title="${esc(a.title)}" title="Share" onclick="event.stopPropagation();if(navigator.share)navigator.share({title:this.dataset.title,url:this.dataset.url});else{navigator.clipboard.writeText(this.dataset.url);this.textContent='Copied!';setTimeout(()=>this.innerHTML='<svg width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><path d=\\'M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8\\'/><polyline points=\\'16 6 12 2 8 6\\'/><line x1=\\'12\\' y1=\\'2\\' x2=\\'12\\' y2=\\'15\\'/></svg>',1500)}">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-    </button>
+    <button class="share-btn" data-url="${esc(a.link)}" data-title="${esc(a.title)}" title="Share">${SHARE_ICON_SVG}</button>
     ${readTick}
   </span>`;
 
@@ -729,9 +749,11 @@ function _renderArticles() {
   const list = $('articleList');
   const arts = getFilteredArticles();
 
+  const athContainer = document.getElementById('athBundleContainer');
+
   if (!arts.length) {
     list.innerHTML = '<div class="feed-msg">No articles match your filters.</div>';
-    relocateCategoryPills(list);
+    if (athContainer) athContainer.innerHTML = '';
     return;
   }
 
@@ -757,7 +779,7 @@ function _renderArticles() {
   });
 
   if (bundles.length) {
-    html += `<section class="ath-section">
+    const athHtml = `<section class="ath-section">
       <div class="ath-section-head">
         <div class="ath-section-headline">
           <span class="ath-section-kicker">Featured Stories</span>
@@ -766,6 +788,13 @@ function _renderArticles() {
       </div>
       <div class="ath-bundle-grid">${(() => { const used = new Set(); return bundles.map(b => renderBundle(b, arts, used)).join(''); })()}</div>
     </section>`;
+    if (athContainer) {
+      athContainer.innerHTML = athHtml;
+    } else {
+      html += athHtml;
+    }
+  } else if (athContainer) {
+    athContainer.innerHTML = '';
   }
 
   const useGroups = state.sortBy === 'dateGroup' || state.sortBy === 'source';
@@ -790,7 +819,6 @@ function _renderArticles() {
   }
 
   list.innerHTML = html;
-  relocateCategoryPills(list);
   setupThumbObserver();
 
   // Infinite scroll: observe a sentinel below the last card; load more when it enters viewport
@@ -820,6 +848,7 @@ function _renderArticles() {
   list.querySelectorAll('.article-card').forEach(el => {
     el.addEventListener('click', e => {
       if (e.target.tagName === 'A') return;
+      if (e.target.closest('.share-btn')) return;
       const idx = Number(el.dataset.idx);
       const article = arts[idx];
       if (el.dataset.paywall) {

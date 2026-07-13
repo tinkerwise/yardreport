@@ -1,4 +1,4 @@
-export const MAX_VISIBLE_ARTICLES = 10;
+export const MAX_VISIBLE_ARTICLES = 30;
 
 function bucketArticlesBySource(articles) {
   const buckets = new Map();
