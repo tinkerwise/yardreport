@@ -1,16 +1,16 @@
 [
-  { "id": "orioles",      "name": "Baltimore Orioles",   "url": "https://www.mlb.com/orioles/feeds/news/rss.xml",                  "color": "#df4601", "category": "orioles" },
+  { "id": "orioles",      "name": "Baltimore Orioles",   "url": "https://www.mlb.com/orioles/feeds/news/rss.xml",                  "mlbList": "sel-t110-news-list", "linkBase": "https://www.mlb.com/orioles/news/", "color": "#df4601", "category": "orioles" },
   { "id": "bbn",          "name": "Baltimore Baseball",  "url": "https://www.baltimorebaseball.com/feed/",                         "color": "#f97316", "category": "orioles" },
   { "id": "camdenchat",   "name": "Camden Chat",         "url": "https://www.camdenchat.com/rss/index.xml",                       "color": "#e85d04", "category": "orioles" },
   { "id": "birdswatcher", "name": "Birds Watcher",       "url": "https://birdswatcher.com/feed/",                                 "color": "#fb923c", "category": "orioles" },
   { "id": "eutaw",        "name": "Eutaw St Report",     "url": "https://www.eutawstreetreport.com/feed/",                        "color": "#d97706", "category": "orioles" },
   { "id": "masn",         "name": "MASN Sports",         "url": "https://www.masnsports.com/feed",                                "color": "#dc2626", "category": "orioles" },
-  { "id": "mlb",          "name": "MLB.com",             "url": "https://www.mlb.com/feeds/news/rss.xml",                         "color": "#002d72", "category": "mlb"     },
+  { "id": "mlb",          "name": "MLB.com",             "url": "https://www.mlb.com/feeds/news/rss.xml",                         "mlbList": "sel-mlb-news-list", "linkBase": "https://www.mlb.com/news/", "color": "#002d72", "category": "mlb"     },
   { "id": "mlbtr",        "name": "MLB Trade Rumors",    "url": "https://www.mlbtraderumors.com/baltimore-orioles/feed",           "color": "#eab308", "category": "mlb"     },
-  { "id": "espn",         "name": "ESPN MLB",            "url": "https://www.espn.com/espn/rss/mlb/news",                         "color": "#cc0000", "category": "mlb"     },
+  { "id": "espn",         "name": "ESPN MLB",            "url": "https://www.espn.com/espn/rss/mlb/news",                         "direct": true, "color": "#cc0000", "category": "mlb"     },
   { "id": "fangraphs",    "name": "FanGraphs",           "url": "https://blogs.fangraphs.com/feed/",                              "color": "#22c55e", "category": "mlb"     },
   { "id": "bp",           "name": "Baseball Prospectus",  "url": "https://www.baseballprospectus.com/tag/baltimore-orioles/feed/", "color": "#1e40af", "category": "mlb"     },
   { "id": "ba",           "name": "Baseball America",    "url": "https://www.baseballamerica.com/feed/",                          "color": "#b91c1c", "category": "mlb"     },
   { "id": "nyt",          "name": "NY Times Baseball",   "url": "https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml",      "color": "#1a1a1a", "category": "mlb"     },
-  { "id": "athletic",    "name": "The Athletic",        "url": "https://theathletic.com/mlb/baltimore-orioles/feed/",             "color": "#222222", "category": "orioles" }
+  { "id": "athletic",    "name": "The Athletic",        "url": "https://www.nytimes.com/athletic/rss/mlb/orioles/", "color": "#222222", "category": "orioles" }
 ]
