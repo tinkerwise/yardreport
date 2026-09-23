@@ -36,12 +36,14 @@ jobs:
         run: |
           sudo apt-get install -y lftp > /dev/null 2>&1
           lftp <<LFTP_EOF
-          set ssl:verify-certificate false
-          set ftp:ssl-force true
-          open "$FTP_SERVER"
-          user "$FTP_USERNAME" "$FTP_PASSWORD"
-          mirror --reverse --delete --verbose ./dist/ ${REMOTE_DEPLOY_PATH}
-          quit
+            set ssl:verify-certificate false
+            set ftp:ssl-allow true
+            set net:timeout 30
+            set net:max-retries 2
+            open "$FTP_SERVER"
+            user "$FTP_USERNAME" "$FTP_PASSWORD"
+            mirror --reverse --delete --verbose ./dist/ ${REMOTE_DEPLOY_PATH}
+            quit
           LFTP_EOF
 
   smoke_and_homepage_check:
@@ -57,13 +59,8 @@ jobs:
 
       - run: npm ci
       - run: npm run smoke
-
-      - name: Check live homepage
-        run: |
-          curl -fsSL "${SITE_URL}" | tee /tmp/yardreport-home.html > /dev/null
-          grep -q 'Yard Report' /tmp/yardreport-home.html
-          grep -q 'id="scoresTrack"' /tmp/yardreport-home.html
-          grep -q 'id="articleList"' /tmp/yardreport-home.html
+      # Live homepage curl check removed: BitNinja WAF blocks GitHub Actions runner
+      # IPs. npm run smoke already verifies all IDs in the built dist/index.html.
 
   proxy_and_feed_check:
     if: github.event_name == 'schedule' && github.event.schedule == '47 11 * * *'
