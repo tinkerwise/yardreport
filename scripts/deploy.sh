@@ -2,10 +2,9 @@
 # Local deploy: build, smoke-test, and mirror dist/ to the host over FTP.
 # Stopgap while the host firewall (BitNinja) blocks GitHub Actions runner IPs.
 #
-# Requires lftp (brew install lftp) and these in .env (gitignored):
-#   FTP_SERVER=...
-#   FTP_USERNAME=...
-#   FTP_PASSWORD=...
+# Requires lftp (brew install lftp). FTP_SERVER, FTP_USERNAME and
+# FTP_PASSWORD are read from .env (gitignored) if present; anything
+# missing is prompted for at run time.
 #
 # Usage: npm run deploy            # build, verify, upload
 #        npm run deploy -- --dry-run   # show what would change, upload nothing
@@ -22,8 +21,14 @@ command -v lftp >/dev/null || { echo "lftp not found — brew install lftp" >&2;
 if [[ -f .env ]]; then
   set -a; source .env; set +a
 fi
+# Prompt for anything not in .env (password input is hidden).
+[[ -n "${FTP_SERVER:-}" ]]   || read -rp "FTP server: " FTP_SERVER
+[[ -n "${FTP_USERNAME:-}" ]] || read -rp "FTP username: " FTP_USERNAME
+if [[ -z "${FTP_PASSWORD:-}" ]]; then
+  read -rsp "FTP password: " FTP_PASSWORD; echo
+fi
 for v in FTP_SERVER FTP_USERNAME FTP_PASSWORD; do
-  [[ -n "${!v:-}" ]] || { echo "Missing $v (add it to .env)" >&2; exit 1; }
+  [[ -n "${!v:-}" ]] || { echo "Missing $v" >&2; exit 1; }
 done
 
 npm run smoke
