@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "smoke:verify": "sh -lc 'test -f dist/index.html && test -f dist/style.css && test -f dist/rss-proxy.php && grep -q \"id=\\\"scoresTrack\\\"\" dist/index.html && grep -q \"id=\\\"articleList\\\"\" dist/index.html && grep -q \"id=\\\"onDeckWrap\\\"\" dist/index.html && grep -q \"id=\\\"mediaWrap\\\"\" dist/index.html && grep -q \"id=\\\"standingsWrap\\\"\" dist/index.html && grep -q \"id=\\\"leadersWrap\\\"\" dist/index.html && grep -q \"id=\\\"readerOverlay\\\"\" dist/index.html && grep -q \"id=\\\"settingsOverlay\\\"\" dist/index.html'",
     "smoke": "npm run build && npm run smoke:verify",
-    "generate:trade-summaries": "node scripts/generate-trade-summaries.mjs"
+    "generate:trade-summaries": "node scripts/generate-trade-summaries.mjs",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "astro": "^7.3.4"
