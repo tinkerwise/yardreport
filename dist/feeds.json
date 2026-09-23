@@ -3,7 +3,6 @@
   { "id": "bbn",          "name": "Baltimore Baseball",  "url": "https://www.baltimorebaseball.com/feed/",                         "color": "#f97316", "category": "orioles" },
   { "id": "camdenchat",   "name": "Camden Chat",         "url": "https://www.camdenchat.com/rss/index.xml",                       "color": "#e85d04", "category": "orioles" },
   { "id": "birdswatcher", "name": "Birds Watcher",       "url": "https://birdswatcher.com/feed/",                                 "color": "#fb923c", "category": "orioles" },
-  { "id": "eutaw",        "name": "Eutaw St Report",     "url": "https://www.eutawstreetreport.com/feed/",                        "color": "#d97706", "category": "orioles" },
   { "id": "masn",         "name": "MASN Sports",         "url": "https://www.masnsports.com/feed",                                "color": "#dc2626", "category": "orioles" },
   { "id": "mlb",          "name": "MLB.com",             "url": "https://www.mlb.com/feeds/news/rss.xml",                         "mlbList": "sel-mlb-news-list", "linkBase": "https://www.mlb.com/news/", "color": "#002d72", "category": "mlb"     },
   { "id": "mlbtr",        "name": "MLB Trade Rumors",    "url": "https://www.mlbtraderumors.com/baltimore-orioles/feed",           "color": "#eab308", "category": "mlb"     },
