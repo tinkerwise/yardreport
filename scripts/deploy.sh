@@ -14,7 +14,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-REMOTE_DEPLOY_PATH="./public_html/yardreport/"
+# The FTP account's home directory IS the live /yardreport/ web root.
+REMOTE_DEPLOY_PATH="./"
 KEYCHAIN_SERVICE="yardreport-ftp"
 DRY_RUN=""
 
@@ -60,7 +61,9 @@ lftp -u "$FTP_USERNAME" --env-password "$FTP_SERVER" <<LFTP_EOF
   set ftp:ssl-allow true
   set net:timeout 30
   set net:max-retries 2
-  mirror --reverse --delete --verbose $DRY_RUN ./dist/ ${REMOTE_DEPLOY_PATH}
+  mirror --reverse --delete --verbose $DRY_RUN \
+    --exclude-glob .ftpquota --exclude-glob .DS_Store \
+    ./dist/ ${REMOTE_DEPLOY_PATH}
   quit
 LFTP_EOF
 
