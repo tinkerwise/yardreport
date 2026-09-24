@@ -163,6 +163,28 @@ function setupEvents() {
     renderArticles();
   });
 
+  // Source-kind checkboxes (News & Reporting / Opinion & Blogs) live inside
+  // #categoryFilters, so they're cloned along with the pills; sync every copy
+  // (and the original's checked attribute, which later clones copy).
+  function syncKindChecks() {
+    document.querySelectorAll('input[data-kind]').forEach(cb => {
+      cb.checked = state.feedKinds[cb.dataset.kind];
+      cb.toggleAttribute('checked', cb.checked);
+    });
+  }
+  document.addEventListener('change', e => {
+    const cb = e.target.closest('input[data-kind]');
+    if (!cb) return;
+    const next = { ...state.feedKinds, [cb.dataset.kind]: cb.checked };
+    // Never allow both off — that would just empty the feed
+    if (!next.news && !next.opinion) { cb.checked = true; return; }
+    state.feedKinds = next;
+    savePrefs({ feedKinds: next });
+    syncKindChecks();
+    renderArticles();
+  });
+  syncKindChecks();
+
   // Settings
   $('settingsBtn').addEventListener('click', () => {
     $('settingsOverlay').classList.toggle('hidden');

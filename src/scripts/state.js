@@ -7,6 +7,8 @@ const defaultView = prefs.defaultView || 'list';
 export const state = {
   articles: [],
   activeCategory: 'all',
+  // Source kinds shown in the feed (feeds.json "kind"): reporting vs. opinion/blogs
+  feedKinds: { news: prefs.feedKinds?.news ?? true, opinion: prefs.feedKinds?.opinion ?? true },
   activeSource: 'all',
   searchQuery: '',
   sortBy: 'date',

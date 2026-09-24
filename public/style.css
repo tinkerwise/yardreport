@@ -1888,6 +1888,47 @@ img { display: block; max-width: 100%; }
 }
 .pill:hover { border-color: var(--orange); color: var(--orange); }
 .pill.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+/* Source-kind checkboxes, sit after the category pills */
+.kind-filters {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding-left: 10px;
+  margin-left: 4px;
+  border-left: 1px solid var(--border-light);
+}
+.kind-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+/* Custom box: the global input rule strips native checkbox appearance */
+.kind-check input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1.5px solid var(--text-3);
+  border-radius: 4px;
+  background: transparent center / 80% no-repeat;
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s;
+}
+.kind-check input:checked {
+  background-color: var(--orange);
+  border-color: var(--orange);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
+}
+.kind-check input:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.kind-check:has(input:checked) { color: var(--text); }
 .pill--category { min-height: 28px; }
 .pill-logo {
   width: 16px;
@@ -3787,6 +3828,10 @@ a.il-name:hover { color: var(--orange); }
 
   /* Touch targets: bring all interactive controls to ≥44px */
   .pill, .pill--category { min-height: 44px; padding: 10px 14px; }
+  /* Own row under the pills; whole label is the 44px tap target */
+  .kind-filters { flex-basis: 100%; border-left: 0; padding-left: 0; margin-left: 0; gap: 0 16px; }
+  .kind-check { min-height: 44px; font-size: 14px; }
+  .kind-check input { width: 20px; height: 20px; }
   .div-tab { min-height: 44px; padding: 10px 12px; }
   .leaders-scope-btn { min-height: 44px; padding: 10px 12px; }
   .stnd-league-btn { min-height: 44px; padding: 10px 12px; }

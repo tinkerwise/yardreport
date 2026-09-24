@@ -255,6 +255,15 @@ export function syncShowReadButton() {
 }
 
 // ── Article filtering ─────────────────────────────────────────────
+// Articles from the pre-"kind" feed cache lack source.kind, so fall back to
+// the loaded registry, then to 'news'.
+function sourceKind(source) {
+  return source.kind ?? ALL_FEEDS.find(f => f.id === source.id)?.kind ?? 'news';
+}
+function isKindShown(article) {
+  return state.feedKinds[sourceKind(article.source)] !== false;
+}
+
 function getFilteredArticles() {
   let arts = state.articles;
   const rangeDays = state.dateRange || 3;
@@ -270,6 +279,7 @@ function getFilteredArticles() {
   if (state.activeCategory !== 'all') {
     arts = arts.filter(a => a.source.category === state.activeCategory);
   }
+  arts = arts.filter(isKindShown);
   const disabledSources = getDisabledSources();
   if (disabledSources.size > 0) {
     arts = arts.filter(a => !disabledSources.has(a.source.id));
@@ -311,6 +321,7 @@ function getAthCandidateArticles() {
   if (state.activeCategory !== 'all') {
     arts = arts.filter(a => a.source.category === state.activeCategory);
   }
+  arts = arts.filter(isKindShown);
   const disabledSources = getDisabledSources();
   if (disabledSources.size > 0) {
     arts = arts.filter(a => !disabledSources.has(a.source.id));
