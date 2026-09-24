@@ -19,6 +19,7 @@ The client is now split into domain modules, so changes to one area are less lik
 - `loadOnDeck()` in [sidebars.js](src/scripts/sidebars.js) is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
 - Score/on-deck/transactions/leaders/video/podcast all depend on third-party APIs or feeds with no formal abstraction layer, so breakage from upstream response changes is a real risk.
 - There is both a dev-time JS proxy in [astro.config.mjs](astro.config.mjs) and a production PHP proxy in [rss-proxy.php](public/rss-proxy.php); feed issues may differ between local and deployed environments, especially now that the proxy also supports trusted raw HTML/text passthrough for widget enrichment and audio-enclosure extraction for the podcast widget.
+- www.mlb.com and espn.com block the production host's IP (403 / bot-challenge pages), so those feeds bypass the PHP proxy. In [feeds.json](public/feeds.json), `mlbList` sources load from MLB's CORS-enabled content API (`dapi.cms.mlbinfra.com`), with full article text fetched on reader open; `direct: true` sources (ESPN) are fetched and parsed in the browser.
 - [draft.js](src/scripts/draft.js) fetches the live MLB Stats API draft endpoint (`/draft/{season}`) for the real pick order and results, falling back to the curated data in [public/draft-picks.json](public/draft-picks.json) if that fetch fails — the two shapes need to stay compatible.
 - [trade-deadline.js](src/scripts/trade-deadline.js)'s mention-scanning (`findMentionedPlayers`, "On the Block", Organization Watch) is text-matching only — it flags who's being *named* in trade-rumor coverage, not who's actually being shopped. Keep the UI copy honest about that distinction if this logic changes.
 - The trade-rumor recap pages ([trade-player.js](src/scripts/trade-player.js)) depend on `rumorRecaps` entries in [public/trade-deadline.json](public/trade-deadline.json), which are generated offline by [scripts/generate-trade-summaries.mjs](scripts/generate-trade-summaries.mjs) — see "AI Recap Generation" below. Nothing at runtime calls an AI API; if that ever changes, an API key must never be shipped client-side.
@@ -128,11 +129,8 @@ Other:
 
 **Deployment**
 
-- Official release path: push to `main`, which triggers [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
-- The GitHub Actions workflow runs `npm run smoke`, builds the site, and deploys `dist/` to `./public_html/yardreport/` over FTP
-- The same workflow file also runs two scheduled daily health jobs:
-  - smoke test + live homepage check
-  - production RSS proxy/feed check
+- Release path: run `npm run deploy` locally (see below). Pushing to `main` runs [.github/workflows/deploy.yml](.github/workflows/deploy.yml), which only builds and runs `npm run smoke` (on push and daily) — it does not deploy
+- As of Sept 2026 the host's BitNinja firewall blocks GitHub Actions runner IPs (FTP and HTTPS), so CI deploys and live health checks were removed. Deploy locally with `npm run deploy` ([scripts/deploy.sh](scripts/deploy.sh)) — it reads `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD` from `.env` or the macOS Keychain (prompts once on first run, then saves them to Keychain service `yardreport-ftp`; clear with `npm run deploy -- --forget`), runs `npm run smoke`, then mirrors `dist/` via lftp. Use `npm run deploy -- --dry-run` to preview changes.
 - cPanel Git Version Control is a legacy/manual fallback path, not the normal release workflow
 - [.cpanel.yml](.cpanel.yml) remains in the repo only for that fallback scenario. The deploy path in it is a placeholder (`REPLACE_WITH_CPANEL_USERNAME`) — the real cPanel username was previously committed in plain text here, which is unnecessary exposure (it narrows a brute-force/credential-stuffing attempt against the hosting account down to just guessing a password). If the fallback is ever actually needed, edit the real value directly on the server side rather than committing it back.
 
@@ -178,7 +176,6 @@ News RSS sources:
 - Baltimore Baseball: `https://www.baltimorebaseball.com/feed/`
 - Camden Chat: `https://www.camdenchat.com/rss/index.xml`
 - Birds Watcher: `https://birdswatcher.com/feed/`
-- Eutaw Street Report: `https://www.eutawstreetreport.com/feed/`
 - MASN Sports: `https://www.masnsports.com/feed`
 - MLB.com: `https://www.mlb.com/feeds/news/rss.xml`
 - MLB Trade Rumors: `https://www.mlbtraderumors.com/baltimore-orioles/feed`

@@ -28,7 +28,6 @@ $allowed_domains = [
     'baseballprospectus.com',
     'camdenchat.com',
     'birdswatcher.com',
-    'eutawstreetreport.com',
     'masnsports.com',
     'orioleshangout.com',
     'cbssports.com',

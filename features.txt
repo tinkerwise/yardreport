@@ -2,7 +2,7 @@
 // Current site capabilities. Update when features ship.
 
 #News Feed
-  - RSS aggregation from 14 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, Eutaw Street Report, MASN Sports, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, Baseball America, New York Times Baseball, and The Athletic
+  - RSS aggregation from 13 baseball sources (Orioles + MLB): Orioles, Baltimore Baseball, Camden Chat, Birds Watcher, MASN Sports, MLB.com, MLB Trade Rumors, ESPN MLB, FanGraphs, Baseball Prospectus, Baseball America, New York Times Baseball, and The Athletic
   - 7-day default article feed with selectable range (3 / 7 / 14 / 30 days)
   - Stale-while-revalidate cache: up to 300 articles cached in localStorage for instant repeat loads, refreshed in the background
   - Progressive rendering on first visit: articles appear per-source as feeds resolve instead of waiting on all 14

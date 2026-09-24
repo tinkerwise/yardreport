@@ -31,6 +31,7 @@ import {
   cleanFeedText,
   teamLogoSrc,
   fetchOgImage,
+  mlbPlayerUrl,
 } from './utils.js';
 
 // ── Source registry (populated on first load) ─────────────────────
@@ -71,24 +72,93 @@ export function setViewMode(view, { render = true } = {}) {
 }
 
 // ── Feed fetching ─────────────────────────────────────────────────
+// www.mlb.com and espn.com block the production host's IP, so those sources
+// skip rss-proxy.php: MLB lists come from MLB's CORS-enabled content API
+// (source.mlbList), and ESPN's RSS allows direct browser fetches (source.direct).
+const MLB_CONTENT_API = 'https://dapi.cms.mlbinfra.com/v2/content/en-us';
+const FEED_ITEM_LIMIT = 20;
+
+async function fetchProxyItems(source) {
+  const data = await fetch(`${PROXY}?url=${encodeURIComponent(source.url)}`).then(r => r.json());
+  return data.items ?? [];
+}
+
+async function fetchMlbListItems(source) {
+  const data = await fetch(`${MLB_CONTENT_API}/${source.mlbList}?$limit=${FEED_ITEM_LIMIT}`).then(r => r.json());
+  return (data.items ?? []).map(item => ({
+    title: item.headline || item.title,
+    link: `${source.linkBase}${item.slug}`,
+    pubDate: item.contentDate ?? '',
+    description: item.summary ?? '',
+    content: '',
+    thumbnail: item.thumbnail?.templateUrl?.replace('{formatInstructions}', 'w_640,h_360,c_fill,g_auto,q_auto,f_jpg')
+      ?? item.thumbnail?.thumbnailUrl ?? null,
+    storyUrl: item.selfUrl ?? null,
+  }));
+}
+
+// Browser-side mirror of rss-proxy.php's RSS/Atom item extraction.
+async function fetchDirectRssItems(source) {
+  const text = await fetch(source.url).then(r => r.text());
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  const entries = [...doc.querySelectorAll('item, entry')].slice(0, FEED_ITEM_LIMIT);
+  const childText = (el, name) => [...el.children].find(c => c.nodeName === name)?.textContent?.trim() ?? '';
+  return entries.map(el => {
+    const linkEl = [...el.children].find(c => c.nodeName === 'link');
+    const content = childText(el, 'content:encoded') || childText(el, 'content');
+    const description = (childText(el, 'description') || childText(el, 'summary'))
+      .replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    const media = [...el.children].find(c => /^(media:(content|thumbnail)|enclosure)$/.test(c.nodeName)
+      && (c.nodeName !== 'enclosure' || (c.getAttribute('type') || '').startsWith('image/')));
+    return {
+      title: childText(el, 'title'),
+      link: linkEl?.getAttribute('href') || linkEl?.textContent?.trim() || childText(el, 'guid'),
+      pubDate: childText(el, 'pubDate') || childText(el, 'updated') || childText(el, 'published'),
+      description: description.length > 300 ? `${description.slice(0, 297)}…` : description,
+      content,
+      thumbnail: media?.getAttribute('url') || content.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || null,
+    };
+  });
+}
+
 async function fetchFeed(source) {
   try {
-    const url = `${PROXY}?url=${encodeURIComponent(source.url)}`;
-    const data = await fetch(url).then(r => r.json());
+    const items = source.mlbList ? await fetchMlbListItems(source)
+      : source.direct ? await fetchDirectRssItems(source)
+      : await fetchProxyItems(source);
     return {
       source,
-      articles: (data.items ?? []).map(item => ({
+      articles: items.map(item => ({
         title: cleanFeedText(item.title),
         link: item.link ?? '',
         pubDate: item.pubDate ?? '',
         description: cleanFeedText(item.description),
         content: item.content ?? '',
         thumbnail: item.thumbnail ?? null,
+        ...(item.storyUrl ? { storyUrl: item.storyUrl } : {}),
       })),
     };
   } catch {
     return { source, articles: [] };
   }
+}
+
+// MLB stories: body text lives in `markdown` parts (HTML paragraphs separated
+// by blank lines); player mentions arrive as <forge-entity code="player">.
+async function fetchMlbStoryHtml(storyUrl) {
+  const story = await fetch(storyUrl).then(r => r.json());
+  return (story.parts ?? [])
+    .filter(p => p.type === 'markdown' && p.content)
+    .flatMap(p => p.content.split(/\n{2,}/))
+    .map(para => para.trim())
+    .filter(Boolean)
+    .map(para => `<p>${para
+      .replace(/<forge-entity([^>]*)>(.*?)<\/forge-entity>/g, (_, attrs, name) => {
+        const id = /code="player"/.test(attrs) && attrs.match(/slug="[^"]*?-(\d+)"/)?.[1];
+        return id ? `<a href="${mlbPlayerUrl(id)}">${name}</a>` : name;
+      })
+      .replace(/<\/?forge-entity[^>]*>/g, '')}</p>`)
+    .join('\n');
 }
 
 export async function loadFeeds() {
@@ -289,7 +359,7 @@ function renderCardDescription(article, mode) {
 
 function renderCard(a, i) {
   const imgSrc = extractThumbnail(a);
-  const hasFullContent = (a.content || '').length > 400;
+  const hasFullContent = (a.content || '').length > 400 || Boolean(a.storyUrl);
   const isPaywall = a.source.id === 'athletic';
   const mode = state.viewMode;
   const favicon = faviconUrl(a.link);
@@ -892,13 +962,28 @@ export function openReader(article) {
   badge.textContent = article.source.name;
   badge.style.background = article.source.color;
 
+  showReaderContent(article, article.content || '');
+
+  $('readerOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  // MLB API articles load their body on demand (see fetchMlbStoryHtml)
+  if (!article.content && article.storyUrl) {
+    fetchMlbStoryHtml(article.storyUrl).then(html => {
+      article.content = html;
+      // Only swap in if this article is still the one open
+      if ($('readerTitle').textContent === article.title && !$('readerOverlay').classList.contains('hidden')) {
+        showReaderContent(article, html);
+      }
+    }).catch(() => { /* keep the excerpt fallback */ });
+  }
+}
+
+function showReaderContent(article, content) {
   const frame = $('readerFrame');
   const fallback = $('readerFallback');
-
-  const content = article.content || '';
   if (content.length > 400) {
-    const clean = sanitizeHtml(content);
-    frame.srcdoc = buildReaderDoc(article, clean);
+    frame.srcdoc = buildReaderDoc(article, sanitizeHtml(content));
     frame.classList.remove('hidden');
     fallback.classList.add('hidden');
   } else {
@@ -907,9 +992,6 @@ export function openReader(article) {
     $('readerExcerpt').textContent = article.description || '';
     $('readerFullLink').href = article.link;
   }
-
-  $('readerOverlay').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
 }
 
 export function closeReader() {

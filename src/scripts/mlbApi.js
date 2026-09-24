@@ -22,8 +22,9 @@ export function fetchBoxscoreRaw(gamePk) {
   return getJson(`${MLB}/game/${gamePk}/boxscore`);
 }
 
-export function fetchLiveFeed(gamePk) {
-  return getJson(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
+export function fetchLiveFeed(gamePk, fields) {
+  const query = fields ? `?fields=${fields}` : '';
+  return getJson(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live${query}`);
 }
 
 export function fetchPitchArsenalRaw(playerId, season) {
