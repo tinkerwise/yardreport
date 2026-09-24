@@ -2,29 +2,28 @@
 import { applyTheme } from './theme.js';
 import { loadPrefs } from './storage.js';
 
-// One shared element so a single user gesture can unlock it. Browsers block
-// sound until the page has been interacted with, and iOS Safari only lets an
-// element play later if it was first started inside a gesture — so prime it
-// (muted play/pause) on the first tap/click/key. The win celebration fires
-// from a background score refresh, not a gesture, and relies on this.
-const magicAudio = new Audio(`${import.meta.env.BASE_URL}audio/orioles_magic_short.mp3`);
-magicAudio.preload = 'auto';
-magicAudio.volume = 0.7;
+// Browsers block sound until the page has been interacted with, and iOS
+// WebKit (every iPhone browser) only lets a given element play later if it was
+// first started, unmuted, inside a real gesture — touchend/click/keydown, not
+// pointerdown, and a muted play doesn't count. The win celebration fires from
+// a background score refresh, so on the first gesture we unlock the shared
+// element with an unmuted play() + immediate pause() (inaudible).
+const MAGIC_SRC = `${import.meta.env.BASE_URL}audio/orioles_magic_short.mp3`;
+function newMagicAudio() {
+  const a = new Audio(MAGIC_SRC);
+  a.preload = 'auto';
+  a.volume = 0.7;
+  return a;
+}
+const magicAudio = newMagicAudio();
 
-const UNLOCK_EVENTS = ['pointerdown', 'keydown', 'touchend'];
+const UNLOCK_EVENTS = ['touchend', 'click', 'keydown'];
 function unlockMagicAudio() {
-  if (!magicAudio.paused) return; // already playing, i.e. unlocked
-  magicAudio.muted = true;
-  magicAudio.play().then(() => {
-    // Only stop our own silent priming play — if a celebration started
-    // meanwhile it has already unmuted the element, so leave it playing.
-    if (magicAudio.muted) {
-      magicAudio.pause();
-      magicAudio.currentTime = 0;
-      magicAudio.muted = false;
-    }
-    UNLOCK_EVENTS.forEach(ev => document.removeEventListener(ev, unlockMagicAudio, true));
-  }).catch(() => { magicAudio.muted = false; });
+  UNLOCK_EVENTS.forEach(ev => document.removeEventListener(ev, unlockMagicAudio, true));
+  if (!magicAudio.paused) return; // a celebration is already playing it
+  magicAudio.play().catch(() => {}); // AbortError from the pause below is expected
+  magicAudio.pause();
+  magicAudio.currentTime = 0;
 }
 UNLOCK_EVENTS.forEach(ev => document.addEventListener(ev, unlockMagicAudio, { capture: true, passive: true }));
 
@@ -33,9 +32,8 @@ export function triggerOriolesMagic() {
   container.className = 'magic-confetti';
   document.body.appendChild(container);
 
-  const audio = magicAudio;
+  let audio = magicAudio;
   audio.pause();
-  audio.muted = false;
   audio.currentTime = 0;
   let confettiInterval = null;
   let confettiKickoff = null;
@@ -98,8 +96,11 @@ export function triggerOriolesMagic() {
       e.stopPropagation();
       clearTimeout(fallbackDismissTimer);
       btn.remove();
-      audio.muted = false;
-      audio.currentTime = 0;
+      // Fresh element started synchronously inside the tap — the pattern iOS
+      // reliably allows, independent of the shared element's earlier state.
+      audio.removeEventListener('ended', dismiss);
+      audio = newMagicAudio();
+      audio.addEventListener('ended', dismiss);
       audio.play().catch(dismiss);
     });
     container.appendChild(btn);
