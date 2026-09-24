@@ -1462,6 +1462,7 @@ export async function loadScores() {
       }
 
       boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
+      boxPopover.dataset.gamepk = pk;
       boxPopover.style.left = '-9999px'; boxPopover.style.top = '0';
       boxPopover.classList.remove('hidden');
       syncPopoverTeamDetailHeights(boxPopover);
@@ -1481,9 +1482,11 @@ export async function loadScores() {
         isPreview && isOriolesGame && !teamStatsCache[homeTeamId] && fetchTeamStats(homeTeamId),
       ].filter(Boolean);
 
+      // Paint once with whatever is cached, then exactly once more when every
+      // pending fetch settles — allSettled so one failed lookup can't block it.
       if (missing.length) {
-        Promise.all(missing).then(() => {
-          if (boxPopover.classList.contains('hidden')) return;
+        Promise.allSettled(missing).then(() => {
+          if (boxPopover.classList.contains('hidden') || boxPopover.dataset.gamepk !== pk) return;
           boxPopover.innerHTML = renderBoxScore(g, boxscoreCache[pk] || null, buildArsenals(), buildMatchupCtx());
           syncPopoverTeamDetailHeights(boxPopover);
           initScrollIndicators(boxPopover);
@@ -1581,10 +1584,8 @@ async function updateTicker(gamePk) {
   const el = document.getElementById('playTicker');
   if (!el) return;
   try {
-    const data = await fetch(
-      `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live` +
-      `?fields=liveData,plays,currentPlay,result,description,event,matchup,batter,pitcher,fullName,count,balls,strikes,outs,about,inning,halfInning,gameData,status,abstractGameState`
-    ).then(r => r.json());
+    const data = await fetchLiveFeed(gamePk,
+      'liveData,plays,currentPlay,result,description,event,matchup,batter,pitcher,fullName,count,balls,strikes,outs,about,inning,halfInning,gameData,status,abstractGameState');
 
     const status = data.gameData?.status?.abstractGameState;
     if (status !== 'Live') { stopLiveTicker(); return; }
