@@ -3854,6 +3854,8 @@ a.il-name:hover { color: var(--orange); }
 @media (max-width: 400px) {
   .ath-bundle-grid { grid-template-columns: 1fr; grid-template-rows: none; gap: 10px; }
   .ath-bundle-grid > *:first-child { grid-row: unset; }
+  /* Undo the tablet 2-col span, or it forces an implicit 2nd column that crushes card 1 */
+  .ath-bundle-grid > *:nth-child(3) { grid-column: auto; }
   .ath-bundle-grid .ath-card-link { aspect-ratio: 16 / 9; height: auto; }
 }
 
