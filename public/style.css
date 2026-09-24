@@ -3738,14 +3738,15 @@ a.il-name:hover { color: var(--orange); }
 
   /* Layout – single column, right sidebar visible */
   .page-layout { grid-template-columns: 1fr; gap: 16px; padding: 12px 12px 48px; }
-  .sidebar-left, .sidebar-right {
+  /* .page-layout prefix matches the tablet rule's specificity so widgets
+     stack full-width here instead of staying in its 2-up grid */
+  .page-layout .sidebar-left, .page-layout .sidebar-right {
     position: static; max-height: none; overflow: visible;
     display: flex; flex-direction: column; gap: 12px;
     min-width: 0;
   }
-  .sidebar-right { display: flex; }
 
-  /* Collapse sidebar sections by default on mobile (JS adds .mobile-collapsed) */
+  /* Standings and Yard Leaders start collapsed on phones (see app.js) */
   .sidebar-left .sidebar-section { gap: 6px; }
   .sidebar-right .sidebar-section { gap: 6px; }
   .section-body,

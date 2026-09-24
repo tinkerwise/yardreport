@@ -202,6 +202,12 @@ function setupEvents() {
     if (p.theme === 'system') applyTheme('system');
   });
 
+  // Phones: widgets stack full-width, so start the long ones collapsed
+  if (window.matchMedia('(max-width: 600px)').matches) {
+    document.querySelectorAll('.sidebar-left .sidebar-section[data-section="standings"], .sidebar-left .sidebar-section[data-section="leaders"]')
+      .forEach(section => section.classList.add('collapsed'));
+  }
+
   // Right sidebar accordion
   document.querySelectorAll('.section-toggle').forEach(toggle => {
     toggle.addEventListener('click', () => {
