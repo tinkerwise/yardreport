@@ -56,8 +56,10 @@ export async function loadStandings() {
         gb: t.gamesBack === '0' ? '-' : t.gamesBack,
         streak: t.streak?.streakCode ?? '-',
         isOrioles: t.team.id === ORIOLES_ID,
+        ...raceStatus(t),
       })),
     }));
+    const statusById = new Map(state.standings.flatMap(d => d.teams.map(t => [t.id, t])));
 
     // WC records: div.id < 203 = AL, else NL
     for (const div of wcData.records) {
@@ -70,6 +72,7 @@ export async function loadStandings() {
         wcGb: t.wildCardGamesBack ?? '-',
         streak: t.streak?.streakCode ?? '-',
         isOrioles: t.team.id === ORIOLES_ID,
+        ...(statusById.get(t.team.id) ?? raceStatus(t)),
       }));
     }
 
@@ -94,6 +97,47 @@ export async function loadStandings() {
   } catch {
     $('standingsWrap').innerHTML = '<span class="sidebar-msg">Standings unavailable</span>';
   }
+}
+
+// Elimination numbers / clinch flags from the regularSeason standings record.
+// 'E' = eliminated, '-' = not applicable (leader or clinched).
+function raceStatus(t) {
+  const divElim = t.eliminationNumber ?? '-';
+  const wcElim = t.wildCardEliminationNumber ?? '-';
+  return {
+    divElim,
+    wcElim,
+    clinch: t.clinchIndicator ?? '',
+    playoffsOut: !t.clinched && divElim === 'E' && wcElim === 'E',
+  };
+}
+
+// z/y/x/w clinch letter, or "e" once a team is out of the postseason race
+function raceMarker(t) {
+  if (t.clinch) return `<span class="race-mark race-clinched" title="${esc(CLINCH_LABELS[t.clinch] ?? 'Clinched')}">${esc(t.clinch)}</span>`;
+  if (t.playoffsOut) return '<span class="race-mark race-out" title="Eliminated from postseason">e</span>';
+  return '';
+}
+
+const CLINCH_LABELS = {
+  z: 'Clinched first-round bye',
+  y: 'Clinched division',
+  x: 'Clinched playoff berth',
+  w: 'Clinched wild card',
+};
+
+function elimCell(value, label) {
+  if (value === 'E') return `<td class="elim-num elim-out" title="Eliminated from ${label}">E</td>`;
+  if (value === '-' || value == null) return '<td class="elim-num">-</td>';
+  return `<td class="elim-num" title="Elimination number (${label})">${esc(value)}</td>`;
+}
+
+function standingsLegend(teams) {
+  const letters = [...new Set(teams.map(t => t.clinch).filter(Boolean))].sort().reverse();
+  const parts = letters.map(l => `<span><b>${esc(l)}</b> ${esc((CLINCH_LABELS[l] ?? 'Clinched').replace(/^Clinched /, ''))}</span>`);
+  if (teams.some(t => t.playoffsOut)) parts.push('<span><b>e</b> eliminated</span>');
+  parts.push('<span><b>E#</b> elimination number</span>');
+  return `<div class="standings-legend">${parts.join(' · ')}</div>`;
 }
 
 const AL_DIVS = [201, 202, 200]; // East, Central, West
@@ -134,18 +178,18 @@ function renderStandings() {
   $('standingsWrap').innerHTML = `
     <table class="standings-table">
       <thead><tr>
-        <th>Team</th><th>W</th><th>L</th><th>GB</th><th>Str</th>
+        <th>Team</th><th>W</th><th>L</th><th>GB</th><th title="Division elimination number">E#</th><th>Str</th>
       </tr></thead>
       <tbody>${div.teams.map(t => {
         const teamUrl = TEAM_PAGE[t.id] ? `https://www.mlb.com/${TEAM_PAGE[t.id]}` : '#';
-        return `<tr class="${t.isOrioles ? 'orioles-row' : ''}">
-          <td class="team-abbrev"><a href="${teamUrl}" target="_blank" rel="noopener"><img class="standings-team-logo" src="${teamLogoSrc(t.id, 14)}" alt="" width="14" height="14" loading="lazy" decoding="async">${esc(t.abbrev)}</a></td>
+        return `<tr class="${t.isOrioles ? 'orioles-row' : ''}${t.playoffsOut ? ' eliminated-row' : ''}">
+          <td class="team-abbrev"><a href="${teamUrl}" target="_blank" rel="noopener"><img class="standings-team-logo" src="${teamLogoSrc(t.id, 14)}" alt="" width="14" height="14" loading="lazy" decoding="async">${esc(t.abbrev)}</a>${raceMarker(t)}</td>
           <td>${t.wins}</td><td>${t.losses}</td>
-          <td>${esc(t.gb)}</td><td>${esc(t.streak)}</td>
+          <td>${esc(t.gb)}</td>${elimCell(t.divElim, 'division')}<td>${esc(t.streak)}</td>
         </tr>`;
       }).join('')}
       </tbody>
-    </table>`;
+    </table>${standingsLegend(div.teams)}`;
 }
 
 function renderWildCard() {
@@ -157,20 +201,20 @@ function renderWildCard() {
   $('standingsWrap').innerHTML = `
     <table class="standings-table">
       <thead><tr>
-        <th>Team</th><th>W</th><th>L</th><th>WC</th><th>Str</th>
+        <th>Team</th><th>W</th><th>L</th><th>WC</th><th title="Wild card elimination number">E#</th><th>Str</th>
       </tr></thead>
       <tbody>${teams.map((t, i) => {
         const teamUrl = TEAM_PAGE[t.id] ? `https://www.mlb.com/${TEAM_PAGE[t.id]}` : '#';
         const cutoffClass = i === 2 ? ' wc-cutoff' : '';
         const gbDisplay = t.wcGb;
-        return `<tr class="${t.isOrioles ? 'orioles-row' : ''}${cutoffClass}">
-          <td class="team-abbrev"><a href="${teamUrl}" target="_blank" rel="noopener"><img class="standings-team-logo" src="${teamLogoSrc(t.id, 14)}" alt="" width="14" height="14" loading="lazy" decoding="async">${esc(t.abbrev)}</a></td>
+        return `<tr class="${t.isOrioles ? 'orioles-row' : ''}${cutoffClass}${t.playoffsOut ? ' eliminated-row' : ''}">
+          <td class="team-abbrev"><a href="${teamUrl}" target="_blank" rel="noopener"><img class="standings-team-logo" src="${teamLogoSrc(t.id, 14)}" alt="" width="14" height="14" loading="lazy" decoding="async">${esc(t.abbrev)}</a>${raceMarker(t)}</td>
           <td>${t.wins}</td><td>${t.losses}</td>
-          <td>${esc(gbDisplay)}</td><td>${esc(t.streak)}</td>
+          <td>${esc(gbDisplay)}</td>${elimCell(t.wcElim, 'wild card')}<td>${esc(t.streak)}</td>
         </tr>`;
       }).join('')}
       </tbody>
-    </table>`;
+    </table>${standingsLegend(teams)}`;
 }
 
 // ── On Deck ───────────────────────────────────────────────────────
