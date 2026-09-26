@@ -15,7 +15,7 @@ The client is now split into domain modules, so changes to one area are less lik
 - `getFilteredArticles()` in [feeds.js](src/scripts/feeds.js) is the source of truth for what appears; filter bugs ripple everywhere.
 - `setupEvents()` in [app.js](src/scripts/app.js) is the central event wiring point; new controls should be added carefully to avoid duplicated listeners or state drift.
 - `loadScores()` in [scores.js](src/scripts/scores.js) is both a rendering surface and an interaction surface; it owns score-chip triggers, popover timing, click-to-open behavior, and async boxscore refreshes.
-- Walk-up songs are shared by [scores.js](src/scripts/scores.js) and [sidebars.js](src/scripts/sidebars.js) through [walkup-songs.js](src/scripts/walkup-songs.js); keep the fallback map usable and preserve the non-blocking roster render.
+- Walk-up songs are shared by [scores.js](src/scripts/scores.js) and [sidebars.js](src/scripts/sidebars.js) through [walkup-songs.js](src/scripts/walkup-songs.js); songs come from `public/walkup-songs.json`, a snapshot of the official page that [update-walkup-songs.mjs](scripts/update-walkup-songs.mjs) refreshes on every `npm run deploy` (or `npm run update:walkup-songs`), because the host IP can't reach mlb.com. The fallback map only covers players missing from the official page; preserve the non-blocking roster render.
 - `loadOnDeck()` in [sidebars.js](src/scripts/sidebars.js) is easy to break with small date/weather changes because it mixes schedule selection, forecast logic, and widget rendering in one place.
 - Score/on-deck/transactions/leaders/video/podcast all depend on third-party APIs or feeds with no formal abstraction layer, so breakage from upstream response changes is a real risk.
 - There is both a dev-time JS proxy in [astro.config.mjs](astro.config.mjs) and a production PHP proxy in [rss-proxy.php](public/rss-proxy.php); feed issues may differ between local and deployed environments, especially now that the proxy also supports trusted raw HTML/text passthrough for widget enrichment and audio-enclosure extraction for the podcast widget.
@@ -79,7 +79,7 @@ Shared/homepage scripts:
 - [src/scripts/feeds.js](src/scripts/feeds.js): feed fetching, article rendering, reader, ATH bundling, view mode
 - [src/scripts/scores.js](src/scripts/scores.js): score chips, box score popover, lineup, pitching, scout notes
 - [src/scripts/sidebars.js](src/scripts/sidebars.js): standings, on deck, roster, IL, transactions, leaders, video, podcast, contracts
-- [src/scripts/walkup-songs.js](src/scripts/walkup-songs.js): Orioles walk-up song fetching, parsing, cache, and fallback map
+- [src/scripts/walkup-songs.js](src/scripts/walkup-songs.js): Orioles walk-up song snapshot loading, cache, and fallback map
 - [src/scripts/playerCard.js](src/scripts/playerCard.js): sitewide player stat card modal (any `[data-pid]` element)
 - [src/scripts/state.js](src/scripts/state.js): shared mutable homepage state
 - [src/scripts/theme.js](src/scripts/theme.js): theme application (runs on import)
@@ -200,7 +200,7 @@ Video sources:
 - MLB game-content media fallback for Orioles recap freshness: `https://statsapi.mlb.com/api/v1/schedule?...&hydrate=game(content(media(epg)))`
 
 Walk-up music sources:
-- Official Orioles walk-up music page: `https://www.mlb.com/orioles/ballpark/music`
+- Official Orioles walk-up music page: `https://www.mlb.com/orioles/ballpark/music` (scraped locally into `public/walkup-songs.json` at deploy time)
 - Spotify track/search/player embeds: `https://open.spotify.com/...`
 
 Data and asset services:

@@ -52,6 +52,10 @@ for v in FTP_SERVER FTP_USERNAME FTP_PASSWORD; do
   [[ -n "${!v:-}" ]] || { echo "Missing $v" >&2; exit 1; }
 done
 
+# Refresh the walk-up song snapshot (the host can't reach mlb.com itself).
+# Non-fatal: on failure the existing public/walkup-songs.json is kept.
+npm run --silent update:walkup-songs
+
 npm run smoke
 
 # Password goes through LFTP_PASSWORD so it never appears in lftp's args.

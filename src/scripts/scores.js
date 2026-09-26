@@ -1472,7 +1472,7 @@ export async function loadScores() {
       const missing = [
         !boxscoreCache[pk]                                         && fetchBoxscore(pk),
         !isPreview && scoringPlaysCache[pk] === undefined          && fetchScoringPlays(pk),
-        isOriolesGame                                              && ensureWalkupSongsLoaded(PROXY),
+        isOriolesGame                                              && ensureWalkupSongsLoaded(),
         isPreview && !arsenalCache[awayPitcherId]                 && fetchArsenal(awayPitcherId),
         isPreview && !arsenalCache[homePitcherId]                 && fetchArsenal(homePitcherId),
         isLive && livePitcherId && !arsenalCache[livePitcherId]   && fetchArsenal(livePitcherId),

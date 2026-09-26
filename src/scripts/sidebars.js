@@ -407,7 +407,7 @@ export async function loadRoster() {
     // block the render on songs. Render immediately with whatever is in the
     // cache (fallback songs or already-loaded data), then re-render once the
     // song fetch resolves if it was still in flight.
-    const songPromise = ensureWalkupSongsLoaded(PROXY);
+    const songPromise = ensureWalkupSongsLoaded();
     const [data] = await Promise.all([
       fetchTeamRoster(ORIOLES_ID, '40Man', SEASON),
     ]);
