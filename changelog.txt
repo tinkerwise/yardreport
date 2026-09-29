@@ -1,5 +1,15 @@
 Yard Report Changelog
 
+Week of September 28, 2026
+
+September 29, 2026
+
+Postseason Page
+- Added a one-stop 2026 Postseason hub at /postseason/: live bracket, today's games, an Orioles in October card, team-filterable postseason news, postseason leaders, video, the round-by-round schedule, and October history.
+- The bracket is seeded from final regular-season standings and filled from MLB's postseason schedule, so it updates itself as series finish; public/postseason.json holds optional seed and video overrides.
+- Added Postseason to the site nav and a homepage event card that expires in mid-November.
+- `npm run smoke` now also checks the built Postseason page.
+
 Week of July 6, 2026
 
 July 9-10, 2026

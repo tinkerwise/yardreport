@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { href: `${base}all-star/`, label: 'All-Star' },
   { href: `${base}draft/`, label: 'Draft' },
   { href: `${base}trade-deadline/`, label: 'Trade Deadline' },
+  { href: `${base}postseason/`, label: 'Postseason' },
 ];
 function isActiveLink(href: string) {
   return href === base ? pathname === base : pathname.startsWith(href);

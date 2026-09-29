@@ -133,6 +133,15 @@
   - Reporters to Watch: curated list of named-byline insiders with direct links
   - Per-player trade-rumor recap page (`/trade-deadline/player/?id=`): AI-generated summary of a mentioned player's rumor coverage plus the matched articles, generated offline (see Infrastructure) and clearly labeled as AI-assisted, not real-time
 
+#Postseason Page (`/postseason/`)
+  - Live 12-team bracket (Wild Card > Division Series > LCS > World Series), seeded from final regular-season standings and filled in from MLB's postseason schedule; series scores, byes, eliminated teams, and the champion
+  - Tap any matchup for game-by-game results with TV and Gameday links
+  - Today's Games (or Next Up / Latest Results) cards with probable pitchers, live inning state, and series status
+  - Orioles in October spotlight: seed, current series, and next game — or the final record if they missed out
+  - Postseason News from the existing RSS sources, filterable by every team in the field
+  - Sidebar: round-by-round schedule with countdown, postseason stat leaders, video, World Series and Orioles postseason history
+  - Auto-refreshes every minute while games are live; optional overrides in public/postseason.json
+
 #Settings
   - Settings gear icon in header opens overlay panel
   - Theme: Light / Dark / System / City Connect (persisted to localStorage, system follows OS)
@@ -151,7 +160,7 @@
   - Cross-browser optimized (Chrome, Safari, Firefox), iOS momentum scroll, webkit prefixes
   - Both left and right sidebars independently scrollable with sticky positioning
   - ATH cards scale down on mobile (2-col at 600px, 1-col at 400px)
-  - Secondary pages (Schedule, Depth Chart, All-Star, Draft, Trade Deadline) share a breadcrumb header and sidebar-section pattern with the homepage
+  - Secondary pages (Schedule, Depth Chart, All-Star, Draft, Trade Deadline, Postseason) share a breadcrumb header and sidebar-section pattern with the homepage
 
 #Easter Eggs
   - Type "magic" + Enter in search: random Oriole bird graphic centered in viewport with repeating confetti animation, Orioles Magic audio clip, display lasts for audio duration

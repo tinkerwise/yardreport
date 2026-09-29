@@ -118,6 +118,13 @@ import Layout from '../layouts/Layout.astro';
     <!-- Feed -->
     <main class="feed-area">
       <div class="event-highlights" id="eventHighlights">
+        <a class="event-card" href={`${import.meta.env.BASE_URL}postseason/`} id="postseasonHighlight">
+          <span class="event-card-img event-card-img--emoji" aria-hidden="true">🏆</span>
+          <div class="event-card-text">
+            <span class="event-card-kicker">2026 Postseason</span>
+            <span class="event-card-title">Bracket, scores &amp; news →</span>
+          </div>
+        </a>
         <a class="event-card" href={`${import.meta.env.BASE_URL}all-star/`} id="asgHighlight">
           <img class="event-card-img" src="https://img.mlbstatic.com/mlb-images/image/upload/t_1x1/t_w1536/mlb/xq1pwjo1igqxjqdsj416.jpg" alt="" loading="lazy" />
           <div class="event-card-text">

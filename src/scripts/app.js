@@ -321,6 +321,7 @@ const SEASONAL_BANNERS = [
   { id: 'asgHighlight', expires: '2026-07-15T12:00:00-04:00' },
   { id: 'draftHighlight', expires: '2026-07-13T12:00:00-04:00' },
   { id: 'tradeHighlight', expires: '2026-08-04T12:00:00-04:00' },
+  { id: 'postseasonHighlight', expires: '2026-11-15T12:00:00-05:00' },
 ];
 
 function expireSeasonalBanners() {
