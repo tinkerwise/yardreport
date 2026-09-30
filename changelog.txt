@@ -2,6 +2,16 @@ Yard Report Changelog
 
 Week of September 28, 2026
 
+September 30, 2026
+
+Postseason Bracket Cleanup
+- Bracket boxes no longer show any numbers (series wins read like a game score): each box is just the two teams' abbreviations and seeds (full name on hover), plus the series status underneath ("SEA leads series 1–0").
+- Series that haven't started show their start date ("Best of 5 · Starts Sat, Oct 3"), using MLB's posted round dates before matchups are set.
+- Live series get a pulsing red dot and red border; the first-round byes sit under one "Byes to Division Series" label.
+- Tapping a matchup now shows an inning-by-inning mini box score for every game played in that series.
+- Game links go to one stable Gameday URL per game — live Gameday during the game, and the same link still works after the final.
+- When MLB's data fails to load, the page says so and retries every minute instead of claiming no games are scheduled; a failed refresh keeps the last good data on screen.
+
 September 29, 2026
 
 Postseason Page
