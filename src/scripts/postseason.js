@@ -32,6 +32,7 @@ const state = {
   teamNames: {},      // id → { name, teamName }
   config: {},
   selectedSeries: null,
+  loadFailed: false,  // true when MLB's schedule couldn't be fetched at all
   newsFilter: 'all',
   news: [],
 };
@@ -44,14 +45,18 @@ async function fetchPostseasonGames() {
     `${MLB}/schedule/postseason?season=${SEASON}&hydrate=${SCHEDULE_HYDRATE}`,
     `${MLB}/schedule?sportId=1&season=${SEASON}&gameTypes=F,D,L,W&hydrate=${SCHEDULE_HYDRATE}`,
   ];
+  // Returns [] when MLB answered but has no postseason games yet, and
+  // null when every request failed, so the page can say which it was.
+  let answered = false;
   for (const url of urls) {
     try {
       const data = await fetch(url).then(r => r.json());
+      answered = true;
       const games = (data.dates ?? []).flatMap(d => d.games ?? []).filter(g => ROUNDS[g.gameType]);
       if (games.length) return dedupeGames(games);
     } catch { /* fall through to next source */ }
   }
-  return [];
+  return answered ? [] : null;
 }
 
 // A postponed game shows up on both its original and rescheduled dates
@@ -223,42 +228,91 @@ function broadcastText(g) {
 }
 
 // ── Render: bracket ───────────────────────────────────────────────
-function renderTeamRow(id, s) {
-  if (!id) {
-    return `<div class="ps-row ps-row--tbd"><span class="ps-seed"></span><span class="ps-logo-blank"></span><span class="ps-abbr">TBD</span><span class="ps-wins"></span></div>`;
+// Each box is a series, but it shows that series' current or most recent
+// game (runs, not series wins), so the numbers mean what they look like.
+// Priority: a live game, then one still to be played today, then the
+// latest final, then the next scheduled game.
+function featuredGame(s) {
+  if (!s) return null;
+  const today = localDateStr(0);
+  const playable = s.games.filter(g => !/postponed|cancel/i.test(g.status?.detailedState ?? ''));
+  return playable.find(g => g.status?.abstractGameState === 'Live')
+    ?? playable.find(g => g.status?.abstractGameState === 'Preview' && localIso(new Date(g.gameDate)) === today)
+    ?? [...playable].reverse().find(g => g.status?.abstractGameState === 'Final')
+    ?? playable.find(g => g.status?.abstractGameState === 'Preview')
+    ?? null;
+}
+
+function gameKicker(g) {
+  if (!g) return '';
+  const num = g.seriesGameNumber ? `G${g.seriesGameNumber}` : '';
+  const st = g.status?.abstractGameState;
+  if (st === 'Live') {
+    const half = g.linescore?.inningHalf === 'Top' ? '▲' : '▼';
+    const inn = g.linescore?.currentInning ?? '';
+    return `<span class="live-dot" aria-hidden="true"></span><span class="ps-kick-live">${num} · ${half}${inn}</span>`;
   }
-  const cls = s?.winner === id ? ' ps-row--winner' : s?.loser === id ? ' ps-row--out' : '';
-  const seed = seedOf(id);
-  const wins = s && (s.wins[s.top] + s.wins[s.bottom] > 0 || s.isLive) ? s.wins[id] : '';
-  return `<div class="ps-row${cls}${id === ORIOLES_ID ? ' ps-row--orioles' : ''}">
-    <span class="ps-seed">${seed ?? ''}</span>
+  if (st === 'Final') return `${num} · Final`;
+  // Today's game shows its first-pitch time; later games just the date,
+  // which is all that fits in a narrow bracket box.
+  const when = new Date(g.gameDate);
+  if (localIso(when) === localDateStr(0)) return `${num} · ${formatGameTime(g.gameDate)}`;
+  return `${num} · ${when.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`;
+}
+
+function renderTeamRow(id, s, g) {
+  if (!id) {
+    return `<div class="ps-row ps-row--tbd"><span class="ps-seed"></span><span class="ps-logo-blank"></span><span class="ps-abbr">TBD</span><span class="ps-runs"></span></div>`;
+  }
+  const showRuns = g && g.status?.abstractGameState !== 'Preview';
+  const side = g ? (g.teams.away.team.id === id ? g.teams.away : g.teams.home) : null;
+  const other = g ? (g.teams.away.team.id === id ? g.teams.home : g.teams.away) : null;
+  const runs = showRuns ? (side?.score ?? 0) : '';
+  const cls = [];
+  if (showRuns && g.status?.abstractGameState === 'Final') {
+    if ((side?.score ?? 0) > (other?.score ?? 0)) cls.push('ps-row--gwin');
+    else cls.push('ps-row--glose');
+  }
+  if (s?.loser === id) cls.push('ps-row--out');
+  if (id === ORIOLES_ID) cls.push('ps-row--orioles');
+  return `<div class="ps-row ${cls.join(' ')}">
+    <span class="ps-seed">${seedOf(id) ?? ''}</span>
     <img class="ps-logo" src="${esc(teamLogoSrc(id, 18))}" alt="" width="18" height="18" loading="lazy">
     <span class="ps-abbr">${esc(abbr(id))}</span>
-    <span class="ps-wins">${wins}</span>
+    <span class="ps-runs">${runs}</span>
   </div>`;
+}
+
+function seriesFootText(s) {
+  const wt = s.wins[s.top], wb = s.wins[s.bottom];
+  if (s.winner) return `${abbr(s.winner)} wins series ${s.wins[s.winner]}–${s.wins[s.loser]}`;
+  if (wt === 0 && wb === 0) return `Series: best of ${s.round.bestOf}`;
+  if (wt === wb) return `Series tied ${wt}–${wb}`;
+  const leader = wt > wb ? s.top : s.bottom;
+  return `${abbr(leader)} leads series ${Math.max(wt, wb)}–${Math.min(wt, wb)}`;
 }
 
 function renderMatchup(sl) {
   const s = sl.series;
+  const g = featuredGame(s);
   const hasO = sl.teams.includes(ORIOLES_ID);
   const cls = ['ps-matchup'];
   if (s) cls.push('ps-matchup--active');
   if (s?.isLive) cls.push('ps-matchup--live');
   if (hasO) cls.push('ps-matchup--orioles');
   if (s && state.selectedSeries === s.key) cls.push('ps-matchup--selected');
-  let foot = s ? seriesStatusText(s) : `Best of ${ROUNDS[sl.type].bestOf}`;
-  if (s?.isLive) foot = `<span class="live-dot" aria-hidden="true"></span> Live · ${foot}`;
-  else if (s?.nextGame && !s.winner) {
-    const g = s.nextGame;
-    const when = new Date(g.gameDate);
-    const today = localDateStr(0) === localIso(when);
-    foot = `${foot} · ${gameNumberLabel(g)} ${today ? formatGameTime(g.gameDate) : when.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  }
+  // Rows follow the featured game's away/home order so the score reads
+  // like any other scoreboard; TBD slots keep the bracket's seed order.
+  const rows = g ? [g.teams.away.team.id, g.teams.home.team.id] : sl.teams;
+  const kicker = g ? gameKicker(g) : '';
+  const foot = s ? seriesFootText(s) : `Best of ${ROUNDS[sl.type].bestOf}`;
   const tag = s ? 'button' : 'div';
-  return `<${tag} class="${cls.join(' ')}"${s ? ` type="button" data-series="${esc(s.key)}" aria-label="${esc(`${roundLabel(s)}: ${abbr(s.top)} vs ${abbr(s.bottom)}, ${seriesStatusText(s)}`)}"` : ''}>
-    ${renderTeamRow(sl.teams[0], s)}
-    ${renderTeamRow(sl.teams[1], s)}
-    <div class="ps-foot">${foot}</div>
+  const label = s ? `${roundLabel(s)}: ${abbr(s.top)} vs ${abbr(s.bottom)}, ${seriesFootText(s)}${s.isLive ? ', game in progress' : ''}` : '';
+  return `<${tag} class="${cls.join(' ')}"${s ? ` type="button" data-series="${esc(s.key)}" aria-label="${esc(label)}"` : ''}>
+    ${kicker ? `<div class="ps-kick">${kicker}</div>` : ''}
+    ${renderTeamRow(rows[0], s, g)}
+    ${renderTeamRow(rows[1], s, g)}
+    <div class="ps-foot">${esc(foot)}</div>
   </${tag}>`;
 }
 
@@ -295,7 +349,9 @@ function renderBracket() {
   const el = $('psBracket');
   if (!el) return;
   if (!state.seeds && !state.series.size) {
-    el.innerHTML = '<span class="sidebar-msg">Bracket unavailable — the field hasn\'t been set yet or MLB\'s data didn\'t load.</span>';
+    el.innerHTML = state.loadFailed
+      ? '<span class="sidebar-msg">Couldn\'t load MLB\'s postseason data — retrying shortly.</span>'
+      : '<span class="sidebar-msg">The bracket appears once the postseason field is set.</span>';
     return;
   }
   const b = buildBracket();
@@ -324,6 +380,30 @@ function renderBracket() {
 }
 
 // ── Render: series detail ─────────────────────────────────────────
+// Inning-by-inning line score from the schedule's hydrated linescore,
+// using the same box-score-table styles as the homepage popover.
+function renderLineScore(g) {
+  const ls = g.linescore ?? {};
+  const innings = ls.innings ?? [];
+  if (!innings.length) return '';
+  const n = Math.max(innings.length, 9);
+  let hdr = '<th class="box-team-col"></th>';
+  for (let i = 1; i <= n; i++) hdr += `<th>${i}</th>`;
+  hdr += '<th class="box-total">R</th><th class="box-total">H</th><th class="box-total">E</th>';
+  const row = side => {
+    const id = g.teams[side].team.id;
+    let r = `<td class="box-team-col">${esc(abbr(id))}</td>`;
+    for (let i = 0; i < n; i++) r += `<td>${innings[i]?.[side]?.runs ?? ''}</td>`;
+    const t = ls.teams?.[side] ?? {};
+    r += `<td class="box-total">${t.runs ?? g.teams[side].score ?? ''}</td><td class="box-total">${t.hits ?? ''}</td><td class="box-total">${t.errors ?? ''}</td>`;
+    return `<tr class="box-score-row${id === ORIOLES_ID ? ' ps-box-orioles' : ''}">${r}</tr>`;
+  };
+  return `<div class="ps-box-wrap"><table class="box-score-table ps-box">
+    <thead><tr>${hdr}</tr></thead>
+    <tbody>${row('away')}${row('home')}</tbody>
+  </table></div>`;
+}
+
 function renderGameLine(g) {
   const { stateClass, statusInner, isPreviewLike } = getScoreChipStatus(g);
   const a = g.teams.away, h = g.teams.home;
@@ -331,12 +411,16 @@ function renderGameLine(g) {
   const date = new Date(g.gameDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const ifNec = g.ifNecessary === 'Y' && isPreviewLike ? ' <span class="ps-ifnec">if necessary</span>' : '';
   const tv = broadcastText(g);
-  return `<a class="ps-detail-game" href="${esc(getGamedayUrl(g))}" target="_blank" rel="noopener">
-    <span class="ps-detail-num">${esc(gameNumberLabel(g) || '—')}</span>
-    <span class="ps-detail-date">${esc(date)} · ${esc(abbr(a.team.id))} @ ${esc(abbr(h.team.id))}${ifNec}</span>
-    <span class="ps-detail-score ps-status--${stateClass}">${score ? esc(score) : statusInner}</span>
-    ${tv ? `<span class="ps-detail-tv">${esc(tv)}</span>` : ''}
-  </a>`;
+  const live = stateClass === 'live' ? '<span class="live-dot" aria-hidden="true"></span>' : '';
+  return `<div class="ps-detail-block">
+    <a class="ps-detail-game" href="${esc(getGamedayUrl(g))}" target="_blank" rel="noopener">
+      <span class="ps-detail-num">${esc(gameNumberLabel(g) || '—')}</span>
+      <span class="ps-detail-date">${esc(date)} · ${esc(abbr(a.team.id))} @ ${esc(abbr(h.team.id))}${ifNec}</span>
+      <span class="ps-detail-score ps-status--${stateClass}">${live}${score ? esc(score) : statusInner}</span>
+      ${tv ? `<span class="ps-detail-tv">${esc(tv)}</span>` : ''}
+    </a>
+    ${isPreviewLike ? '' : renderLineScore(g)}
+  </div>`;
 }
 
 function renderSeriesDetail(scroll = false) {
@@ -426,7 +510,9 @@ function renderToday() {
   const liveCount = games.filter(g => g.status?.abstractGameState === 'Live').length;
   $('psTodayMeta').textContent = liveCount ? `${liveCount} live · auto-updating` : '';
   if (!games.length) {
-    el.innerHTML = '<span class="sidebar-msg">No postseason games scheduled yet</span>';
+    el.innerHTML = state.loadFailed
+      ? '<span class="sidebar-msg">Couldn\'t load MLB\'s schedule — retrying shortly.</span>'
+      : '<span class="sidebar-msg">No postseason games scheduled yet</span>';
     return;
   }
   games.sort((a, b) => {
@@ -535,7 +621,7 @@ function renderInfo() {
 
   el.innerHTML = `
     ${countdown}
-    ${rows || '<span class="sidebar-msg">Schedule not posted yet</span>'}
+    ${rows || `<span class="sidebar-msg">${state.loadFailed ? 'Couldn\'t load MLB\'s schedule — retrying shortly.' : 'Schedule not posted yet'}</span>`}
     <a class="widget-link" href="https://www.mlb.com/postseason" target="_blank" rel="noopener">MLB Postseason hub ↗</a>
   `;
 }
@@ -830,12 +916,26 @@ let refreshTimer = null;
 function scheduleRefresh() {
   clearTimeout(refreshTimer);
   const live = state.games.some(g => g.status?.abstractGameState === 'Live');
-  refreshTimer = setTimeout(refresh, live ? 60e3 : 600e3);
+  refreshTimer = setTimeout(refresh, live || state.loadFailed ? 60e3 : 600e3);
+}
+
+// A failed fetch keeps whatever was already on screen rather than
+// blanking the page mid-game; the next poll tries again.
+function applyGames(games) {
+  state.loadFailed = games === null;
+  if (games !== null) {
+    state.games = games;
+    state.series = buildSeries(games);
+  }
 }
 
 async function refresh() {
-  state.games = await fetchPostseasonGames();
-  state.series = buildSeries(state.games);
+  const [games, seeds] = await Promise.all([
+    fetchPostseasonGames(),
+    state.seeds ? state.seeds : loadSeeds(),
+  ]);
+  applyGames(games);
+  state.seeds = seeds;
   renderAll();
   scheduleRefresh();
 }
@@ -847,7 +947,7 @@ function renderAll() {
   renderSeriesDetail();
   renderInfo();
   const upd = $('psUpdated');
-  if (upd) upd.textContent = `Updated ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+  if (upd && !state.loadFailed) upd.textContent = `Updated ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 }
 
 async function init() {
@@ -858,9 +958,8 @@ async function init() {
   } catch { state.config = {}; }
 
   const [games, seeds] = await Promise.all([fetchPostseasonGames(), loadSeeds()]);
-  state.games = games;
+  applyGames(games);
   state.seeds = seeds;
-  state.series = buildSeries(games);
   renderAll();
   scheduleRefresh();
 

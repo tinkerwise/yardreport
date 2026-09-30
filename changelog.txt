@@ -2,6 +2,14 @@ Yard Report Changelog
 
 Week of September 28, 2026
 
+September 30, 2026
+
+Postseason Bracket — Game Boxes
+- Bracket boxes now show each series' current or most recent game (runs, inning or first-pitch time) instead of series wins, which read like a score; the series standing moved to the box footer ("SEA leads series 1–0").
+- Live series get a pulsing red dot and red border.
+- Tapping a matchup now shows an inning-by-inning mini box score for every game played in that series.
+- When MLB's data fails to load, the page says so and retries every minute instead of claiming no games are scheduled; a failed refresh keeps the last good data on screen.
+
 September 29, 2026
 
 Postseason Page
