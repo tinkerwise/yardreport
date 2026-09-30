@@ -1,6 +1,6 @@
 # Yard Report
 
-A personal Orioles-first baseball dashboard built with [Astro](https://astro.build). Combines a filtered news feed, live score bugs, walk-up song context, and compact Orioles-focused widgets on the homepage, plus dedicated pages for schedule, depth chart, and mid-season events (All-Star Game, MLB Draft, Trade Deadline).
+A personal Orioles-first baseball dashboard built with [Astro](https://astro.build). Combines a filtered news feed, live score bugs, walk-up song context, and compact Orioles-focused widgets on the homepage, plus dedicated pages for schedule, depth chart, and mid-season and October events (All-Star Game, MLB Draft, Trade Deadline, Postseason).
 
 ## Features
 
@@ -33,6 +33,9 @@ A personal Orioles-first baseball dashboard built with [Astro](https://astro.bui
 
 **Trade Deadline**
 - Trade Deadline hub at `/trade-deadline/` tracking confirmed Orioles moves, players named in rumor coverage ("On the Block"), a full organization-wide rumor watch, and a per-player recap page summarizing the rumor coverage for anyone showing up in the headlines
+
+**Postseason**
+- Postseason hub at `/postseason/` with a live 12-team bracket, today's games, an Orioles in October card, team-filterable postseason news, postseason leaders, video, and October history — auto-refreshing while games are live
 
 **Sidebar widgets**
 - On Deck: next Orioles game with weather forecast and schedule strip

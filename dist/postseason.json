@@ -1,0 +1,6 @@
+{
+  "_readme": "Optional overrides for /postseason/. The bracket, scores and schedule all come live from the MLB Stats API — only fill these in if MLB's data is wrong or you want to pin videos. seeds: { \"AL\": [seed1..seed6 team ids], \"NL\": [...] }. videos: [{ \"title\": \"...\", \"url\": \"https://www.youtube.com/watch?v=...\" }].",
+  "lastUpdated": "2026-09-29",
+  "seeds": {},
+  "videos": []
+}

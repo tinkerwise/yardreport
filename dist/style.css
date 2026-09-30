@@ -4946,3 +4946,149 @@ a.prospect-name:hover { color: var(--orange); }
 .asg-promo-title { font-size: 0.76rem; font-weight: 700; color: var(--text); }
 .asg-promo-date { font-size: 0.64rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .roster-name[data-pid]:hover { color: var(--orange); }
+
+/* ── Postseason page ─────────────────────────────────────────────── */
+.ps-section { margin-bottom: 18px; }
+
+/* Orioles spotlight */
+.ps-spot {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+  padding: 12px 14px; border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--orange-dim), transparent 70%), var(--card);
+  border: 1px solid color-mix(in srgb, var(--orange) 40%, var(--border) 60%);
+}
+.ps-spot--out { background: var(--card); border-color: var(--border); }
+.ps-spot-logo { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; }
+.ps-spot-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ps-spot-line { font-size: 1rem; font-weight: 700; color: var(--text); }
+.ps-spot-sub { font-size: 0.74rem; color: var(--text-2); }
+.ps-spot-link { font-size: 0.74rem; color: var(--orange); text-decoration: none; margin-top: 2px; }
+
+/* Shared bits */
+.ps-seed { font-size: 0.6rem; font-weight: 700; color: var(--text-3); width: 10px; text-align: right; flex-shrink: 0; }
+.ps-logo { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
+.ps-logo-blank { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 1px dashed var(--border-light); flex-shrink: 0; }
+.ps-status--live { color: #22c55e; font-weight: 700; }
+.ps-status--final { color: var(--text-3); font-weight: 700; text-transform: uppercase; }
+.ps-status--postponed { color: #ef4444; }
+.ps-status--delay { color: #3b82f6; }
+.ps-row--orioles .ps-abbr, .roster-item.ps-row--orioles .roster-name { color: var(--orange); }
+
+/* Today's games */
+.ps-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 10px; }
+.ps-game {
+  display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+  text-decoration: none; color: var(--text); transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.ps-game:hover { transform: translateY(-1px); border-color: var(--orange); }
+.ps-game--orioles { border-color: color-mix(in srgb, var(--orange) 55%, var(--border) 45%); }
+.ps-game--live { border-color: rgba(34,197,94,0.5); }
+.ps-game-kicker { display: flex; justify-content: space-between; gap: 8px; font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); }
+.ps-game-team { display: flex; align-items: center; gap: 8px; }
+.ps-game-team .ps-logo { width: 22px; height: 22px; }
+.ps-game-name { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 0.86rem; font-weight: 600; }
+.ps-game-sub { font-size: 0.66rem; font-weight: 400; color: var(--text-3); }
+.ps-game-score { font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ps-game-team--win .ps-game-score { color: var(--orange); }
+.ps-game-team--lose { color: var(--text-3); }
+.ps-game-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-2); border-top: 1px solid var(--border); padding-top: 6px; }
+.ps-game-foot .ps-status--live { display: inline-flex; align-items: center; gap: 6px; }
+.ps-game-tv { color: var(--text-3); white-space: nowrap; }
+
+/* Bracket — desktop: AL rounds | World Series | NL rounds (mirrored) */
+.ps-bracket { display: grid; grid-template-columns: minmax(0, 3fr) minmax(118px, 1fr) minmax(0, 3fr); gap: 10px; margin-top: 10px; align-items: stretch; }
+.ps-league { min-width: 0; display: flex; flex-direction: column; }
+.ps-league-head { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); padding-bottom: 6px; border-bottom: 2px solid var(--orange); margin-bottom: 8px; }
+.ps-league--nl .ps-league-head { border-bottom-color: #3b82f6; text-align: right; }
+.ps-rounds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; flex: 1; }
+.ps-league--nl .ps-rounds { direction: rtl; }
+.ps-league--nl .ps-round { direction: ltr; }
+.ps-round { display: flex; flex-direction: column; min-width: 0; }
+.ps-round-head { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); text-align: center; margin-bottom: 6px; }
+.ps-round-body { display: flex; flex-direction: column; justify-content: space-around; gap: 10px; flex: 1; }
+.ps-final { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding-top: 22px; }
+.ps-matchup {
+  display: flex; flex-direction: column; width: 100%; padding: 4px 6px 5px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
+  font: inherit; color: inherit; text-align: left;
+}
+button.ps-matchup { cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+button.ps-matchup:hover { border-color: var(--orange); }
+.ps-matchup:not(.ps-matchup--active) { border-style: dashed; opacity: 0.8; }
+.ps-matchup--live { border-color: rgba(34,197,94,0.6); box-shadow: 0 0 0 1px rgba(34,197,94,0.25); }
+.ps-matchup--orioles { border-color: var(--orange); }
+.ps-matchup--selected { box-shadow: 0 0 0 2px var(--orange); }
+.ps-final .ps-matchup { border-width: 2px; }
+.ps-row { display: flex; align-items: center; gap: 5px; padding: 2px 0; min-width: 0; }
+.ps-abbr { flex: 1; font-size: 0.74rem; font-weight: 700; color: var(--text); min-width: 0; }
+.ps-wins { font-size: 0.8rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+.ps-row--winner .ps-wins { color: var(--orange); }
+.ps-row--out .ps-abbr, .ps-row--out .ps-wins { color: var(--text-3); font-weight: 500; text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--text-3) 60%, transparent); }
+.ps-row--out .ps-logo { opacity: 0.45; filter: grayscale(1); }
+.ps-row--tbd .ps-abbr { color: var(--text-3); font-weight: 500; font-style: italic; }
+.ps-foot { display: flex; align-items: center; gap: 4px; font-size: 0.58rem; color: var(--text-3); border-top: 1px solid var(--border); margin-top: 3px; padding-top: 3px; line-height: 1.3; }
+.ps-byes { display: flex; flex-direction: column; gap: 4px; }
+.ps-bye { display: flex; align-items: center; gap: 5px; padding: 3px 6px; border-radius: 6px; background: var(--orange-dim); }
+.ps-bye-tag { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); }
+.ps-trophy { font-size: 2rem; text-align: center; opacity: 0.35; }
+.ps-champ { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.ps-champ img { width: 48px; height: 48px; object-fit: contain; }
+.ps-champ-kicker { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); }
+.ps-champ-name { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+
+/* Series detail (opens under the bracket) */
+.ps-detail { margin-top: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.ps-detail-head { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: 700; color: var(--text); }
+.ps-detail-status { margin-left: auto; font-size: 0.72rem; color: var(--orange); white-space: nowrap; }
+.ps-detail-close { background: none; border: none; color: var(--text-3); font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0 2px; }
+.ps-detail-close:hover { color: var(--text); }
+.ps-detail-game { display: grid; grid-template-columns: 60px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 7px 12px; font-size: 0.74rem; color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); }
+.ps-detail-game:last-child { border-bottom: none; }
+.ps-detail-game:hover { background: var(--orange-dim); }
+.ps-detail-num { font-weight: 700; color: var(--text); }
+.ps-detail-score { color: var(--text); font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.ps-detail-tv { color: var(--text-3); font-size: 0.66rem; white-space: nowrap; }
+.ps-ifnec { font-size: 0.6rem; color: var(--text-3); font-style: italic; margin-left: 4px; }
+
+/* News */
+.ps-news-filters { margin: 10px 0 8px; }
+.ps-news-pill { display: inline-flex; align-items: center; gap: 4px; }
+.ps-news-pill--out { opacity: 0.6; }
+.ps-pill-count { font-size: 0.6rem; opacity: 0.7; margin-left: 2px; }
+.ps-news-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 14px; }
+.ps-news-list a.news-thumb-card:last-child { border-bottom: 1px solid var(--border); }
+.ps-news-more { margin-top: 10px; }
+
+/* Sidebar schedule */
+.ps-info-row { padding: 7px 0; border-bottom: 1px solid var(--border); }
+.ps-info-row:last-of-type { border-bottom: none; }
+.ps-info-main { display: flex; justify-content: space-between; gap: 8px; }
+.ps-info-round { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+.ps-info-dates { font-size: 0.74rem; color: var(--text-2); white-space: nowrap; }
+.ps-info-meta { font-size: 0.66rem; color: var(--text-3); margin-top: 2px; }
+.ps-info-row--in-progress .ps-info-round { color: var(--orange); }
+.ps-info-row--complete { opacity: 0.65; }
+#psInfo .asg-countdown { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+
+/* Tablet: leagues stack, World Series between them */
+@media (max-width: 1000px) {
+  .ps-bracket { grid-template-columns: 1fr; gap: 16px; }
+  .ps-league--nl .ps-rounds { direction: ltr; }
+  .ps-league--nl .ps-league-head { text-align: left; }
+  .ps-final { padding-top: 0; max-width: 260px; width: 100%; margin: 0 auto; }
+}
+/* Phone: each round becomes its own row */
+@media (max-width: 560px) {
+  .ps-rounds { grid-template-columns: 1fr; gap: 12px; }
+  .ps-round-head { text-align: left; }
+  .ps-round-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ps-round--cs .ps-round-body { grid-template-columns: 1fr; }
+  .ps-byes { grid-column: 1 / -1; flex-direction: row; }
+  .ps-bye { flex: 1; }
+  .ps-news-list { grid-template-columns: 1fr; }
+  .ps-detail-game { grid-template-columns: 52px minmax(0, 1fr) auto; }
+  .ps-detail-tv { display: none; }
+  .ps-games { grid-template-columns: 1fr; }
+}
+.event-card-img--emoji { display: flex; align-items: center; justify-content: center; font-size: 1.3rem; background: var(--orange-dim); }
