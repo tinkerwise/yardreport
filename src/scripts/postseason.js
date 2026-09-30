@@ -4,9 +4,9 @@
 // with whatever postseason series the schedule shows for those teams.
 // public/postseason.json only carries optional manual overrides.
 import './theme.js';
-import { MLB, ORIOLES_ID, PROXY, SEASON, TEAM_ABBREV } from './config.js';
+import { MLB, ORIOLES_ID, PROXY, SEASON, TEAM_ABBREV, TEAM_SLUG } from './config.js';
 import { $, esc, teamLogoSrc, cleanFeedText, extractThumbnail, renderNewsThumbCard, fetchOgImage, decodeHtmlEntities, formatGameTime, localDateStr, savantUrl } from './utils.js';
-import { getScoreChipStatus, getGamedayUrl } from './scores.js';
+import { getScoreChipStatus } from './scores.js';
 import { fetchStandings, fetchLeagueLeaders } from './mlbApi.js';
 
 const ROUNDS = {
@@ -220,6 +220,17 @@ function gameNumberLabel(g) {
   return g.seriesGameNumber ? `Game ${g.seriesGameNumber}` : '';
 }
 
+// One Gameday link per game for its whole life: with no /preview or /final
+// suffix, MLB opens whichever view fits — the live Gameday while it's on,
+// the wrap-up afterwards — so a link opened mid-game still works post-game.
+function gamedayUrl(g) {
+  const slug = t => TEAM_SLUG[t.id] ?? t.name.split(' ').pop().toLowerCase();
+  // officialDate is the ballpark's local date; gameDate is UTC and can
+  // roll over to tomorrow for a night game.
+  const date = (g.officialDate ?? g.gameDate.slice(0, 10)).replace(/-/g, '/');
+  return `https://www.mlb.com/gameday/${slug(g.teams.away.team)}-vs-${slug(g.teams.home.team)}/${date}/${g.gamePk}`;
+}
+
 function broadcastText(g) {
   const national = (g.broadcasts ?? []).filter(b => b.type === 'TV' && (b.isNational || !b.homeAway || b.homeAway === 'national'));
   const list = (national.length ? national : (g.broadcasts ?? []).filter(b => b.type === 'TV'))
@@ -228,102 +239,81 @@ function broadcastText(g) {
 }
 
 // ── Render: bracket ───────────────────────────────────────────────
-// Each box is a series, but it shows that series' current or most recent
-// game (runs, not series wins), so the numbers mean what they look like.
-// Priority: a live game, then one still to be played today, then the
-// latest final, then the next scheduled game.
-function featuredGame(s) {
-  if (!s) return null;
-  const today = localDateStr(0);
-  const playable = s.games.filter(g => !/postponed|cancel/i.test(g.status?.detailedState ?? ''));
-  return playable.find(g => g.status?.abstractGameState === 'Live')
-    ?? playable.find(g => g.status?.abstractGameState === 'Preview' && localIso(new Date(g.gameDate)) === today)
-    ?? [...playable].reverse().find(g => g.status?.abstractGameState === 'Final')
-    ?? playable.find(g => g.status?.abstractGameState === 'Preview')
-    ?? null;
+// Boxes carry no numbers at all — just the two teams' abbreviations (full
+// name on hover), with the series standing in the footer — so nothing in
+// the bracket reads like a game score. Game-by-game scores live in the
+// detail panel a tap away.
+function teamShort(id) {
+  return NICKNAMES[id] ?? state.teamNames[id]?.teamName ?? state.standings?.[id]?.team?.name?.split(' ').pop() ?? abbr(id);
 }
 
-function gameKicker(g) {
-  if (!g) return '';
-  const num = g.seriesGameNumber ? `G${g.seriesGameNumber}` : '';
-  const st = g.status?.abstractGameState;
-  if (st === 'Live') {
-    const half = g.linescore?.inningHalf === 'Top' ? '▲' : '▼';
-    const inn = g.linescore?.currentInning ?? '';
-    return `<span class="live-dot" aria-hidden="true"></span><span class="ps-kick-live">${num} · ${half}${inn}</span>`;
-  }
-  if (st === 'Final') return `${num} · Final`;
-  // Today's game shows its first-pitch time; later games just the date,
-  // which is all that fits in a narrow bracket box.
-  const when = new Date(g.gameDate);
-  if (localIso(when) === localDateStr(0)) return `${num} · ${formatGameTime(g.gameDate)}`;
-  return `${num} · ${when.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`;
-}
-
-function renderTeamRow(id, s, g) {
+function renderTeamRow(id, s) {
   if (!id) {
-    return `<div class="ps-row ps-row--tbd"><span class="ps-seed"></span><span class="ps-logo-blank"></span><span class="ps-abbr">TBD</span><span class="ps-runs"></span></div>`;
+    return `<div class="ps-row ps-row--tbd"><span class="ps-seed"></span><span class="ps-logo-blank"></span><span class="ps-name">TBD</span></div>`;
   }
-  const showRuns = g && g.status?.abstractGameState !== 'Preview';
-  const side = g ? (g.teams.away.team.id === id ? g.teams.away : g.teams.home) : null;
-  const other = g ? (g.teams.away.team.id === id ? g.teams.home : g.teams.away) : null;
-  const runs = showRuns ? (side?.score ?? 0) : '';
   const cls = [];
-  if (showRuns && g.status?.abstractGameState === 'Final') {
-    if ((side?.score ?? 0) > (other?.score ?? 0)) cls.push('ps-row--gwin');
-    else cls.push('ps-row--glose');
-  }
+  if (s?.winner === id) cls.push('ps-row--adv');
   if (s?.loser === id) cls.push('ps-row--out');
   if (id === ORIOLES_ID) cls.push('ps-row--orioles');
-  return `<div class="ps-row ${cls.join(' ')}">
+  return `<div class="ps-row ${cls.join(' ')}" title="${esc(state.teamNames[id]?.name ?? teamShort(id))}">
     <span class="ps-seed">${seedOf(id) ?? ''}</span>
     <img class="ps-logo" src="${esc(teamLogoSrc(id, 18))}" alt="" width="18" height="18" loading="lazy">
-    <span class="ps-abbr">${esc(abbr(id))}</span>
-    <span class="ps-runs">${runs}</span>
+    <span class="ps-name">${esc(abbr(id))}</span>
   </div>`;
 }
 
 function seriesFootText(s) {
   const wt = s.wins[s.top], wb = s.wins[s.bottom];
   if (s.winner) return `${abbr(s.winner)} wins series ${s.wins[s.winner]}–${s.wins[s.loser]}`;
-  if (wt === 0 && wb === 0) return `Series: best of ${s.round.bestOf}`;
+  if (wt === 0 && wb === 0) return `Best of ${s.round.bestOf}`;
   if (wt === wb) return `Series tied ${wt}–${wb}`;
   const leader = wt > wb ? s.top : s.bottom;
   return `${abbr(leader)} leads series ${Math.max(wt, wb)}–${Math.min(wt, wb)}`;
 }
 
+// Start of a series that hasn't begun: its own Game 1 once the matchup is
+// set, otherwise the round's first scheduled game (MLB posts round dates
+// with placeholder teams before the matchups are known).
+function startText(sl) {
+  const s = sl.series;
+  let first = s?.games.find(g => g.status?.abstractGameState === 'Preview');
+  if (!first) first = state.games.find(g => g.gameType === sl.type && g.status?.abstractGameState === 'Preview');
+  if (!first) return '';
+  const when = new Date(first.gameDate);
+  if (localIso(when) === localDateStr(0)) return `Today ${formatGameTime(first.gameDate)}`;
+  return `Starts ${when.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`;
+}
+
 function renderMatchup(sl) {
   const s = sl.series;
-  const g = featuredGame(s);
   const hasO = sl.teams.includes(ORIOLES_ID);
   const cls = ['ps-matchup'];
   if (s) cls.push('ps-matchup--active');
   if (s?.isLive) cls.push('ps-matchup--live');
   if (hasO) cls.push('ps-matchup--orioles');
   if (s && state.selectedSeries === s.key) cls.push('ps-matchup--selected');
-  // Rows follow the featured game's away/home order so the score reads
-  // like any other scoreboard; TBD slots keep the bracket's seed order.
-  const rows = g ? [g.teams.away.team.id, g.teams.home.team.id] : sl.teams;
-  const kicker = g ? gameKicker(g) : '';
-  const foot = s ? seriesFootText(s) : `Best of ${ROUNDS[sl.type].bestOf}`;
+  const notStarted = !s || !s.games.some(g => g.status?.abstractGameState !== 'Preview');
+  const start = notStarted ? startText(sl) : '';
+  const text = [s ? seriesFootText(s) : `Best of ${ROUNDS[sl.type].bestOf}`, start].filter(Boolean).join(' · ');
+  const foot = s?.isLive
+    ? `<span class="live-dot" aria-hidden="true"></span><span class="ps-foot-live">Live</span> · ${esc(text)}`
+    : esc(text);
   const tag = s ? 'button' : 'div';
-  const label = s ? `${roundLabel(s)}: ${abbr(s.top)} vs ${abbr(s.bottom)}, ${seriesFootText(s)}${s.isLive ? ', game in progress' : ''}` : '';
+  const label = s ? `${roundLabel(s)}: ${teamShort(s.top)} vs ${teamShort(s.bottom)}, ${text}${s.isLive ? ', game in progress' : ''}` : '';
   return `<${tag} class="${cls.join(' ')}"${s ? ` type="button" data-series="${esc(s.key)}" aria-label="${esc(label)}"` : ''}>
-    ${kicker ? `<div class="ps-kick">${kicker}</div>` : ''}
-    ${renderTeamRow(rows[0], s, g)}
-    ${renderTeamRow(rows[1], s, g)}
-    <div class="ps-foot">${esc(foot)}</div>
+    ${renderTeamRow(sl.teams[0], s)}
+    ${renderTeamRow(sl.teams[1], s)}
+    <div class="ps-foot">${foot}</div>
   </${tag}>`;
 }
 
 function renderByes(ids) {
   if (!ids.length) return '';
-  return `<div class="ps-byes">${ids.map(id => `
-    <div class="ps-bye${id === ORIOLES_ID ? ' ps-row--orioles' : ''}">
+  return `<div class="ps-byes"><div class="ps-byes-head">Byes to Division Series</div>${ids.map(id => `
+    <div class="ps-bye${id === ORIOLES_ID ? ' ps-row--orioles' : ''}" title="${esc(state.teamNames[id]?.name ?? teamShort(id))}">
       <span class="ps-seed">${seedOf(id) ?? ''}</span>
       <img class="ps-logo" src="${esc(teamLogoSrc(id, 18))}" alt="" width="18" height="18" loading="lazy">
-      <span class="ps-abbr">${esc(abbr(id))}</span>
-      <span class="ps-bye-tag">Bye</span>
+      <span class="ps-name">${esc(abbr(id))}</span>
     </div>`).join('')}</div>`;
 }
 
@@ -413,7 +403,7 @@ function renderGameLine(g) {
   const tv = broadcastText(g);
   const live = stateClass === 'live' ? '<span class="live-dot" aria-hidden="true"></span>' : '';
   return `<div class="ps-detail-block">
-    <a class="ps-detail-game" href="${esc(getGamedayUrl(g))}" target="_blank" rel="noopener">
+    <a class="ps-detail-game" href="${esc(gamedayUrl(g))}" target="_blank" rel="noopener">
       <span class="ps-detail-num">${esc(gameNumberLabel(g) || '—')}</span>
       <span class="ps-detail-date">${esc(date)} · ${esc(abbr(a.team.id))} @ ${esc(abbr(h.team.id))}${ifNec}</span>
       <span class="ps-detail-score ps-status--${stateClass}">${live}${score ? esc(score) : statusInner}</span>
@@ -470,7 +460,7 @@ function renderGameCard(g) {
     </div>`;
   };
   const tv = broadcastText(g);
-  return `<a class="ps-game${hasO ? ' ps-game--orioles' : ''} ps-game--${stateClass}" href="${esc(getGamedayUrl(g))}" target="_blank" rel="noopener">
+  return `<a class="ps-game${hasO ? ' ps-game--orioles' : ''} ps-game--${stateClass}" href="${esc(gamedayUrl(g))}" target="_blank" rel="noopener">
     <div class="ps-game-kicker">
       <span>${esc([roundLabel(s) || ROUNDS[g.gameType].label, gameNumberLabel(g)].filter(Boolean).join(' · '))}</span>
       <span>${s ? esc(seriesStatusText(s)) : ''}</span>
@@ -703,7 +693,7 @@ function fieldTeams() {
 }
 
 // Two-word nicknames that a last-word split would get wrong ("Sox").
-const NICKNAMES = { 111: 'Red Sox', 145: 'White Sox', 141: 'Blue Jays' };
+const NICKNAMES = { 109: 'D-backs', 111: 'Red Sox', 145: 'White Sox', 141: 'Blue Jays' };
 
 function teamMatcher(id) {
   const name = NICKNAMES[id] ?? state.teamNames[id]?.teamName ?? state.standings?.[id]?.team?.name?.split(' ').pop();

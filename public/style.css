@@ -4965,14 +4965,14 @@ a.prospect-name:hover { color: var(--orange); }
 .ps-spot-link { font-size: 0.74rem; color: var(--orange); text-decoration: none; margin-top: 2px; }
 
 /* Shared bits */
-.ps-seed { font-size: 0.6rem; font-weight: 700; color: var(--text-3); width: 10px; text-align: right; flex-shrink: 0; }
+.ps-seed { font-size: 0.6rem; font-weight: 700; color: var(--text-3); width: 8px; text-align: right; flex-shrink: 0; }
 .ps-logo { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
 .ps-logo-blank { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 1px dashed var(--border-light); flex-shrink: 0; }
 .ps-status--live { color: #22c55e; font-weight: 700; }
 .ps-status--final { color: var(--text-3); font-weight: 700; text-transform: uppercase; }
 .ps-status--postponed { color: #ef4444; }
 .ps-status--delay { color: #3b82f6; }
-.ps-row--orioles .ps-abbr, .roster-item.ps-row--orioles .roster-name { color: var(--orange); }
+.ps-row--orioles .ps-name, .roster-item.ps-row--orioles .roster-name { color: var(--orange); }
 
 /* Today's games */
 .ps-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 10px; }
@@ -4997,11 +4997,11 @@ a.prospect-name:hover { color: var(--orange); }
 .ps-game-tv { color: var(--text-3); white-space: nowrap; }
 
 /* Bracket — desktop: AL rounds | World Series | NL rounds (mirrored) */
-.ps-bracket { display: grid; grid-template-columns: minmax(0, 3fr) minmax(118px, 1fr) minmax(0, 3fr); gap: 10px; margin-top: 10px; align-items: stretch; }
+.ps-bracket { display: grid; grid-template-columns: minmax(0, 1fr) 104px minmax(0, 1fr); gap: 8px; margin-top: 10px; align-items: stretch; }
 .ps-league { min-width: 0; display: flex; flex-direction: column; }
 .ps-league-head { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); padding-bottom: 6px; border-bottom: 2px solid var(--orange); margin-bottom: 8px; }
 .ps-league--nl .ps-league-head { border-bottom-color: #3b82f6; text-align: right; }
-.ps-rounds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; flex: 1; }
+.ps-rounds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; flex: 1; }
 .ps-league--nl .ps-rounds { direction: rtl; }
 .ps-league--nl .ps-round { direction: ltr; }
 .ps-round { display: flex; flex-direction: column; min-width: 0; }
@@ -5009,7 +5009,7 @@ a.prospect-name:hover { color: var(--orange); }
 .ps-round-body { display: flex; flex-direction: column; justify-content: space-around; gap: 10px; flex: 1; }
 .ps-final { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding-top: 22px; }
 .ps-matchup {
-  display: flex; flex-direction: column; width: 100%; padding: 4px 6px 5px;
+  display: flex; flex-direction: column; width: 100%; padding: 4px 5px 5px;
   border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
   font: inherit; color: inherit; text-align: left;
 }
@@ -5020,21 +5020,17 @@ button.ps-matchup:hover { border-color: var(--orange); }
 .ps-matchup--orioles { border-color: var(--orange); }
 .ps-matchup--selected { box-shadow: 0 0 0 2px var(--orange); }
 .ps-final .ps-matchup { border-width: 2px; }
-.ps-row { display: flex; align-items: center; gap: 5px; padding: 2px 0; min-width: 0; }
-.ps-abbr { flex: 1; font-size: 0.74rem; font-weight: 700; color: var(--text); min-width: 0; }
-.ps-runs { font-size: 0.82rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
-.ps-row--gwin .ps-runs { color: var(--orange); }
-.ps-row--glose .ps-abbr, .ps-row--glose .ps-runs { color: var(--text-2); font-weight: 600; }
-.ps-row--out .ps-abbr { color: var(--text-3); font-weight: 500; text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--text-3) 60%, transparent); }
-.ps-kick { display: flex; align-items: center; gap: 5px; font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); border-bottom: 1px solid var(--border); margin-bottom: 3px; padding-bottom: 3px; white-space: nowrap; overflow: hidden; }
-.ps-kick .live-dot { width: 6px; height: 6px; }
-.ps-kick-live { color: #ef4444; }
-.ps-row--out .ps-logo { opacity: 0.45; filter: grayscale(1); }
-.ps-row--tbd .ps-abbr { color: var(--text-3); font-weight: 500; font-style: italic; }
-.ps-foot { display: flex; align-items: center; gap: 4px; font-size: 0.58rem; color: var(--text-3); border-top: 1px solid var(--border); margin-top: 3px; padding-top: 3px; line-height: 1.3; }
+.ps-row { display: flex; align-items: center; gap: 4px; padding: 2px 0; min-width: 0; }
+.ps-name { flex: 1; font-size: 0.7rem; font-weight: 700; color: var(--text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-row--adv .ps-name { color: var(--orange); }
+.ps-row--out .ps-name { color: var(--text-3); font-weight: 500; text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--text-3) 60%, transparent); }
+.ps-row--tbd .ps-name { color: var(--text-3); font-weight: 500; font-style: italic; }
+.ps-foot-live { color: #ef4444; font-weight: 700; }
+.ps-foot .live-dot { display: inline-block; width: 6px; height: 6px; margin-right: 3px; vertical-align: 1px; }
+.ps-foot { display: block; font-size: 0.58rem; color: var(--text-3); border-top: 1px solid var(--border); margin-top: 3px; padding-top: 3px; line-height: 1.3; }
 .ps-byes { display: flex; flex-direction: column; gap: 4px; }
-.ps-bye { display: flex; align-items: center; gap: 5px; padding: 3px 6px; border-radius: 6px; background: var(--orange-dim); }
-.ps-bye-tag { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); }
+.ps-byes-head { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin-top: 2px; }
+.ps-bye { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 6px; background: var(--orange-dim); }
 .ps-trophy { font-size: 2rem; text-align: center; opacity: 0.35; }
 .ps-champ { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
 .ps-champ img { width: 48px; height: 48px; object-fit: contain; }
@@ -5088,7 +5084,7 @@ button.ps-matchup:hover { border-color: var(--orange); }
   .ps-bracket { grid-template-columns: 1fr; gap: 16px; }
   .ps-league--nl .ps-rounds { direction: ltr; }
   .ps-league--nl .ps-league-head { text-align: left; }
-  .ps-final { padding-top: 0; max-width: 260px; width: 100%; margin: 0 auto; }
+  .ps-final { padding-top: 0; max-width: 200px; width: 100%; margin: 0 auto; }
 }
 /* Phone: each round becomes its own row */
 @media (max-width: 560px) {
@@ -5096,7 +5092,8 @@ button.ps-matchup:hover { border-color: var(--orange); }
   .ps-round-head { text-align: left; }
   .ps-round-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .ps-round--cs .ps-round-body { grid-template-columns: 1fr; }
-  .ps-byes { grid-column: 1 / -1; flex-direction: row; }
+  .ps-byes { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+  .ps-byes-head { width: 100%; }
   .ps-bye { flex: 1; }
   .ps-news-list { grid-template-columns: 1fr; }
   .ps-detail-game { grid-template-columns: 52px minmax(0, 1fr) auto; }
