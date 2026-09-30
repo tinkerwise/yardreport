@@ -4,6 +4,11 @@ Week of September 28, 2026
 
 September 30, 2026
 
+Postseason Bracket — Links and Byes
+- Clicking a bracket box during a live game now opens that game's Gameday; otherwise it still opens the game-by-game panel.
+- Finished games in the panel link to MLB's Game Wrap, and the panel ends with a link to MLB.com's postseason hub.
+- Removed the separate first-round bye rows; the top two seeds already appear in their Division Series boxes.
+
 Postseason Bracket — No Numbers Beside Teams
 - Removed the seed number beside each team's logo in bracket boxes and bye rows; it read like a series tally. Seeds now show in the hover text ("No. 3 seed · Seattle Mariners").
 
