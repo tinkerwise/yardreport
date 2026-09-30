@@ -179,7 +179,7 @@ function buildBracket() {
       const dsA = slot('D', [s[0], wcB.series?.winner ?? null]);
       const dsB = slot('D', [s[1], wcA.series?.winner ?? null]);
       const cs = slot('L', [dsA.series?.winner ?? null, dsB.series?.winner ?? null]);
-      out[lg] = { F: [wcA, wcB], D: [dsA, dsB], L: [cs], byes: [s[0], s[1]] };
+      out[lg] = { F: [wcA, wcB], D: [dsA, dsB], L: [cs] };
     } else {
       // No standings — fall back to whatever series exist, padded with TBD.
       const pick = (type, n) => {
@@ -188,7 +188,7 @@ function buildBracket() {
         while (found.length < n) found.push({ type, series: null, teams: [null, null] });
         return found.slice(0, n);
       };
-      out[lg] = { F: pick('F', 2), D: pick('D', 2), L: pick('L', 1), byes: [] };
+      out[lg] = { F: pick('F', 2), D: pick('D', 2), L: pick('L', 1) };
     }
   }
   out.WS = slot('W', [out.AL.L[0].series?.winner ?? null, out.NL.L[0].series?.winner ?? null]);
@@ -305,28 +305,29 @@ function renderMatchup(sl) {
   const foot = s?.isLive
     ? `<span class="live-dot" aria-hidden="true"></span><span class="ps-foot-live">Live</span> · ${esc(text)}`
     : esc(text);
-  const tag = s ? 'button' : 'div';
-  const label = s ? `${roundLabel(s)}: ${teamShort(s.top)} vs ${teamShort(s.bottom)}, ${text}${s.isLive ? ', game in progress' : ''}` : '';
-  return `<${tag} class="${cls.join(' ')}"${s ? ` type="button" data-series="${esc(s.key)}" aria-label="${esc(label)}"` : ''}>
+  // A live series jumps straight to that game's Gameday; any other series
+  // opens the game-by-game panel below the bracket.
+  const liveGame = s?.isLive ? s.games.find(g => g.status?.abstractGameState === 'Live') : null;
+  const label = s ? `${roundLabel(s)}: ${teamShort(s.top)} vs ${teamShort(s.bottom)}, ${text}${liveGame ? ', game in progress — open Gameday' : ''}` : '';
+  let tag = 'div', attrs = '';
+  if (liveGame) {
+    tag = 'a';
+    attrs = ` href="${esc(gamedayUrl(liveGame))}" target="_blank" rel="noopener" aria-label="${esc(label)}"`;
+  } else if (s) {
+    tag = 'button';
+    attrs = ` type="button" data-series="${esc(s.key)}" aria-label="${esc(label)}"`;
+  }
+  return `<${tag} class="${cls.join(' ')}"${attrs}>
     ${renderTeamRow(sl.teams[0], s)}
     ${renderTeamRow(sl.teams[1], s)}
     <div class="ps-foot">${foot}</div>
   </${tag}>`;
 }
 
-function renderByes(ids) {
-  if (!ids.length) return '';
-  return `<div class="ps-byes"><div class="ps-byes-head">Byes to Division Series</div>${ids.map(id => `
-    <div class="ps-bye${id === ORIOLES_ID ? ' ps-row--orioles' : ''}" title="${esc(teamTitle(id))}">
-      <img class="ps-logo" src="${esc(teamLogoSrc(id, 18))}" alt="" width="18" height="18" loading="lazy">
-      <span class="ps-name">${esc(abbr(id))}</span>
-    </div>`).join('')}</div>`;
-}
-
-function renderRound(type, slots, extra = '') {
+function renderRound(type, slots) {
   return `<div class="ps-round ps-round--${ROUNDS[type].key}">
     <div class="ps-round-head">${esc(ROUNDS[type].short)}</div>
-    <div class="ps-round-body">${slots.map(renderMatchup).join('')}${extra}</div>
+    <div class="ps-round-body">${slots.map(renderMatchup).join('')}</div>
   </div>`;
 }
 
@@ -334,7 +335,7 @@ function renderLeague(lg, b) {
   return `<div class="ps-league ps-league--${lg.toLowerCase()}">
     <div class="ps-league-head">${lg === 'AL' ? 'American League' : 'National League'}</div>
     <div class="ps-rounds">
-      ${renderRound('F', b.F, renderByes(b.byes))}
+      ${renderRound('F', b.F)}
       ${renderRound('D', b.D)}
       ${renderRound('L', b.L)}
     </div>
@@ -408,8 +409,10 @@ function renderGameLine(g) {
   const ifNec = g.ifNecessary === 'Y' && isPreviewLike ? ' <span class="ps-ifnec">if necessary</span>' : '';
   const tv = broadcastText(g);
   const live = stateClass === 'live' ? '<span class="live-dot" aria-hidden="true"></span>' : '';
+  // Finished games open MLB's Game Wrap; live and upcoming ones Gameday.
+  const href = stateClass === 'final' ? `${gamedayUrl(g)}/final/wrap` : gamedayUrl(g);
   return `<div class="ps-detail-block">
-    <a class="ps-detail-game" href="${esc(gamedayUrl(g))}" target="_blank" rel="noopener">
+    <a class="ps-detail-game" href="${esc(href)}" target="_blank" rel="noopener">
       <span class="ps-detail-num">${esc(gameNumberLabel(g) || '—')}</span>
       <span class="ps-detail-date">${esc(date)} · ${esc(abbr(a.team.id))} @ ${esc(abbr(h.team.id))}${ifNec}</span>
       <span class="ps-detail-score ps-status--${stateClass}">${live}${score ? esc(score) : statusInner}</span>
@@ -431,6 +434,7 @@ function renderSeriesDetail(scroll = false) {
       <button class="ps-detail-close" type="button" aria-label="Close series detail">&times;</button>
     </div>
     ${s.games.map(renderGameLine).join('')}
+    <a class="ps-detail-more" href="https://www.mlb.com/postseason" target="_blank" rel="noopener">More on MLB.com Postseason ↗</a>
   </div>`;
   el.querySelector('.ps-detail-close').addEventListener('click', () => {
     state.selectedSeries = null;
