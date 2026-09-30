@@ -4,6 +4,9 @@ Week of September 28, 2026
 
 September 30, 2026
 
+Postseason Bracket — No Numbers Beside Teams
+- Removed the seed number beside each team's logo in bracket boxes and bye rows; it read like a series tally. Seeds now show in the hover text ("No. 3 seed · Seattle Mariners").
+
 Postseason Bracket Cleanup
 - Bracket boxes no longer show any numbers (series wins read like a game score): each box is just the two teams' abbreviations and seeds (full name on hover), plus the series status underneath ("SEA leads series 1–0").
 - Series that haven't started show their start date ("Best of 5 · Starts Sat, Oct 3"), using MLB's posted round dates before matchups are set.

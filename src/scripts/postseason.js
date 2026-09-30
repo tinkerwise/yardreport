@@ -239,24 +239,31 @@ function broadcastText(g) {
 }
 
 // ── Render: bracket ───────────────────────────────────────────────
-// Boxes carry no numbers at all — just the two teams' abbreviations (full
-// name on hover), with the series standing in the footer — so nothing in
-// the bracket reads like a game score. Game-by-game scores live in the
-// detail panel a tap away.
+// Boxes carry no numbers at all — just the two teams' logos and
+// abbreviations (seed and full name on hover), with the series standing
+// in the footer — so nothing in the bracket reads like a game score.
+// Game-by-game scores live in the detail panel a tap away.
 function teamShort(id) {
   return NICKNAMES[id] ?? state.teamNames[id]?.teamName ?? state.standings?.[id]?.team?.name?.split(' ').pop() ?? abbr(id);
 }
 
+// Seeds live in the hover text rather than beside the logo, where a
+// number reads like a score or series tally.
+function teamTitle(id) {
+  const seed = seedOf(id);
+  const name = state.teamNames[id]?.name ?? teamShort(id);
+  return seed ? `No. ${seed} seed · ${name}` : name;
+}
+
 function renderTeamRow(id, s) {
   if (!id) {
-    return `<div class="ps-row ps-row--tbd"><span class="ps-seed"></span><span class="ps-logo-blank"></span><span class="ps-name">TBD</span></div>`;
+    return `<div class="ps-row ps-row--tbd"><span class="ps-logo-blank"></span><span class="ps-name">TBD</span></div>`;
   }
   const cls = [];
   if (s?.winner === id) cls.push('ps-row--adv');
   if (s?.loser === id) cls.push('ps-row--out');
   if (id === ORIOLES_ID) cls.push('ps-row--orioles');
-  return `<div class="ps-row ${cls.join(' ')}" title="${esc(state.teamNames[id]?.name ?? teamShort(id))}">
-    <span class="ps-seed">${seedOf(id) ?? ''}</span>
+  return `<div class="ps-row ${cls.join(' ')}" title="${esc(teamTitle(id))}">
     <img class="ps-logo" src="${esc(teamLogoSrc(id, 18))}" alt="" width="18" height="18" loading="lazy">
     <span class="ps-name">${esc(abbr(id))}</span>
   </div>`;
@@ -310,8 +317,7 @@ function renderMatchup(sl) {
 function renderByes(ids) {
   if (!ids.length) return '';
   return `<div class="ps-byes"><div class="ps-byes-head">Byes to Division Series</div>${ids.map(id => `
-    <div class="ps-bye${id === ORIOLES_ID ? ' ps-row--orioles' : ''}" title="${esc(state.teamNames[id]?.name ?? teamShort(id))}">
-      <span class="ps-seed">${seedOf(id) ?? ''}</span>
+    <div class="ps-bye${id === ORIOLES_ID ? ' ps-row--orioles' : ''}" title="${esc(teamTitle(id))}">
       <img class="ps-logo" src="${esc(teamLogoSrc(id, 18))}" alt="" width="18" height="18" loading="lazy">
       <span class="ps-name">${esc(abbr(id))}</span>
     </div>`).join('')}</div>`;
