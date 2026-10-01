@@ -1,6 +1,6 @@
 {
   "source": "https://www.mlb.com/orioles/ballpark/music",
-  "updatedAt": "2026-09-26T11:19:17.588Z",
+  "updatedAt": "2026-09-30T03:30:44.827Z",
   "players": {
     "544150": {
       "name": "Albert Suárez",
@@ -137,6 +137,31 @@
         }
       ]
     },
+    "671382": {
+      "name": "Cameron Foster",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/6WAerOuiLIApXmGhjMPA65",
+          "title": "Evenflow",
+          "artist": "Pearl Jam"
+        }
+      ]
+    },
+    "673357": {
+      "name": "Luis Robert Jr.",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/4vUcoqQTwNQkkzb73UYh3L",
+          "title": "El Campeón",
+          "artist": "El Kimiko y Yordy, Michel Boutic, EL YORDY DK"
+        },
+        {
+          "url": "https://open.spotify.com/track/5dxwCMt2trO5OoYlzpVMrn",
+          "title": "De Donde Yo Salí",
+          "artist": "L Kimii, DJ Conds"
+        }
+      ]
+    },
     "676480": {
       "name": "José Barrero",
       "songs": [
@@ -184,6 +209,16 @@
           "url": "https://open.spotify.com/track/0lEhBFZWCLME9aOkC4iyhW",
           "title": "Bag Rite",
           "artist": "Loe Shimmy"
+        }
+      ]
+    },
+    "682274": {
+      "name": "Yaramil Hiraldo",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/3QHMxEOAGD51PDlbFPHLyJ",
+          "title": "Vivir Mi Vida",
+          "artist": "Marc Anthony"
         }
       ]
     },
@@ -237,6 +272,16 @@
         }
       ]
     },
+    "691172": {
+      "name": "Yosver Zulueta",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/7n9blOgIIsYDr1tXQ1XPHZ",
+          "title": "Nada Me Afecta",
+          "artist": "El Kamel, El Dany MG"
+        }
+      ]
+    },
     "691723": {
       "name": "Coby Mayo",
       "songs": [
@@ -244,6 +289,66 @@
           "url": "https://open.spotify.com/track/4ZxMgPJDqkAbVb5dEPoGqb",
           "title": "AT THE PARTY (feat. Pharrell Williams, Travis Scott)",
           "artist": "Kid Cudi"
+        }
+      ]
+    },
+    "694212": {
+      "name": "Samuel Basallo",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/5eI7YxPbZkMi8xMeIvHqyK",
+          "title": "Misericordia",
+          "artist": "Onell Diaz, Farruko"
+        }
+      ]
+    },
+    "694346": {
+      "name": "Trey Gibson",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/2f0P7iELCvAlV8j6Z3rGDE",
+          "title": "Stranglehold",
+          "artist": "Ted Nugent"
+        }
+      ]
+    },
+    "700249": {
+      "name": "Cade Povich",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/1qPbGZqppFwLwcBC1JQ6Vr",
+          "title": "Wonderwall",
+          "artist": "Oasis"
+        }
+      ]
+    },
+    "701655": {
+      "name": "Reed Trimble",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/0NdEdsXS9jbX1hnufawZ0z",
+          "title": "Arkansas",
+          "artist": "Chris Stapleton"
+        }
+      ]
+    },
+    "702616": {
+      "name": "Jackson Holliday",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/2RlgNHKcydI9sayD2Df2xp",
+          "title": "Mr. Blue Sky",
+          "artist": "Electric Light Orchestra"
+        }
+      ]
+    },
+    "801725": {
+      "name": "Luis De León",
+      "songs": [
+        {
+          "url": "https://open.spotify.com/track/4vUcoqQTwNQkkzb73UYh3L",
+          "title": "El Campeón",
+          "artist": "El Kimiko y Yordy, Michel Boutic, EL YORDY DK"
         }
       ]
     }

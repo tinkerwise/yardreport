@@ -179,7 +179,9 @@ function buildBracket() {
       const dsA = slot('D', [s[0], wcB.series?.winner ?? null]);
       const dsB = slot('D', [s[1], wcA.series?.winner ?? null]);
       const cs = slot('L', [dsA.series?.winner ?? null, dsB.series?.winner ?? null]);
-      out[lg] = { F: [wcA, wcB], D: [dsA, dsB], L: [cs] };
+      // 4/5 feeds the 1 seed and 3/6 feeds the 2 seed, so the Wild Card
+      // column lists 4/5 first to sit beside the series it advances into.
+      out[lg] = { F: [wcB, wcA], D: [dsA, dsB], L: [cs] };
     } else {
       // No standings — fall back to whatever series exist, padded with TBD.
       const pick = (type, n) => {

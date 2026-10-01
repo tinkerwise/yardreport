@@ -5006,7 +5006,7 @@ a.prospect-name:hover { color: var(--orange); }
 .ps-league--nl .ps-round { direction: ltr; }
 .ps-round { display: flex; flex-direction: column; min-width: 0; }
 .ps-round-head { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); text-align: center; margin-bottom: 6px; }
-.ps-round-body { display: flex; flex-direction: column; justify-content: space-around; gap: 10px; flex: 1; }
+.ps-round-body { display: grid; grid-auto-rows: 1fr; align-items: center; gap: 10px; flex: 1; }
 .ps-final { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding-top: 22px; }
 .ps-matchup {
   display: flex; flex-direction: column; width: 100%; padding: 4px 5px 5px;
